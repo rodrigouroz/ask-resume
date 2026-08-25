@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
-import type { RefObject, SubmitEvent } from "react";
+import { useRef, useState } from "react";
 import type { Language } from "../content";
 import { copy, externalLinks } from "../content";
-import { citationHref, sourceLabel } from "../assistant/sources";
 import type { AssistantTurn } from "../assistant/useAssistantConversation";
-import { ArrowRightIcon, ChatIcon, CloseIcon, MailIcon } from "./Icons";
+import { ChatIcon, CloseIcon, MailIcon } from "./Icons";
+import { ChatComposer } from "./chat/ChatComposer";
+import { ChatTranscript } from "./chat/ChatTranscript";
+import { useChatFocus } from "./chat/useChatFocus";
 
 type ChatAssistantProps = {
   language: Language;
@@ -18,76 +19,6 @@ type ChatAssistantProps = {
   onAsk: (question: string) => void;
   onNewChat: () => void;
 };
-
-type AssistantFocusOptions = Pick<ChatAssistantProps, "modal" | "onClose" | "open"> & {
-  inputRef: RefObject<HTMLInputElement | null>;
-  panelRef: RefObject<HTMLElement | null>;
-};
-
-type AssistantTranscriptProps = Pick<
-  ChatAssistantProps,
-  "language" | "onClose" | "pendingQuestion" | "turns"
->;
-
-type AssistantFormProps = Pick<ChatAssistantProps, "language" | "loading" | "onAsk"> & {
-  inputRef: RefObject<HTMLInputElement | null>;
-};
-
-const focusableSelector =
-  'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
-
-function useAssistantFocus({ inputRef, modal, onClose, open, panelRef }: AssistantFocusOptions) {
-  const openerRef = useRef<HTMLElement | null>(null);
-  const wasOpen = useRef(open);
-  const wasModal = useRef(modal);
-
-  useEffect(() => {
-    if (open && (!wasOpen.current || (modal && !wasModal.current))) {
-      if (!wasOpen.current) {
-        openerRef.current =
-          document.activeElement instanceof HTMLElement ? document.activeElement : null;
-      }
-      inputRef.current?.focus();
-    } else if (!open && wasOpen.current) {
-      openerRef.current?.focus();
-    }
-    wasOpen.current = open;
-    wasModal.current = modal;
-  }, [inputRef, modal, open]);
-
-  useEffect(() => {
-    if (!open) return;
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      const panel = panelRef.current;
-      if (!modal || event.key !== "Tab" || !panel) return;
-      const focusable = Array.from(panel.querySelectorAll<HTMLElement>(focusableSelector));
-      const first = focusable[0];
-      const last = focusable.at(-1);
-      if (!first || !last) return;
-
-      if (
-        event.shiftKey &&
-        (document.activeElement === first || !panel.contains(document.activeElement))
-      ) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [modal, onClose, open, panelRef]);
-}
 
 function AssistantLaunchers({
   language,
@@ -115,106 +46,6 @@ function AssistantLaunchers({
   );
 }
 
-function AssistantTranscript({
-  language,
-  onClose,
-  pendingQuestion,
-  turns,
-}: AssistantTranscriptProps) {
-  const text = (value: Record<Language, string>) => value[language];
-
-  return (
-    <div className="chat-transcript" aria-live="polite">
-      {turns.map(({ question: turnQuestion, response }) => (
-        <div className="chat-turn" key={`${turnQuestion}:${response.answer}`}>
-          <p className="chat-question">{turnQuestion}</p>
-          <p className="chat-answer">{response.answer}</p>
-          {response.citations.map((citation) => (
-            <a
-              className="chat-source"
-              href={citationHref(citation)}
-              onClick={onClose}
-              key={`${citation.sourceId}:${citation.sectionId}`}
-            >
-              [{sourceLabel(citation.sourceId, response.language)}]
-            </a>
-          ))}
-          {response.status === "unknown" ? (
-            <span className="chat-source chat-source-unknown">
-              [{text(copy.chat.unknownSource)}]
-            </span>
-          ) : null}
-        </div>
-      ))}
-      {pendingQuestion ? (
-        <div className="chat-turn">
-          <p className="chat-question">{pendingQuestion}</p>
-          <output className="chat-thinking" aria-label={text(copy.chat.thinking)}>
-            <span className="chat-thinking-dots" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
-            <span aria-hidden="true">{text(copy.chat.thinking)}</span>
-          </output>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function AssistantForm({ inputRef, language, loading, onAsk }: AssistantFormProps) {
-  const [question, setQuestion] = useState<string>("");
-  const [questionError, setQuestionError] = useState<string | null>(null);
-  const text = (value: Record<Language, string>) => value[language];
-
-  function submit(event: SubmitEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const trimmed = question.trim();
-    if (!trimmed) {
-      setQuestionError(text(copy.chat.questionRequired));
-      inputRef.current?.focus();
-      return;
-    }
-    setQuestionError(null);
-    onAsk(trimmed);
-    setQuestion("");
-  }
-
-  return (
-    <form className="chat-form" onSubmit={submit}>
-      <label className="sr-only" htmlFor="ask-rodrigo-input">
-        {text(copy.chat.placeholder)}
-      </label>
-      <input
-        ref={inputRef}
-        id="ask-rodrigo-input"
-        name="question"
-        type="text"
-        autoComplete="off"
-        enterKeyHint="send"
-        maxLength={500}
-        value={question}
-        onChange={(event) => {
-          setQuestion(event.target.value);
-          setQuestionError(null);
-        }}
-        placeholder={text(copy.chat.placeholder)}
-        aria-invalid={questionError ? true : undefined}
-        aria-describedby={questionError ? "ask-rodrigo-error" : undefined}
-      />
-      <button type="submit" aria-label={text(copy.chat.send)} disabled={loading}>
-        <ArrowRightIcon />
-      </button>
-      {questionError ? (
-        <p id="ask-rodrigo-error" className="chat-error" role="alert">
-          {questionError}
-        </p>
-      ) : null}
-    </form>
-  );
-}
-
 export function ChatAssistant(props: ChatAssistantProps) {
   const {
     language,
@@ -233,7 +64,7 @@ export function ChatAssistant(props: ChatAssistantProps) {
   const panelRef = useRef<HTMLElement>(null);
   const text = (value: Record<Language, string>) => value[language];
 
-  useAssistantFocus({ inputRef, modal, onClose, open, panelRef });
+  useChatFocus({ inputRef, modal, onClose, open, panelRef });
 
   function startNewChat() {
     setFormVersion((version) => version + 1);
@@ -274,14 +105,14 @@ export function ChatAssistant(props: ChatAssistantProps) {
           </div>
         </div>
 
-        <AssistantTranscript
+        <ChatTranscript
           language={language}
           onClose={onClose}
           pendingQuestion={pendingQuestion}
           turns={turns}
         />
 
-        <AssistantForm
+        <ChatComposer
           key={formVersion}
           inputRef={inputRef}
           language={language}

@@ -29,9 +29,9 @@ export function createHybridEvidenceRetriever({
     }
 
     const bySourceId = new Map(
-      getCurrentAssistantCorpus(todayIsoDate())
-        .filter(({ status }) => status === "approved")
-        .map((evidence) => [evidence.sourceId, evidence] as const),
+      getCurrentAssistantCorpus(todayIsoDate()).map(
+        (evidence) => [evidence.sourceId, evidence] as const,
+      ),
     );
     const scores = new Map<string, number>();
 

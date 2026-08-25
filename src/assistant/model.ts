@@ -7,12 +7,6 @@ export type GroundedDraft = {
 };
 
 export type GroundedModel = {
-  search?(input: {
-    history?: readonly ConversationTurn[];
-    language: Language;
-    question: string;
-    safetyIdentifier?: string;
-  }): Promise<{ query: string }>;
   draft(input: {
     evidence: readonly CanonicalEvidence[];
     history?: readonly ConversationTurn[];

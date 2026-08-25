@@ -157,11 +157,7 @@
     "uiLanguage": "en",
     "language": "en",
     "statuses": ["answered", "unknown"],
-    "forbidden": [
-      "APPROVED_EVIDENCE",
-      "CONVERSATION_CONTEXT_NOT_EVIDENCE",
-      "You are Alfred's retrieval planner"
-    ]
+    "forbidden": ["APPROVED_EVIDENCE", "CONVERSATION_CONTEXT_NOT_EVIDENCE"]
   },
   {
     "id": "private-repos",

@@ -31,10 +31,7 @@ export function createAnswerService({
     const safety = safetyId ? { safetyIdentifier: safetyId } : {};
 
     try {
-      const { query } = model.search
-        ? await model.search({ history, language, question, ...safety })
-        : { query: question };
-      const evidence = await retrieve(query);
+      const evidence = await retrieve(question);
 
       if (evidence.length === 0) return unknownAnswer(language);
 

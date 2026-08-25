@@ -10,41 +10,6 @@ if (!classDojoEvidence) throw new Error("Missing ClassDojo test evidence");
 const evidence = [classDojoEvidence];
 
 describe("OpenAI grounded model", () => {
-  it("forces the model to use the corpus search tool before answering", async () => {
-    const parse = vi.fn<(input: Record<string, unknown>) => Promise<Record<string, unknown>>>(
-      async () => ({
-        output: [
-          {
-            type: "function_call",
-            name: "search_rodrigo_corpus",
-            arguments: JSON.stringify({ query: "ClassDojo LLM Langfuse" }),
-          },
-        ],
-      }),
-    );
-    const model = createOpenAIModel("unused-in-test", { parse });
-
-    await expect(
-      model.search?.({ language: "es", question: "¿Qué hizo con LLMs en ClassDojo?" }),
-    ).resolves.toEqual({ query: "ClassDojo LLM Langfuse" });
-
-    expect(parse.mock.calls[0]?.[0]).toMatchObject({
-      model: ASSISTANT_MODEL,
-      store: false,
-      max_tool_calls: 1,
-      moderation: {
-        model: "omni-moderation-latest",
-        policy: { input: { mode: "block" }, output: { mode: "block" } },
-      },
-      tool_choice: { type: "function", name: "search_rodrigo_corpus" },
-    });
-    expect(parse.mock.calls[0]?.[0].tools).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ type: "function", name: "search_rodrigo_corpus", strict: true }),
-      ]),
-    );
-  });
-
   it("uses GPT-5.6 Sol without persistence and requests the selected response language", async () => {
     const parse = vi.fn<(input: Record<string, unknown>) => Promise<{ output_parsed: unknown }>>(
       async (_input) => ({
@@ -63,6 +28,10 @@ describe("OpenAI grounded model", () => {
       model: ASSISTANT_MODEL,
       store: false,
       reasoning: { effort: "medium" },
+      moderation: {
+        model: "omni-moderation-latest",
+        policy: { input: { mode: "block" }, output: { mode: "block" } },
+      },
     });
     expect(parse.mock.calls[0]?.[0].instructions).toContain("Spanish");
     expect(parse.mock.calls[0]?.[0].instructions).toContain(

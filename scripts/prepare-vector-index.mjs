@@ -30,8 +30,8 @@ try {
   ]);
   const { getCurrentAssistantCorpus } = await import(pathToFileURL(temporaryModule).href);
   const today = new Date().toISOString().slice(0, 10);
-  const approved = getCurrentAssistantCorpus(today).filter(({ status }) => status === "approved");
-  const inputs = approved.map(({ title, searchTerms, facts }) =>
+  const corpus = getCurrentAssistantCorpus(today);
+  const inputs = corpus.map(({ title, searchTerms, facts }) =>
     [title, searchTerms.join(" · "), ...facts.map(({ text }) => text)].join("\n"),
   );
   const response = await new OpenAI({ apiKey }).embeddings.create({
@@ -40,7 +40,7 @@ try {
     encoding_format: "float",
     input: inputs,
   });
-  const records = approved.map(({ sourceId, sectionId, facts }, index) => {
+  const records = corpus.map(({ sourceId, sectionId, facts }, index) => {
     const values = response.data[index]?.embedding;
     if (!values) throw new Error(`Missing embedding for ${sourceId}`);
     return JSON.stringify({
@@ -49,7 +49,6 @@ try {
       metadata: {
         sourceId,
         sectionId,
-        status: "approved",
         reviewedAt: facts
           .map(({ reviewedAt }) => reviewedAt)
           .sort()

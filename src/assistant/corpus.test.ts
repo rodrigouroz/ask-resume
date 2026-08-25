@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { projects } from "../content";
 import { getCurrentAssistantCorpus } from "./corpus";
-import type { CanonicalEvidence, CanonicalFact, ClaimType } from "./contracts";
+import type { CanonicalEvidence, CanonicalFact } from "./contracts";
 import { currentCorpus, validateCorpus } from "./corpusValidation";
 import { retrieveEvidence } from "./retrieve";
 
@@ -13,9 +13,32 @@ describe("approved canonical corpus", () => {
 
     expect(facts.length).toBeGreaterThan(50);
     expect(new Set(facts.map((fact) => fact.factId)).size).toBe(facts.length);
-    expect(facts.every((fact) => fact.status === "approved")).toBe(true);
     expect(facts.every((fact) => /^\d{4}-\d{2}-\d{2}$/.test(fact.reviewedAt))).toBe(true);
     expect(facts.every((fact) => fact.text.trim().length > 0)).toBe(true);
+  });
+
+  it("keeps every time-sensitive fact explicitly bounded", () => {
+    const timeSensitiveFactIds = [
+      "career-openness",
+      "classdojo-current-employment",
+      "classdojo-orchestrators-current",
+      "international-current-location",
+      "international-visa",
+      "international-flexibility",
+      "coro-url",
+      "traza-url",
+      "daturno-maturity",
+      "daturno-url",
+      "ballast-url",
+      "jacara-url",
+    ];
+    const factsById = new Map(
+      assistantCorpus.flatMap(({ facts }) => facts).map((fact) => [fact.factId, fact]),
+    );
+
+    for (const factId of timeSensitiveFactIds) {
+      expect(factsById.get(factId)?.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    }
   });
 
   it("expires time-sensitive facts without removing durable facts from the same source", () => {
@@ -42,32 +65,14 @@ describe("approved canonical corpus", () => {
 
   const invalidFacts: readonly [string, Partial<CanonicalFact>, RegExp][] = [
     ["empty text", { text: "" }, /must not be empty/],
-    [
-      "invalid URL",
-      { text: "Available at http://example.com", claimTypes: ["url"] },
-      /invalid URL/,
-    ],
-    [
-      "unknown claim type",
-      { claimTypes: ["positionng"] as unknown as readonly ClaimType[] },
-      /unknown claimType/,
-    ],
-    [
-      "missing expiration",
-      { claimTypes: ["availability", "current-status"] },
-      /must have expiresAt/,
-    ],
+    ["invalid URL", { text: "Available at http://example.com" }, /invalid URL/],
   ];
 
   it.each(invalidFacts)("rejects %s", (_label, changes, expected) => {
     const base = assistantCorpus[0];
     const baseFact = base?.facts[0];
     if (!base || !baseFact) throw new Error("Missing corpus fixture");
-    const fact = {
-      ...baseFact,
-      ...changes,
-      claimTypes: (changes.claimTypes ?? baseFact.claimTypes) as readonly ClaimType[],
-    };
+    const fact = { ...baseFact, ...changes };
     const corpus: readonly CanonicalEvidence[] = [
       { ...base, sourceId: "validation-fixture", facts: [fact] },
     ];
@@ -96,12 +101,6 @@ describe("approved canonical corpus", () => {
     const evidence = await retrieveEvidence(question);
 
     expect(evidence.map(({ sourceId }) => sourceId)).toContain(expectedSourceId);
-  });
-
-  it("keeps the canonical corpus in one language", () => {
-    expect(new Set(assistantCorpus.map(({ canonicalLanguage }) => canonicalLanguage))).toEqual(
-      new Set(["en"]),
-    );
   });
 
   it("uses Ballast's confirmed public custom domain everywhere", () => {

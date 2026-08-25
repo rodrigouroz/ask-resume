@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "./modelConfig";
-import { createVectorSearch } from "./vectorSearchCore";
+import { createOpenAIVectorSearch } from "./vectorSearch";
 
 describe("Vectorize semantic search", () => {
   it("embeds the bilingual query and returns stable source ids from indexed metadata", async () => {
@@ -20,7 +20,7 @@ describe("Vectorize semantic search", () => {
         { id: "classdojo-current-role", score: 0.81 },
       ],
     }));
-    const search = createVectorSearch({ embeddings: { create }, index: { query } });
+    const search = createOpenAIVectorSearch("unused-in-test", { query }, { create });
 
     await expect(search("¿Cómo hace auditable la incertidumbre?", 6)).resolves.toEqual([
       { sourceId: "ballast-product", score: 0.92 },

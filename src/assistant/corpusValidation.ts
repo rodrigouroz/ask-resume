@@ -1,9 +1,7 @@
-import { CLAIM_TYPES } from "./claimTypes.js";
 import type { CanonicalEvidence, CanonicalFact, IsoDate } from "./contracts.js";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const URL_IN_TEXT = /https?:\/\/[^\s]+/g;
-const claimTypeRegistry = new Set<string>(CLAIM_TYPES);
 
 function isIsoDate(value: string): value is IsoDate {
   if (!ISO_DATE.test(value)) return false;
@@ -21,15 +19,6 @@ function validateEntities(fact: CanonicalFact): void {
   }
 }
 
-function validateClaimTypes(fact: CanonicalFact): void {
-  if (fact.claimTypes.length === 0) throw new Error(`fact ${fact.factId} has no claimTypes`);
-  for (const claimType of fact.claimTypes) {
-    if (!claimTypeRegistry.has(claimType)) {
-      throw new Error(`fact ${fact.factId} has unknown claimType ${claimType}`);
-    }
-  }
-}
-
 function validateDates(fact: CanonicalFact): void {
   if (!isIsoDate(fact.reviewedAt)) {
     throw new Error(`fact ${fact.factId} has invalid reviewedAt ${String(fact.reviewedAt)}`);
@@ -41,9 +30,6 @@ function validateDates(fact: CanonicalFact): void {
     if (fact.expiresAt < fact.reviewedAt) {
       throw new Error(`fact ${fact.factId} expires before it was reviewed`);
     }
-  }
-  if (fact.claimTypes.includes("current-status") && !fact.expiresAt) {
-    throw new Error(`time-sensitive fact ${fact.factId} must have expiresAt`);
   }
 }
 
@@ -58,16 +44,12 @@ function validateUrls(fact: CanonicalFact): void {
       throw new Error(`fact ${fact.factId} has invalid URL ${candidate}`);
     }
   }
-  if (fact.claimTypes.includes("url") && rawUrls.length !== 1) {
-    throw new Error(`URL fact ${fact.factId} must contain exactly one URL`);
-  }
 }
 
 function validateFact(fact: CanonicalFact, sourceId: string): void {
   assertNonEmpty(fact.factId, `factId in ${sourceId}`);
   assertNonEmpty(fact.text, `fact ${fact.factId}`);
   validateEntities(fact);
-  validateClaimTypes(fact);
   validateDates(fact);
   validateUrls(fact);
 }

@@ -48,18 +48,17 @@ Each request follows a narrow, auditable path:
 
 1. The UI sends the question, selected UI language, up to six in-memory conversation turns, and a non-identifying session safety ID.
 2. Language resolution uses the question when it is clearly Spanish or English and the UI language only when the question is mixed or ambiguous.
-3. GPT-5.6 Sol is forced to call `search_rodrigo_corpus` once. That call plans a search; it cannot answer the visitor.
-4. The Worker fuses deterministic bilingual lexical results with semantic Vectorize results. Only approved corpus IDs can survive retrieval, and lexical retrieval remains the failure fallback.
-5. Alfred's always-on policy prevents impersonation, private-data claims, outside knowledge, and unsupported inference independently of which evidence retrieval returns.
-6. GPT-5.6 Sol drafts from the retrieved evidence only, returning supporting source IDs.
-7. A separate model pass rejects the answer unless every factual claim is supported and the response language is correct.
-8. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
+3. The Worker searches the question directly, fusing deterministic bilingual lexical results with semantic Vectorize results. Only IDs from the approved corpus can survive retrieval, and lexical retrieval remains the failure fallback.
+4. Alfred's always-on policy prevents impersonation, private-data claims, outside knowledge, and unsupported inference independently of which evidence retrieval returns.
+5. GPT-5.6 Sol drafts from the retrieved evidence only, returning supporting source IDs.
+6. A separate model pass rejects the answer unless every factual claim is supported and the response language is correct.
+7. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
 
 The corpus is intentionally stored once in canonical English. The model may translate an answer, but translated copies are never persisted as competing sources of truth.
 
 ## Corpus approval
 
-Public evidence lives in `src/assistant/corpus.ts`. Every fact has a stable `factId`, approval status, its own review date, entities, and a claim type from the controlled registry. Time-sensitive facts also have an explicit expiration date and disappear from retrieval after it passes; editing another fact does not renew them. Every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
+Public evidence lives in `src/assistant/corpus.ts`. Being in that runtime corpus is the approval boundary: every fact has a stable `factId`, its own review date, and explicit entities used for lexical retrieval. Time-sensitive facts also have an expiration date and disappear from retrieval after it passes; editing another fact does not renew them. Every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
 
 To change a professional claim:
 
@@ -120,6 +119,7 @@ The hook audits the pending changes for newly introduced dead code, complexity, 
 src/content.ts                  Localized résumé presentation
 src/assistant/corpus.ts         Canonical approved public evidence
 src/assistant/                  Language, retrieval, model, eval, and citation contracts
+src/components/chat/            Chat focus, transcript, and composer modules
 worker/index.ts                 Same-origin /api/ask boundary and abuse controls
 worker/dailyBudget.ts           Exact UTC-day model-call budget
 scripts/                        Vector indexing, live evals, and PDF generation

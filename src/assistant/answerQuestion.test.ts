@@ -119,17 +119,13 @@ describe("bilingual grounded answers", () => {
     const relatedEvidence = {
       sourceId: "leadership-capability",
       sectionId: "capabilities",
-      canonicalLanguage: "en",
       title: "Leadership · Capabilities",
-      status: "approved",
       searchTerms: ["leadership"],
       facts: [
         {
           factId: "leadership-progression",
           text: "Rodrigo has moved between hands-on engineering and people management.",
           entities: ["Rodrigo Uroz"],
-          claimTypes: ["leadership", "role"],
-          status: "approved",
           reviewedAt: "2026-08-25",
         },
       ],

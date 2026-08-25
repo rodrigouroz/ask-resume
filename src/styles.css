@@ -1254,7 +1254,7 @@ button {
 @media print {
   @page {
     size: A4;
-    margin: 9mm;
+    margin: 12mm;
   }
 
   :root {
@@ -1262,7 +1262,8 @@ button {
   }
 
   body {
-    font-size: 8.5pt;
+    color: var(--ink);
+    font-size: 9pt;
   }
 
   .skip-link,
@@ -1279,7 +1280,13 @@ button {
   .mobile-scrim,
   .experience-row button,
   .project-row button,
-  .contact-links {
+  .timeline-dot,
+  .experience-list::before,
+  .project-icon,
+  .project-row svg,
+  .minor-section svg,
+  .contact-section,
+  .beyond-section {
     display: none !important;
   }
 
@@ -1288,24 +1295,41 @@ button {
   }
 
   .site-header {
-    min-height: 26px;
-    gap: 1rem;
+    min-height: 0;
+    display: block;
+    padding: 0 0 0.85rem;
+    border: 0;
+    text-align: center;
+    break-inside: avoid;
   }
 
   .wordmark {
-    font-size: 1rem;
+    display: block;
+    font-size: 1.6rem;
+    font-weight: 760;
+    letter-spacing: -0.035em;
+  }
+
+  .wordmark::after {
+    content: "Software Engineer & Product Builder";
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0;
   }
 
   .print-contact-details {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 0.3rem;
-    margin-left: auto;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.35rem;
+    margin: 0.35rem 0 0;
     color: var(--muted);
-    font-size: 0.6rem;
-    line-height: 1.2;
-    white-space: nowrap;
+    font-size: 7.4pt;
+    line-height: 1.35;
   }
 
   .print-contact-details a {
@@ -1315,7 +1339,8 @@ button {
 
   .hero {
     min-height: 0;
-    padding-block: 0.45rem 0.55rem;
+    display: block;
+    padding: 0 0 0.75rem;
   }
 
   .hero-copy,
@@ -1323,66 +1348,102 @@ button {
     width: 100%;
   }
 
+  .hero::before {
+    content: "Profile";
+    display: block;
+    color: var(--blue);
+    font-size: 8pt;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   .hero h1 {
-    max-width: 650px;
-    font-size: 1.65rem;
-    line-height: 1.02;
+    max-width: none;
+    margin-top: 0.35rem;
+    font-size: 11pt;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
   }
 
   .hero-copy > p:not(.location-line) {
-    margin-top: 0.35rem;
-    font-size: 0.74rem;
-    line-height: 1.25;
-  }
-
-  .location-line {
-    margin-top: 0.35rem;
-    font-size: 0.68rem;
+    margin-top: 0.2rem;
+    color: var(--muted);
+    font-size: 9pt;
+    line-height: 1.42;
   }
 
   .section-block {
-    padding-block: 0.5rem;
+    padding-block: 0.65rem;
     break-inside: auto;
+  }
+
+  .section-heading {
+    display: block;
+    border: 0;
   }
 
   .section-heading h2,
   .minor-section h2 {
-    margin-bottom: 0.35rem;
-    font-size: 1.15rem;
+    margin: 0 0 0.45rem;
+    color: var(--blue);
+    font-size: 8pt;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .experience-section {
+    padding-top: 0.5rem;
   }
 
   .experience-row {
     min-height: 0;
-    grid-template-columns: 1.05fr 1.15fr 0.65fr 1.75fr;
-    column-gap: 0.7rem;
-    padding: 0.25rem 0 0.25rem 1.6rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "company period"
+      "role period"
+      "summary summary";
+    gap: 0.08rem 1rem;
+    padding: 0.38rem 0;
+    border: 0;
     break-inside: avoid;
   }
 
   .experience-row h3 {
-    font-size: 0.8rem;
-  }
-
-  .experience-role,
-  .experience-period,
-  .experience-summary {
-    font-size: 0.68rem;
+    grid-area: company;
+    font-size: 9.6pt;
     line-height: 1.25;
+    letter-spacing: -0.01em;
   }
 
-  .experience-list::before {
-    top: 1rem;
-    bottom: 1rem;
+  .experience-role {
+    grid-area: role;
+    font-size: 9pt;
+    line-height: 1.3;
   }
 
-  .timeline-dot {
-    width: 10px;
-    height: 10px;
+  .experience-period {
+    grid-area: period;
+    align-self: start;
+    font-size: 8.5pt;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .experience-summary {
+    grid-area: summary;
+    margin-top: 0.15rem !important;
+    color: var(--muted);
+    font-size: 8.8pt;
+    line-height: 1.35;
   }
 
   .career-note {
-    margin-top: 0.55rem;
-    font-size: 0.7rem;
+    margin: 0.55rem 0 0;
+    font-size: 8.5pt;
+    line-height: 1.35;
+    text-align: left;
   }
 
   #capabilities {
@@ -1393,23 +1454,23 @@ button {
   #capabilities::before {
     content: "Rodrigo Uroz  ·  Software Engineer & Product Builder";
     display: block;
-    margin-bottom: 0.55rem;
-    padding-bottom: 0.3rem;
-    border-bottom: 1px solid var(--line);
+    margin-bottom: 1rem;
     color: var(--muted);
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
+    font-size: 7.2pt;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-align: center;
   }
 
   .capability-grid {
-    grid-template-columns: repeat(2, 1fr);
+    display: block;
   }
 
   .capability {
-    min-height: 58px;
-    grid-template-columns: 1.6rem 1fr;
-    padding: 0.55rem 0.8rem 0.5rem 0;
+    min-height: 0;
+    display: block;
+    padding: 0.25rem 0;
+    border: 0;
     break-inside: avoid;
   }
 
@@ -1418,131 +1479,109 @@ button {
     border-left: 0;
   }
 
-  .capability:nth-child(even) {
-    padding-left: 0.8rem;
-    border-left: 1px solid var(--line);
+  .capability > span {
+    display: none;
   }
 
-  .capability > span {
-    font-size: 0.65rem;
+  .capability > div {
+    display: inline;
+  }
+
+  .capability h3,
+  .capability p {
+    display: inline;
   }
 
   .capability h3 {
-    margin-bottom: 0.3rem;
-    font-size: 0.78rem;
+    margin: 0;
+    font-size: 9pt;
+    line-height: 1.4;
+  }
+
+  .capability h3::after {
+    content: " — ";
+    color: var(--muted);
   }
 
   .capability p {
-    font-size: 0.7rem;
-    line-height: 1.3;
+    color: var(--muted);
+    font-size: 8.8pt;
+    line-height: 1.4;
   }
 
-  .projects-heading,
-  .project-row,
-  .education-grid article,
-  .minor-section {
-    break-inside: avoid;
-  }
-
-  .projects-heading p,
-  .project-row button,
-  .beyond-section {
+  .projects-heading p {
     display: none !important;
   }
 
   .project-list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: block;
   }
 
   .project-row {
-    grid-template-columns: 18px 1fr auto;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
-      "icon name live"
-      "summary summary summary"
-      "evidence evidence evidence";
-    gap: 0.2rem 0.5rem;
-    min-height: 70px;
-    padding: 0.45rem 0.65rem 0.45rem 0;
+      "name live"
+      "summary live"
+      "evidence evidence";
+    gap: 0.08rem 0.8rem;
+    padding: 0.35rem 0;
+    border: 0;
+    break-inside: avoid;
   }
 
-  .project-row:nth-child(even) {
-    padding-left: 0.55rem;
-    border-left: 1px solid var(--line);
+  .project-row h3 {
+    font-size: 9.2pt;
+    line-height: 1.3;
+    text-transform: none;
   }
 
-  .project-row h3,
-  .project-row p,
-  .project-row a {
-    font-size: 0.7rem;
+  .project-row p {
+    font-size: 8.8pt;
+    line-height: 1.35;
+  }
+
+  .project-row > a {
+    font-size: 8.5pt;
+    line-height: 1.3;
   }
 
   .education-grid {
-    grid-template-columns: repeat(3, 1fr);
-    padding-top: 0.7rem;
+    display: block;
+    padding-top: 0;
   }
 
-  .education-grid article {
-    min-height: 88px;
-    padding: 0 1rem 0 0;
-    border-bottom: 0;
-  }
-
+  .education-grid article,
   .education-grid article + article {
-    padding: 0 1rem;
-    border-left: 1px solid var(--line);
-    border-bottom: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(180px, 0.8fr) 1.5fr;
+    gap: 1rem;
+    padding: 0.3rem 0;
+    border: 0;
+    break-inside: avoid;
   }
 
   .education-grid h3 {
-    margin-bottom: 0.35rem;
-    font-size: 0.8rem;
+    margin: 0;
+    font-size: 9.2pt;
+    line-height: 1.35;
   }
 
-  .education-grid p,
+  .education-grid p {
+    font-size: 8.8pt;
+    line-height: 1.4;
+  }
+
   .minor-section p,
   .minor-section a {
-    font-size: 0.7rem;
+    font-size: 8.8pt;
     line-height: 1.4;
   }
 
   .minor-section {
-    padding-block: 0.55rem;
-  }
-
-  .contact-section {
-    padding-block: 0.65rem 0;
-  }
-
-  .contact-heading {
-    grid-template-columns: 1fr 1.5fr;
-    gap: 1.5rem;
-  }
-
-  .contact-heading h2 {
-    font-size: 1.25rem;
-  }
-
-  .contact-heading p {
-    margin-top: 0;
-    font-size: 0.7rem;
-    line-height: 1.4;
-  }
-
-  .contact-links {
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    padding-block: 0.65rem;
-  }
-
-  .contact-links a {
-    font-size: 0.68rem;
-  }
-
-  .footer-meta {
-    grid-template-columns: 1fr 1.5fr;
-    gap: 1rem;
-    padding-top: 0.5rem;
-    font-size: 0.62rem;
+    padding-block: 0.45rem;
+    border: 0;
+    break-inside: avoid;
   }
 }

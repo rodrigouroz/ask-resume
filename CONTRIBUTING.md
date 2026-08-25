@@ -18,6 +18,15 @@ Use Node 24 and install from the lockfile:
 npm ci
 ```
 
+Install the Fallow-managed pre-commit hook once per clone:
+
+```bash
+npm install --global fallow
+fallow hooks install --target git --branch main
+```
+
+The hook uses Fallow's `new-only` audit gate, so existing findings do not block an unrelated commit. Do not bypass it with `--no-verify` unless the reason is documented in the pull request.
+
 For behavioral changes, add a test at an agreed public seam and work in a red → green vertical slice. Before submitting:
 
 ```bash

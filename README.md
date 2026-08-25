@@ -23,6 +23,7 @@ The responsive résumé and assistant interaction are implemented. The assistant
 - TypeScript 7 native compiler with strict settings
 - Oxfmt
 - Oxlint + `oxlint-tsgolint` type-aware checks
+- Fallow changed-code audit in the pre-commit hook
 - Vitest + Testing Library
 - Playwright desktop/mobile end-to-end tests
 
@@ -45,6 +46,15 @@ npm run test:e2e
 ```
 
 `npm run check` verifies formatting, type-aware lint, TypeScript, Vitest, and the production build. CI runs those gates and Playwright independently.
+
+Install the repository's Fallow-managed pre-commit gate once per clone:
+
+```bash
+npm install --global fallow
+fallow hooks install --target git --branch main
+```
+
+The hook audits the pending changes for newly introduced dead code, complexity, and duplication before Git creates a commit.
 
 ## Project structure
 

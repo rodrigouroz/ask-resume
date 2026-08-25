@@ -624,6 +624,20 @@ button {
   margin-bottom: 1.5rem;
 }
 
+.chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chat-header .new-chat-button {
+  width: auto;
+  padding-inline: 0.65rem;
+  color: var(--blue);
+  font-size: 0.76rem;
+  font-weight: 720;
+}
+
 .chat-header h2 {
   margin: 0;
   font-size: 1.28rem;
@@ -642,10 +656,23 @@ button {
 
 .chat-transcript {
   min-height: 225px;
+  max-height: min(52vh, 480px);
   display: flex;
   flex-direction: column;
+  gap: 1.35rem;
+  overflow-y: auto;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--line);
+}
+
+.chat-turn {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-turn + .chat-turn {
+  padding-top: 1.35rem;
+  border-top: 1px solid var(--line);
 }
 
 .chat-question {
@@ -665,7 +692,7 @@ button {
 
 .chat-source {
   width: fit-content;
-  margin-top: auto;
+  margin-top: 0.65rem;
   padding-top: 1rem;
   color: var(--blue);
   font-size: 0.82rem;
@@ -1176,12 +1203,24 @@ button {
 }
 
 @media print {
+  @page {
+    size: A4;
+    margin: 9mm;
+  }
+
   :root {
     --page-gutter: 0;
   }
 
+  body {
+    font-size: 8.5pt;
+  }
+
+  .skip-link,
   .site-header nav,
   .language-switch,
+  .mobile-language-switch,
+  .mobile-menu-button,
   .download-link,
   .hero-actions,
   .chat-panel,
@@ -1189,7 +1228,8 @@ button {
   .mobile-chat-bar,
   .mobile-scrim,
   .experience-row button,
-  .project-row button {
+  .project-row button,
+  .contact-links a[href$=".pdf"] {
     display: none !important;
   }
 
@@ -1198,12 +1238,12 @@ button {
   }
 
   .site-header {
-    min-height: 48px;
+    min-height: 28px;
   }
 
   .hero {
     min-height: 0;
-    padding-block: 1.5rem;
+    padding-block: 0.55rem 0.7rem;
   }
 
   .hero-copy,
@@ -1212,27 +1252,218 @@ button {
   }
 
   .hero h1 {
-    max-width: 720px;
-    font-size: 2.8rem;
+    max-width: 680px;
+    font-size: 1.75rem;
+  }
+
+  .hero-copy > p:not(.location-line) {
+    margin-top: 0.45rem;
+    font-size: 0.76rem;
+    line-height: 1.3;
+  }
+
+  .location-line {
+    margin-top: 0.45rem;
+    font-size: 0.7rem;
   }
 
   .section-block {
-    padding-block: 1.3rem;
-    break-inside: avoid;
+    padding-block: 0.5rem;
+    break-inside: auto;
+  }
+
+  .section-heading h2,
+  .minor-section h2 {
+    margin-bottom: 0.35rem;
+    font-size: 1.15rem;
   }
 
   .experience-row {
-    min-height: 58px;
+    min-height: 0;
     grid-template-columns: 1fr 1.1fr 0.6fr 1.8fr;
-    padding-block: 0.6rem;
+    column-gap: 0.7rem;
+    padding: 0.32rem 0 0.32rem 1.6rem;
+    break-inside: avoid;
+  }
+
+  .experience-row h3 {
+    font-size: 0.8rem;
+  }
+
+  .experience-role,
+  .experience-period,
+  .experience-summary {
+    font-size: 0.7rem;
+    line-height: 1.3;
+  }
+
+  .experience-row:nth-child(n + 5) {
+    grid-template-columns: 1fr 1.2fr 0.6fr 1.65fr;
+    padding-block: 0.22rem;
+  }
+
+  .experience-row:nth-child(n + 9) {
+    grid-template-columns: 1fr 1.35fr 0.6fr;
+  }
+
+  .experience-row:nth-child(n + 9) .experience-summary {
+    display: none;
+  }
+
+  .experience-list::before {
+    top: 1rem;
+    bottom: 1rem;
+  }
+
+  .timeline-dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .career-note {
+    margin-top: 0.55rem;
+    font-size: 0.7rem;
+  }
+
+  #capabilities {
+    break-before: page;
+  }
+
+  .capability-grid {
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .capability {
-    min-height: 115px;
-    padding-top: 1rem;
+    min-height: 68px;
+    grid-template-columns: 1.6rem 1fr;
+    padding: 0.5rem 0.65rem 0.45rem 0;
+    break-inside: avoid;
+  }
+
+  .capability:not(:nth-child(4n + 1)) {
+    padding-left: 0.65rem;
+  }
+
+  .capability > span {
+    font-size: 0.65rem;
+  }
+
+  .capability h3 {
+    margin-bottom: 0.3rem;
+    font-size: 0.75rem;
+  }
+
+  .capability p {
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  .projects-heading,
+  .project-row,
+  .education-grid article,
+  .minor-section {
+    break-inside: avoid;
+  }
+
+  .projects-heading p,
+  .project-row button,
+  .beyond-section {
+    display: none !important;
+  }
+
+  .project-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .project-row {
+    grid-template-columns: 18px 1fr auto;
+    grid-template-areas:
+      "icon name live"
+      "summary summary summary"
+      "evidence evidence evidence";
+    gap: 0.2rem 0.5rem;
+    min-height: 66px;
+    padding: 0.4rem 0.55rem 0.4rem 0;
+  }
+
+  .project-row:nth-child(even) {
+    padding-left: 0.55rem;
+    border-left: 1px solid var(--line);
+  }
+
+  .project-row h3,
+  .project-row p,
+  .project-row a {
+    font-size: 0.68rem;
+  }
+
+  .education-grid {
+    grid-template-columns: repeat(3, 1fr);
+    padding-top: 0.7rem;
+  }
+
+  .education-grid article {
+    min-height: 78px;
+    padding: 0 1rem 0 0;
+    border-bottom: 0;
+  }
+
+  .education-grid article + article {
+    padding: 0 1rem;
+    border-left: 1px solid var(--line);
+    border-bottom: 0;
+  }
+
+  .education-grid h3 {
+    margin-bottom: 0.35rem;
+    font-size: 0.78rem;
+  }
+
+  .education-grid p,
+  .minor-section p,
+  .minor-section a {
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  .minor-section {
+    padding-block: 0.55rem;
   }
 
   .contact-section {
-    padding-top: 2rem;
+    padding-block: 0.65rem 0;
+  }
+
+  .contact-heading {
+    grid-template-columns: 1fr 1.5fr;
+    gap: 1.5rem;
+  }
+
+  .contact-heading h2 {
+    font-size: 1.25rem;
+  }
+
+  .contact-heading p {
+    margin-top: 0;
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  .contact-links {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    padding-block: 0.65rem;
+  }
+
+  .contact-links a {
+    font-size: 0.68rem;
+  }
+
+  .footer-meta {
+    grid-template-columns: 1fr 1.5fr;
+    gap: 1rem;
+    padding-top: 0.5rem;
+    font-size: 0.62rem;
   }
 }

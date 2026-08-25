@@ -2,33 +2,37 @@ import { useEffect, useRef, useState } from "react";
 import type { SubmitEvent } from "react";
 import type { Language } from "../content";
 import { copy, externalLinks } from "../content";
-import { answerQuestion } from "../lib/answerQuestion";
-import type { ChatAnswer } from "../lib/answerQuestion";
+import { citationHref, sourceLabel } from "../assistant/sources";
+import type { AssistantTurn } from "../assistant/useAssistantConversation";
 import { ArrowRightIcon, ChatIcon, CloseIcon, MailIcon } from "./Icons";
 
 type ChatAssistantProps = {
   language: Language;
   open: boolean;
-  activeQuestion: string | null;
+  loading: boolean;
+  pendingQuestion: string | null;
+  turns: readonly AssistantTurn[];
   onOpen: () => void;
   onClose: () => void;
   onAsk: (question: string) => void;
+  onNewChat: () => void;
 };
 
 export function ChatAssistant({
   language,
   open,
-  activeQuestion,
+  loading,
+  pendingQuestion,
+  turns,
   onOpen,
   onClose,
   onAsk,
+  onNewChat,
 }: ChatAssistantProps) {
   const [question, setQuestion] = useState<string>("");
   const inputRef = useRef<HTMLInputElement>(null);
   const wasOpen = useRef(open);
   const text = (value: Record<Language, string>) => value[language];
-  const currentQuestion = activeQuestion ?? text(copy.chat.initialQuestion);
-  const response: ChatAnswer = answerQuestion(currentQuestion, language);
 
   useEffect(() => {
     if (open && !wasOpen.current) {
@@ -44,12 +48,6 @@ export function ChatAssistant({
     onAsk(trimmed);
     setQuestion("");
   }
-
-  const sourceHref = response.source.includes("Independent projects")
-    ? "#projects"
-    : response.source.includes("Capabilities")
-      ? "#capabilities"
-      : "#experience";
 
   return (
     <>
@@ -73,21 +71,53 @@ export function ChatAssistant({
         <div className="chat-handle" aria-hidden="true" />
         <div className="chat-header">
           <h2>Ask Rodrigo</h2>
-          <button type="button" aria-label="Close Ask Rodrigo" onClick={onClose}>
-            <CloseIcon />
-          </button>
+          <div className="chat-header-actions">
+            <button className="new-chat-button" type="button" onClick={onNewChat}>
+              {text(copy.chat.newChat)}
+            </button>
+            <button type="button" aria-label="Close Ask Rodrigo" onClick={onClose}>
+              <CloseIcon />
+            </button>
+          </div>
         </div>
 
         <div className="chat-transcript" aria-live="polite">
-          <p className="chat-question">{currentQuestion}</p>
-          <p className="chat-answer">{response.answer}</p>
-          {response.status === "answered" ? (
-            <a className="chat-source" href={sourceHref} onClick={onClose}>
-              [{response.source}]
-            </a>
-          ) : (
-            <span className="chat-source chat-source-unknown">[{response.source}]</span>
-          )}
+          {turns.length === 0 && pendingQuestion === null ? (
+            <div className="chat-turn">
+              <p className="chat-question">{text(copy.chat.initialQuestion)}</p>
+              <p className="chat-answer">{text(copy.chat.initialAnswer)}</p>
+              <a className="chat-source" href="#experience" onClick={onClose}>
+                [{sourceLabel("classdojo-current-role", language)}]
+              </a>
+            </div>
+          ) : null}
+          {turns.map(({ question: turnQuestion, response }) => (
+            <div className="chat-turn" key={`${turnQuestion}:${response.answer}`}>
+              <p className="chat-question">{turnQuestion}</p>
+              <p className="chat-answer">{response.answer}</p>
+              {response.citations.map((citation) => (
+                <a
+                  className="chat-source"
+                  href={citationHref(citation)}
+                  onClick={onClose}
+                  key={`${citation.sourceId}:${citation.sectionId}`}
+                >
+                  [{sourceLabel(citation.sourceId, response.language)}]
+                </a>
+              ))}
+              {response.status === "unknown" ? (
+                <span className="chat-source chat-source-unknown">
+                  [{text(copy.chat.unknownSource)}]
+                </span>
+              ) : null}
+            </div>
+          ))}
+          {pendingQuestion ? (
+            <div className="chat-turn">
+              <p className="chat-question">{pendingQuestion}</p>
+              <p className="chat-answer">{text(copy.chat.thinking)}</p>
+            </div>
+          ) : null}
         </div>
 
         <form className="chat-form" onSubmit={submit}>
@@ -101,7 +131,7 @@ export function ChatAssistant({
             onChange={(event) => setQuestion(event.target.value)}
             placeholder={text(copy.chat.placeholder)}
           />
-          <button type="submit" aria-label="Send question">
+          <button type="submit" aria-label="Send question" disabled={loading}>
             <ArrowRightIcon />
           </button>
         </form>

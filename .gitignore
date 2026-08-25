@@ -1,9 +1,13 @@
 .superpowers/
 node_modules/
 dist/
+.wrangler/
+.dev.vars*
+.env*
 coverage/
 playwright-report/
 test-results/
 .DS_Store
 *.local
 *.tsbuildinfo
+*.cpuprofile

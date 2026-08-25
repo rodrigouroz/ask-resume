@@ -1,0 +1,117 @@
+[
+  {
+    "id": "classdojo-en",
+    "question": "What did Rodrigo do at ClassDojo?",
+    "expectedSourceIds": ["classdojo-current-role"]
+  },
+  {
+    "id": "classdojo-es",
+    "question": "¿Qué hizo Rodrigo en ClassDojo?",
+    "expectedSourceIds": ["classdojo-current-role"]
+  },
+  {
+    "id": "classdojo-ai",
+    "question": "How has Rodrigo used LLMs and Langfuse professionally?",
+    "expectedSourceIds": ["classdojo-current-role"]
+  },
+  {
+    "id": "iot-en",
+    "question": "Did Rodrigo reverse engineer IoT devices?",
+    "expectedSourceIds": ["scvsoft-iot-tech-lead"]
+  },
+  {
+    "id": "iot-es",
+    "question": "¿Hizo ingeniería inversa de dispositivos IoT?",
+    "expectedSourceIds": ["scvsoft-iot-tech-lead"]
+  },
+  {
+    "id": "medallia",
+    "question": "What did Rodrigo modernize at Medallia?",
+    "expectedSourceIds": ["medallia-engineering-management"]
+  },
+  {
+    "id": "futureadvisor",
+    "question": "How did he improve FutureAdvisor's daily processing?",
+    "expectedSourceIds": ["futureadvisor-lead-engineer"]
+  },
+  {
+    "id": "leadership",
+    "question": "Has Rodrigo built, hired, and trained engineering teams?",
+    "expectedSourceIds": ["leadership-capability"]
+  },
+  {
+    "id": "teaching",
+    "question": "What did Rodrigo teach at UTN?",
+    "expectedSourceIds": ["utn-education-and-teaching"]
+  },
+  {
+    "id": "education-es",
+    "question": "¿Qué estudió Rodrigo?",
+    "expectedSourceIds": ["utn-education-and-teaching"]
+  },
+  {
+    "id": "silver",
+    "question": "What does Rodrigo mentor at Silver.dev?",
+    "expectedSourceIds": ["silver-mentoring"]
+  },
+  {
+    "id": "coro-en",
+    "question": "Why did Rodrigo build Coro?",
+    "expectedSourceIds": ["coro-product"]
+  },
+  {
+    "id": "coro-es",
+    "question": "¿Por qué Rodrigo construyó Coro?",
+    "expectedSourceIds": ["coro-product"]
+  },
+  {
+    "id": "traza",
+    "question": "How does Traza keep financial enrichment private?",
+    "expectedSourceIds": ["traza-product"]
+  },
+  {
+    "id": "ballast",
+    "question": "How does Ballast validate its genetic optimizer?",
+    "expectedSourceIds": ["ballast-product"]
+  },
+  {
+    "id": "jacara",
+    "question": "Why is Jacara physical-first instead of another screen game?",
+    "expectedSourceIds": ["jacara-product"]
+  },
+  {
+    "id": "historical",
+    "question": "What earlier independent software did Rodrigo build?",
+    "expectedSourceIds": ["historical-independent-projects"]
+  },
+  {
+    "id": "languages",
+    "question": "Can Rodrigo work professionally in English?",
+    "expectedSourceIds": ["international-work-profile"]
+  },
+  {
+    "id": "visa",
+    "question": "Does Rodrigo have a US visa?",
+    "expectedSourceIds": ["international-work-profile"]
+  },
+  {
+    "id": "assistant-name",
+    "question": "What is the assistant called?",
+    "expectedSourceIds": ["assistant-identity"]
+  },
+  {
+    "id": "unknown-salary",
+    "question": "What salary does Rodrigo expect?",
+    "expectedSourceIds": []
+  },
+  {
+    "id": "unknown-address",
+    "question": "What is Rodrigo's home address?",
+    "expectedSourceIds": []
+  },
+  {
+    "id": "unknown-family",
+    "question": "How many children does Rodrigo have?",
+    "expectedSourceIds": []
+  }
+]

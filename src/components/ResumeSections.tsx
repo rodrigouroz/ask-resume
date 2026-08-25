@@ -15,11 +15,7 @@ type SectionProps = {
   onAsk: (question: string) => void;
 };
 
-type HeroProps = SectionProps & {
-  onDownload: () => void;
-};
-
-export function Hero({ language, onAsk, onDownload }: HeroProps) {
+export function Hero({ language, onAsk }: SectionProps) {
   const text = (value: Record<Language, string>) => value[language];
 
   return (
@@ -39,13 +35,9 @@ export function Hero({ language, onAsk, onDownload }: HeroProps) {
           >
             Ask Rodrigo
           </button>
-          <button
-            className="secondary-button mobile-hero-download"
-            type="button"
-            onClick={onDownload}
-          >
+          <a className="secondary-button mobile-hero-download" href={externalLinks.cv} download>
             {text(copy.download)}
-          </button>
+          </a>
         </div>
         <p className="location-line">
           <GlobeIcon />
@@ -182,7 +174,7 @@ export function AboutSection({ language }: Pick<SectionProps, "language">) {
 
   return (
     <div id="about">
-      <section className="section-block" aria-labelledby="education-title">
+      <section id="education" className="section-block" aria-labelledby="education-title">
         <div className="section-heading">
           <h2 id="education-title">{text(copy.sections.education)}</h2>
         </div>
@@ -203,7 +195,7 @@ export function AboutSection({ language }: Pick<SectionProps, "language">) {
         </a>
       </section>
 
-      <section className="minor-section" aria-labelledby="beyond-title">
+      <section className="minor-section beyond-section" aria-labelledby="beyond-title">
         <h2 id="beyond-title">{text(copy.sections.beyond)}</h2>
         <p>Piano · Reading · Chess · Video games</p>
       </section>
@@ -211,13 +203,7 @@ export function AboutSection({ language }: Pick<SectionProps, "language">) {
   );
 }
 
-export function ContactSection({
-  language,
-  onDownload,
-}: {
-  language: Language;
-  onDownload: () => void;
-}) {
+export function ContactSection({ language }: { language: Language }) {
   const text = (value: Record<Language, string>) => value[language];
 
   return (
@@ -233,9 +219,9 @@ export function ContactSection({
         <a href={externalLinks.github} target="_blank" rel="noreferrer">
           GitHub <ExternalIcon />
         </a>
-        <button className="text-link" type="button" onClick={onDownload}>
+        <a className="text-link" href={externalLinks.cv} download>
           {text(copy.download)}
-        </button>
+        </a>
       </div>
       <div className="footer-meta">
         <p>© 2026 Rodrigo Uroz</p>

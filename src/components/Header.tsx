@@ -1,15 +1,14 @@
 import { useState } from "react";
 import type { Language } from "../content";
-import { copy } from "../content";
+import { copy, externalLinks } from "../content";
 import { MenuIcon } from "./Icons";
 
 type HeaderProps = {
   language: Language;
   onLanguageChange: (language: Language) => void;
-  onDownload: () => void;
 };
 
-export function Header({ language, onLanguageChange, onDownload }: HeaderProps) {
+export function Header({ language, onLanguageChange }: HeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const text = (value: Record<Language, string>) => value[language];
 
@@ -83,9 +82,9 @@ export function Header({ language, onLanguageChange, onDownload }: HeaderProps) 
           </button>
         </div>
 
-        <button className="text-link download-link" type="button" onClick={onDownload}>
+        <a className="text-link download-link" href={externalLinks.cv} download>
           {text(copy.download)}
-        </button>
+        </a>
       </div>
     </header>
   );

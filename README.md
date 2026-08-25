@@ -2,24 +2,28 @@
 
 Ask Rodrigo is Rodrigo Uroz's public, interactive résumé. The résumé is useful on its own; the assistant adds a cited conversational path through the same professional evidence.
 
-The project is also intended to be a public example of a grounded AI product: curated sources, explicit citations, no inference when evidence is missing, and a clear boundary between professional experience and independent personal projects.
+The project is also a public example of a grounded AI product: curated sources, explicit citations, no inference when evidence is missing, and a clear boundary between professional experience and independent personal projects.
 
 ## Current status
 
-The responsive résumé and assistant interaction are implemented. The assistant currently uses a small deterministic answer policy for interface development and guardrail tests. Model-backed retrieval, the public corpus, Cloudflare Vectorize, abuse controls, and production email/domain configuration are separate upcoming slices.
+The responsive résumé and genuinely bilingual assistant are implemented end to end. A Cloudflare Worker retrieves approved evidence from one canonical English corpus, GPT-5.6 Sol drafts in the question's language, and a second grounded-model pass rejects unsupported claims before the response reaches the UI. A print-tested PDF résumé is generated from the same public presentation.
 
 ## Product principles
 
 - Professional experience is the primary narrative.
 - Independent projects are presented as personal products, without invented traction or success claims.
-- Every supported answer names a visible source.
+- Every supported answer cites stable `sourceId` and `sectionId` values that do not depend on visible labels or language.
 - Unsupported questions receive an honest fallback and a direct contact option.
-- The site stores the explicit language preference only. The current frontend does not persist chat content.
-- English is the default; Spanish is available throughout the résumé and assistant.
+- The site stores the explicit UI language preference only. Conversation context remains in memory for the current tab, model requests use `store: false`, and the application does not persist chat content.
+- UI language, detected question language, and canonical corpus language remain separate.
 
 ## Stack
 
 - React 19 + Vite 8
+- Cloudflare Workers + Vectorize + Durable Objects + rate-limit binding
+- OpenAI Responses API + GPT-5.6 Sol structured outputs and forced tool use
+- `text-embedding-3-large` embeddings at 1,024 dimensions
+- Zod request and response contracts
 - TypeScript 7 native compiler with strict settings
 - Oxfmt
 - Oxlint + `oxlint-tsgolint` type-aware checks
@@ -36,6 +40,57 @@ npm ci
 npm run dev
 ```
 
+For local model calls, create an uncommitted `.dev.vars` file containing `OPENAI_API_KEY`. In production, configure it with `wrangler secret put OPENAI_API_KEY`; never store the value in Git.
+
+## Assistant architecture
+
+Each request follows a narrow, auditable path:
+
+1. The UI sends the question, selected UI language, up to six in-memory conversation turns, and a non-identifying session safety ID.
+2. Language resolution uses the question when it is clearly Spanish or English and the UI language only when the question is mixed or ambiguous.
+3. GPT-5.6 Sol is forced to call `search_rodrigo_corpus` once. That call plans a search; it cannot answer the visitor.
+4. The Worker fuses deterministic bilingual lexical results with semantic Vectorize results. Only approved corpus IDs can survive retrieval, and lexical retrieval remains the failure fallback.
+5. GPT-5.6 Sol drafts from the retrieved evidence only, returning supporting source IDs.
+6. A separate model pass rejects the answer unless every factual claim is supported and the response language is correct.
+7. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
+
+The corpus is intentionally stored once in canonical English. The model may translate an answer, but translated copies are never persisted as competing sources of truth.
+
+## Corpus approval
+
+Public evidence lives in `src/assistant/corpus.ts`. Every fact has a stable `factId`, approval status, review date, entities, and claim types; every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
+
+To change a professional claim:
+
+1. Get Rodrigo's explicit approval for the exact fact.
+2. Add or update the canonical English fact without renaming an existing ID merely for wording or localization.
+3. Add a deterministic retrieval case and, when model behavior changes, a live evaluation case.
+4. Run the quality gates below and inspect the visible citation target.
+
+Preparation notes, private repositories, email, and unapproved CV material are not runtime evidence.
+
+## Vector index
+
+Create and populate the production Vectorize index after editing approved corpus facts:
+
+```bash
+npx wrangler vectorize create ask-rodrigo-corpus --dimensions=1024 --metric=cosine
+npm run vectorize:prepare
+npx wrangler vectorize insert ask-rodrigo-corpus --file=.wrangler/vectorize/ask-rodrigo-corpus.ndjson
+```
+
+`vectorize:prepare` embeds only approved canonical sources and requires `OPENAI_API_KEY`. The generated NDJSON is ignored by Git.
+
+## PDF résumé
+
+Regenerate the downloadable résumé from the built site with:
+
+```bash
+npm run cv:pdf
+```
+
+This writes `public/rodrigo-uroz-cv.pdf`. Review all rendered pages before committing it; a successful browser print alone is not a visual-layout check.
+
 ## Quality gates
 
 ```bash
@@ -43,6 +98,7 @@ npm run check
 npm run test:coverage
 npx playwright install chromium
 npm run test:e2e
+npm run eval:live -- https://rodrigouroz.com
 ```
 
 `npm run check` verifies formatting, type-aware lint, TypeScript, Vitest, and the production build. CI runs those gates and Playwright independently.
@@ -59,20 +115,27 @@ The hook audits the pending changes for newly introduced dead code, complexity, 
 ## Project structure
 
 ```text
-src/content.ts                 Approved résumé content
-src/lib/answerQuestion.ts      Current grounded demo policy
-src/components/                Accessible presentation and interactions
-src/*.test.tsx                 Public UI behavior tests
-e2e/                           Desktop and mobile product flows
+src/content.ts                  Localized résumé presentation
+src/assistant/corpus.ts         Canonical approved public evidence
+src/assistant/                  Language, retrieval, model, eval, and citation contracts
+worker/index.ts                 Same-origin /api/ask boundary and abuse controls
+worker/dailyBudget.ts           Exact UTC-day model-call budget
+scripts/                        Vector indexing, live evals, and PDF generation
+src/components/                 Accessible presentation and interactions
+e2e/                            Desktop and mobile product flows
 ```
 
-## What is deliberately not here yet
+The assistant has no repository, browser, email, filesystem, or network tool. Its only model tool produces a query for the application-controlled approved corpus. Abuse controls include strict request schemas, per-IP rate limiting, a global daily Durable Object budget, input/output moderation, bounded token and history sizes, `store: false`, a restrictive Content Security Policy, and honest failure behavior.
 
-- Production model credentials or secrets
+Turnstile is deliberately deferred until traffic produces a concrete suspicious-client signal. The current public baseline avoids visitor friction while retaining rate limits and an exact global cost ceiling.
+
+## Deliberate boundaries
+
 - Private repository access
 - Visitor chat persistence or feedback collection
 - Unapproved preparation notes or private CV source files
 - Claims inferred from source code or private data
+- Analytics over visitor question text
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change and [SECURITY.md](SECURITY.md) for responsible disclosure.
 

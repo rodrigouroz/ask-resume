@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f8f7f2" />
+  <path d="M0 0h1200v14H0z" fill="#0b57d0" />
+  <circle cx="1070" cy="112" r="190" fill="#dbe8ff" />
+  <circle cx="1105" cy="82" r="86" fill="#0b57d0" />
+  <circle cx="1050" cy="470" r="255" fill="none" stroke="#0b57d0" stroke-width="2" opacity=".28" />
+  <circle cx="1050" cy="470" r="170" fill="none" stroke="#0b57d0" stroke-width="2" opacity=".2" />
+  <circle cx="1050" cy="470" r="85" fill="#ffd166" opacity=".9" />
+
+  <text x="92" y="108" fill="#0b57d0" font-family="Arial, Helvetica, sans-serif" font-size="25" font-weight="700" letter-spacing="3">
+    ASK RODRIGO
+  </text>
+  <text x="88" y="258" fill="#16191f" font-family="Arial, Helvetica, sans-serif" font-size="82" font-weight="700" letter-spacing="-2">
+    Rodrigo Uroz
+  </text>
+  <text x="92" y="340" fill="#303640" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="400">
+    Software engineer &amp; product builder
+  </text>
+  <path d="M92 402h84" stroke="#0b57d0" stroke-width="7" />
+  <text x="92" y="478" fill="#303640" font-family="Arial, Helvetica, sans-serif" font-size="30">
+    25+ years turning ambiguous problems
+  </text>
+  <text x="92" y="520" fill="#303640" font-family="Arial, Helvetica, sans-serif" font-size="30">
+    into software that works.
+  </text>
+  <text x="92" y="580" fill="#69717e" font-family="Arial, Helvetica, sans-serif" font-size="23">
+    Buenos Aires · Working globally in English and Spanish
+  </text>
+</svg>

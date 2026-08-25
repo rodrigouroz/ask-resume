@@ -1,7 +1,50 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+
+beforeEach(() => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn(async (_url: string, init?: RequestInit) => {
+      if (typeof init?.body !== "string") throw new Error("Expected a JSON request body");
+      const { question, uiLanguage } = JSON.parse(init.body) as {
+        question: string;
+        uiLanguage: "en" | "es";
+      };
+      const normalized = question.toLocaleLowerCase();
+      const sourceId = normalized.includes("coro")
+        ? "coro-product"
+        : normalized.includes("zero")
+          ? "product-engineering-capability"
+          : normalized.includes("classdojo")
+            ? "classdojo-current-role"
+            : null;
+      const sectionId =
+        sourceId === "coro-product"
+          ? "projects"
+          : sourceId?.includes("capability")
+            ? "capabilities"
+            : "experience";
+      return Response.json(
+        sourceId
+          ? {
+              status: "answered",
+              language: uiLanguage,
+              answer: "A grounded test answer.",
+              citations: [{ sourceId, sectionId }],
+            }
+          : {
+              status: "unknown",
+              language: uiLanguage,
+              answer:
+                "I don’t have enough approved evidence to answer that. You can contact Rodrigo directly and ask him.",
+              citations: [],
+            },
+      );
+    }),
+  );
+});
 
 describe("Ask Rodrigo public interface", () => {
   it("presents professional experience before independent projects", () => {
@@ -33,6 +76,15 @@ describe("Ask Rodrigo public interface", () => {
       ),
     ).toBeInTheDocument();
     expect(window.localStorage.getItem("ask-rodrigo-language")).toBe("es");
+    expect(document.documentElement).toHaveAttribute("lang", "es");
+  });
+
+  it("restores the document language from the saved UI preference", () => {
+    window.localStorage.setItem("ask-rodrigo-language", "es");
+
+    render(<App />);
+
+    expect(document.documentElement).toHaveAttribute("lang", "es");
   });
 
   it("opens the compact navigation and follows a section link", async () => {
@@ -47,15 +99,14 @@ describe("Ask Rodrigo public interface", () => {
     expect(menu).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("uses the browser print surface for the downloadable CV", async () => {
-    const user = userEvent.setup();
-    const print = vi.spyOn(window, "print").mockImplementation(() => undefined);
+  it("downloads the canonical generated CV", () => {
     render(<App />);
 
-    await user.click(screen.getAllByRole("button", { name: "Download CV" })[0]!);
-
-    expect(print).toHaveBeenCalledOnce();
-    print.mockRestore();
+    expect(screen.getAllByRole("link", { name: "Download CV" })[0]).toHaveAttribute(
+      "href",
+      "/rodrigo-uroz-cv.pdf",
+    );
+    expect(screen.getAllByRole("link", { name: "Download CV" })[0]).toHaveAttribute("download");
   });
 
   it.each([
@@ -66,7 +117,7 @@ describe("Ask Rodrigo public interface", () => {
     },
     {
       question: "What did Rodrigo build in Coro?",
-      source: "[Coro · Independent projects]",
+      source: "[Coro · Independent project]",
       href: "#projects",
     },
   ])(
@@ -81,7 +132,7 @@ describe("Ask Rodrigo public interface", () => {
       await user.type(input, question);
       await user.click(screen.getByRole("button", { name: "Send question" }));
 
-      expect(screen.getByRole("link", { name: source })).toHaveAttribute("href", href);
+      expect(await screen.findByRole("link", { name: source })).toHaveAttribute("href", href);
     },
   );
 
@@ -92,7 +143,9 @@ describe("Ask Rodrigo public interface", () => {
     await user.click(screen.getByRole("button", { name: "Close Ask Rodrigo" }));
     await user.click(screen.getByRole("button", { name: "Ask about ClassDojo" }));
 
-    expect(screen.getByRole("link", { name: "[ClassDojo · Experience]" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("link", { name: "[ClassDojo · Experience]" }),
+    ).toBeInTheDocument();
   });
 
   it("shows an honest fallback without a misleading source link", async () => {
@@ -107,12 +160,44 @@ describe("Ask Rodrigo public interface", () => {
     await user.click(screen.getByRole("button", { name: "Send question" }));
 
     expect(
-      screen.getByText(
-        "I don’t have an approved source for that. You can contact Rodrigo directly and ask him.",
+      await screen.findByText(
+        "I don’t have enough approved evidence to answer that. You can contact Rodrigo directly and ask him.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByText("[No approved source]")).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "[No approved source]" })).not.toBeInTheDocument();
+  });
+
+  it("keeps up to six completed turns in-tab and sends them only as conversation context", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+    const input = screen.getByRole("textbox", {
+      name: "Ask about experience, projects, or skills…",
+    });
+
+    await user.type(input, "What did Rodrigo build in Coro?");
+    await user.click(screen.getByRole("button", { name: "Send question" }));
+    expect(await screen.findByText("A grounded test answer.")).toBeInTheDocument();
+
+    await user.type(input, "Why did he build it?");
+    await user.click(screen.getByRole("button", { name: "Send question" }));
+
+    const calls = vi.mocked(fetch).mock.calls;
+    const requestBody = calls.at(-1)?.[1]?.body;
+    if (typeof requestBody !== "string") throw new Error("Expected a serialized request body");
+    const secondBody = JSON.parse(requestBody) as {
+      history: Array<{ question: string; answer: string }>;
+      safetyId: string;
+    };
+    expect(secondBody.history).toEqual([
+      { question: "What did Rodrigo build in Coro?", answer: "A grounded test answer." },
+    ]);
+    expect(secondBody.safetyId).toMatch(/^[0-9a-f-]{36}$/i);
+    expect(screen.getByText("What did Rodrigo build in Coro?")).toBeInTheDocument();
+    expect(screen.getByText("Why did he build it?")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "New chat" }));
+    expect(screen.queryByText("What did Rodrigo build in Coro?")).not.toBeInTheDocument();
   });
 
   it("moves keyboard focus into the question field when the assistant is reopened", async () => {

@@ -81,6 +81,9 @@ export const copy = {
       es: "Trabaja como Fullstack Software Engineer, contribuyendo a la plataforma web en TypeScript, integraciones de producto, funcionalidades con LLMs y la experiencia de desarrollo.",
     },
     contact: { en: "Contact Rodrigo", es: "Contactar a Rodrigo" },
+    newChat: { en: "New chat", es: "Nuevo chat" },
+    thinking: { en: "Checking approved sources…", es: "Consultando fuentes aprobadas…" },
+    unknownSource: { en: "No approved source", es: "Sin fuente aprobada" },
     unknown: {
       en: "I don’t have an approved source for that. You can contact Rodrigo directly and ask him.",
       es: "No tengo una fuente aprobada para responder eso. Podés contactar a Rodrigo y preguntarle directamente.",
@@ -307,6 +310,7 @@ export const education = [
 ] as const;
 
 export const externalLinks = {
+  cv: "/rodrigo-uroz-cv.pdf",
   github: "https://github.com/rodrigouroz",
   silver: "https://www.silver.dev/",
   email: "mailto:hello@rodrigouroz.com",

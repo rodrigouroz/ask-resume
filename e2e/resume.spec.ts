@@ -1,9 +1,24 @@
 import { expect, test } from "@playwright/test";
+import type { Page } from "@playwright/test";
+
+async function mockGroundedAnswer(page: Page, answer: { language: "en" | "es"; text: string }) {
+  await page.route("**/api/ask", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "answered",
+        language: answer.language,
+        answer: answer.text,
+        citations: [{ sourceId: "classdojo-current-role", sectionId: "experience" }],
+      }),
+    });
+  });
+}
 
 test("presents professional experience before independent projects", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page).toHaveTitle("Rodrigo Uroz · Software Engineer");
+  await expect(page).toHaveTitle("Rodrigo Uroz · Software Engineer & Product Builder");
   await expect(
     page.getByRole("heading", {
       level: 1,
@@ -22,6 +37,10 @@ test("presents professional experience before independent projects", async ({ pa
 });
 
 test("answers a professional question with a visible source", async ({ page }, testInfo) => {
+  await mockGroundedAnswer(page, {
+    language: "en",
+    text: "Rodrigo works as a Fullstack Software Engineer at ClassDojo.",
+  });
   await page.goto("/");
 
   if (testInfo.project.name.startsWith("mobile")) {
@@ -35,11 +54,33 @@ test("answers a professional question with a visible source", async ({ page }, t
   await page.getByRole("button", { name: "Send question" }).click();
 
   await expect(
-    page.getByText(
-      "He works as a Fullstack Software Engineer, contributing to the TypeScript web platform, product integrations, LLM features, and developer experience.",
-    ),
+    page.getByText("Rodrigo works as a Fullstack Software Engineer at ClassDojo."),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "[ClassDojo · Experience]" })).toBeVisible();
+});
+
+test("keeps the question language independent from the selected UI language", async ({
+  page,
+}, testInfo) => {
+  await mockGroundedAnswer(page, {
+    language: "es",
+    text: "Rodrigo trabaja en ClassDojo desde 2022.",
+  });
+  await page.goto("/");
+
+  if (testInfo.project.name.startsWith("mobile")) {
+    await page.getByRole("button", { name: "Ask Rodrigo", exact: true }).last().click();
+  }
+
+  const input = page.getByRole("textbox", {
+    name: "Ask about experience, projects, or skills…",
+  });
+  await input.fill("¿En qué trabajó Rodrigo en ClassDojo?");
+  await page.getByRole("button", { name: "Send question" }).click();
+
+  await expect(page.getByText("Rodrigo trabaja en ClassDojo desde 2022.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "[ClassDojo · Experiencia]" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
 test("opens Ask Rodrigo as a bottom sheet on mobile", async ({ page }, testInfo) => {

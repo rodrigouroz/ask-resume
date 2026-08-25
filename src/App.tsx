@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useAssistantConversation } from "./assistant/useAssistantConversation";
 import type { Language } from "./content";
 import { ChatAssistant } from "./components/ChatAssistant";
 import { Header } from "./components/Header";
@@ -23,19 +24,24 @@ function getInitialChatOpen(): boolean {
 export function App() {
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const [chatOpen, setChatOpen] = useState(getInitialChatOpen);
-  const [activeQuestion, setActiveQuestion] = useState<string | null>(null);
+  const conversation = useAssistantConversation(language);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
 
   const changeLanguage = useCallback((next: Language) => {
     setLanguage(next);
     window.localStorage.setItem("ask-rodrigo-language", next);
   }, []);
 
-  const ask = useCallback((question: string) => {
-    setActiveQuestion(question);
-    setChatOpen(true);
-  }, []);
-
-  const download = useCallback(() => window.print(), []);
+  const ask = useCallback(
+    (question: string) => {
+      setChatOpen(true);
+      void conversation.ask(question);
+    },
+    [conversation],
+  );
 
   return (
     <>
@@ -43,23 +49,26 @@ export function App() {
         Skip to content
       </a>
       <div id="top" className="page-shell">
-        <Header language={language} onLanguageChange={changeLanguage} onDownload={download} />
+        <Header language={language} onLanguageChange={changeLanguage} />
         <main id="main-content" className={chatOpen ? "chat-is-open" : ""}>
-          <Hero language={language} onAsk={ask} onDownload={download} />
+          <Hero language={language} onAsk={ask} />
           <ExperienceSection language={language} onAsk={ask} />
           <CapabilitiesSection language={language} />
           <ProjectsSection language={language} onAsk={ask} />
           <AboutSection language={language} />
-          <ContactSection language={language} onDownload={download} />
+          <ContactSection language={language} />
         </main>
       </div>
       <ChatAssistant
         language={language}
         open={chatOpen}
-        activeQuestion={activeQuestion}
+        loading={conversation.loading}
+        pendingQuestion={conversation.pendingQuestion}
+        turns={conversation.turns}
         onOpen={() => setChatOpen(true)}
         onClose={() => setChatOpen(false)}
         onAsk={ask}
+        onNewChat={conversation.clear}
       />
     </>
   );

@@ -82,19 +82,6 @@ export function ChatAssistant({
         </div>
 
         <div className="chat-transcript" aria-live="polite">
-          {turns.length === 0 && pendingQuestion === null ? (
-            <div className="chat-empty-state">
-              <p>{text(copy.chat.welcome)}</p>
-              <div className="chat-suggestions">
-                {copy.chat.suggestions[language].map((suggestion) => (
-                  <button type="button" onClick={() => onAsk(suggestion)} key={suggestion}>
-                    {suggestion}
-                    <ArrowRightIcon />
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
           {turns.map(({ question: turnQuestion, response }) => (
             <div className="chat-turn" key={`${turnQuestion}:${response.answer}`}>
               <p className="chat-question">{turnQuestion}</p>
@@ -119,7 +106,14 @@ export function ChatAssistant({
           {pendingQuestion ? (
             <div className="chat-turn">
               <p className="chat-question">{pendingQuestion}</p>
-              <p className="chat-answer">{text(copy.chat.thinking)}</p>
+              <output className="chat-thinking" aria-label={text(copy.chat.thinking)}>
+                <span className="chat-thinking-dots" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+                <span aria-hidden="true">{text(copy.chat.thinking)}</span>
+              </output>
             </div>
           ) : null}
         </div>

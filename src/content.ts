@@ -70,22 +70,6 @@ export const copy = {
     title: { en: "Rodrigo’s assistant", es: "Asistente de Rodrigo" },
     cta: { en: "Ask about Rodrigo", es: "Preguntá sobre Rodrigo" },
     close: { en: "Close Rodrigo’s assistant", es: "Cerrar asistente de Rodrigo" },
-    welcome: {
-      en: "Ask about Rodrigo’s experience, skills, or independent projects.",
-      es: "Preguntá sobre la experiencia, habilidades o proyectos independientes de Rodrigo.",
-    },
-    suggestions: {
-      en: [
-        "What is Rodrigo working on at ClassDojo?",
-        "What kind of teams has Rodrigo led?",
-        "Which technologies does Rodrigo work with?",
-      ],
-      es: [
-        "¿En qué trabaja Rodrigo en ClassDojo?",
-        "¿Qué tipo de equipos lideró Rodrigo?",
-        "¿Con qué tecnologías trabaja Rodrigo?",
-      ],
-    },
     placeholder: {
       en: "Ask about experience, projects, or skills…",
       es: "Preguntá sobre experiencia, proyectos o habilidades…",

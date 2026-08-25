@@ -47,18 +47,17 @@ beforeEach(() => {
 });
 
 describe("Ask Rodrigo public interface", () => {
-  it("starts empty and turns a suggested question into a real conversation", async () => {
+  it("starts with an empty conversation and only asks after typed input", async () => {
     const user = userEvent.setup();
     render(<App />);
 
     expect(
-      screen.queryByText(
-        "He works as a Fullstack Software Engineer, contributing to the TypeScript web platform, product integrations, LLM features, and developer experience.",
-      ),
+      screen.queryByText("Ask about Rodrigo’s experience, skills, or independent projects."),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByText("Ask about Rodrigo’s experience, skills, or independent projects."),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: "What is Rodrigo working on at ClassDojo?" }),
+    ).not.toBeInTheDocument();
+    expect(fetch).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Close Rodrigo’s assistant" }));
     const hero = screen.getByRole("region", {
@@ -67,12 +66,29 @@ describe("Ask Rodrigo public interface", () => {
     await user.click(within(hero).getByRole("button", { name: "Ask about Rodrigo" }));
     expect(fetch).not.toHaveBeenCalled();
 
-    await user.click(
-      screen.getByRole("button", { name: "What is Rodrigo working on at ClassDojo?" }),
-    );
+    const input = screen.getByRole("textbox", {
+      name: "Ask about experience, projects, or skills…",
+    });
+    await user.type(input, "What is Rodrigo working on at ClassDojo?");
+    await user.click(screen.getByRole("button", { name: "Send question" }));
 
     expect(await screen.findByText("A grounded test answer.")).toBeInTheDocument();
     expect(fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a specific accessible loading state while checking sources", async () => {
+    vi.mocked(fetch).mockImplementationOnce(() => new Promise(() => undefined));
+    const user = userEvent.setup();
+    render(<App />);
+
+    const input = screen.getByRole("textbox", {
+      name: "Ask about experience, projects, or skills…",
+    });
+    await user.type(input, "What is Rodrigo working on at ClassDojo?");
+    await user.click(screen.getByRole("button", { name: "Send question" }));
+
+    expect(screen.getByRole("status", { name: "Checking approved sources…" })).toBeInTheDocument();
+    expect(screen.getByText("What is Rodrigo working on at ClassDojo?")).toBeInTheDocument();
   });
 
   it("presents professional experience before independent projects", () => {
@@ -98,10 +114,11 @@ describe("Ask Rodrigo public interface", () => {
         name: "Ingeniero de software que lleva productos desde la ambigüedad hasta la operación.",
       }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Asistente de Rodrigo" })).toBeInTheDocument();
     expect(
-      screen.getByText(
-        "Preguntá sobre la experiencia, habilidades o proyectos independientes de Rodrigo.",
-      ),
+      screen.getByRole("textbox", {
+        name: "Preguntá sobre experiencia, proyectos o habilidades…",
+      }),
     ).toBeInTheDocument();
     expect(window.localStorage.getItem("ask-rodrigo-language")).toBe("es");
     expect(document.documentElement).toHaveAttribute("lang", "es");

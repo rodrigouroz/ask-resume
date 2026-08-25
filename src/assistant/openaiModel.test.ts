@@ -72,6 +72,11 @@ describe("OpenAI grounded model", () => {
     expect(parse.mock.calls[0]?.[0].instructions).toContain("approved public corpus");
     expect(parse.mock.calls[0]?.[0].instructions).toContain("no access to private repositories");
     expect(parse.mock.calls[0]?.[0].instructions).toContain("direct the visitor to Rodrigo");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain(
+      "smallest set of directly relevant evidence",
+    );
+    expect(parse.mock.calls[0]?.[0].instructions).toContain("Do not invent conditions");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain("keep 'sometimes' as 'sometimes'");
   });
 
   it("verifies every claim against only the cited evidence", async () => {

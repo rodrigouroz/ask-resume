@@ -65,13 +65,38 @@ export function ExperienceSection({ language, onAsk }: SectionProps) {
         {experiences.map((experience) => (
           <article className="experience-row" key={`${experience.company}-${experience.period}`}>
             <span className="timeline-dot" aria-hidden="true" />
-            <h3>{experience.company}</h3>
+            <div className="experience-company">
+              {"src" in experience.brand ? (
+                <span
+                  className={`experience-brand experience-brand--${experience.brand.treatment ?? "light"}`}
+                  aria-hidden="true"
+                >
+                  <img
+                    src={experience.brand.src}
+                    alt=""
+                    width="96"
+                    height="32"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+              ) : (
+                <span className="experience-brand experience-brand--fallback" aria-hidden="true">
+                  {experience.brand.fallback}
+                </span>
+              )}
+              <h3>{experience.company}</h3>
+            </div>
             <p className="experience-role">{text(experience.role)}</p>
             <p className="experience-period">{experience.period}</p>
             <p className="experience-summary">{text(experience.summary)}</p>
             <button
               type="button"
-              aria-label={`Ask about ${experience.company}`}
+              aria-label={
+                language === "en"
+                  ? `Ask about ${experience.company}`
+                  : `Preguntar sobre ${experience.company}`
+              }
               onClick={() =>
                 onAsk(
                   language === "en"
@@ -146,12 +171,26 @@ export function ProjectsSection({ language, onAsk }: SectionProps) {
               <h3>{project.name}</h3>
               <p>{text(project.summary)}</p>
               <p className="project-evidence">{project.evidence}</p>
-              <a href={project.url} target="_blank" rel="noreferrer">
-                Live <ExternalIcon />
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={
+                  language === "en"
+                    ? `Open ${project.name} live site`
+                    : `Abrir sitio de ${project.name}`
+                }
+              >
+                {text(copy.projectActions.live)} <ExternalIcon />
               </a>
               <button
                 className="text-link"
                 type="button"
+                aria-label={
+                  language === "en"
+                    ? `Ask about ${project.name}`
+                    : `Preguntar sobre ${project.name}`
+                }
                 onClick={() =>
                   onAsk(
                     language === "en"
@@ -160,7 +199,7 @@ export function ProjectsSection({ language, onAsk }: SectionProps) {
                   )
                 }
               >
-                Ask
+                {text(copy.projectActions.ask)}
               </button>
             </article>
           );

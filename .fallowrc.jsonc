@@ -1,3 +1,6 @@
 {
   "ignorePatterns": ["worker-configuration.d.ts"],
+  "audit": {
+    "gate": "new-only",
+  },
 }

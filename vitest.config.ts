@@ -9,8 +9,8 @@ export default defineConfig({
     exclude: ["e2e/**", "node_modules/**", "dist/**"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "html"],
-      include: ["src/**/*.{ts,tsx}"],
+      reporter: ["text", "html", "json"],
+      include: ["src/**/*.{ts,tsx}", "worker/index.ts"],
       exclude: ["src/main.tsx", "src/**/*.test.{ts,tsx}", "src/test/**"],
       thresholds: {
         statements: 80,

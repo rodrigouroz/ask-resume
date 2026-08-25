@@ -30,6 +30,10 @@ body {
   background: var(--white);
 }
 
+body.assistant-modal-open {
+  overflow: hidden;
+}
+
 button,
 input {
   font: inherit;
@@ -38,6 +42,7 @@ input {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 a {
@@ -49,7 +54,7 @@ button {
 }
 
 :focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--blue) 42%, transparent);
+  outline: 3px solid var(--blue);
   outline-offset: 3px;
 }
 
@@ -99,6 +104,9 @@ button {
 }
 
 .wordmark {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-size: 1.18rem;
   font-weight: 760;
   letter-spacing: -0.035em;
@@ -125,6 +133,9 @@ button {
 }
 
 .header-actions nav a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-size: 0.86rem;
   font-weight: 650;
   text-decoration: none;
@@ -149,6 +160,11 @@ button {
   cursor: pointer;
 }
 
+.language-switch button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
 .language-switch button[aria-pressed="true"] {
   color: var(--blue);
   font-weight: 800;
@@ -156,6 +172,10 @@ button {
 
 .text-link {
   width: fit-content;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   border: 0;
   border-bottom: 1px dotted currentColor;
   padding: 0 0 0.18rem;
@@ -176,6 +196,13 @@ button {
 
 .mobile-language-switch {
   display: none;
+}
+
+.language-switch,
+.mobile-language-switch {
+  margin: 0;
+  border: 0;
+  padding: 0;
 }
 
 .hero {
@@ -320,10 +347,10 @@ button {
   grid-template-columns: minmax(170px, 1.12fr) minmax(180px, 1.2fr) minmax(115px, 0.65fr) minmax(
       300px,
       2.15fr
-    ) 28px;
+    ) 44px;
   align-items: center;
   column-gap: clamp(1rem, 2.6vw, 2.8rem);
-  min-height: 80px;
+  min-height: 96px;
   padding: 1.05rem 0 1.05rem 2.5rem;
   border-bottom: 1px solid var(--line);
 }
@@ -339,6 +366,54 @@ button {
   letter-spacing: -0.02em;
 }
 
+.experience-company {
+  min-width: 0;
+}
+
+.experience-brand {
+  width: 96px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.45rem;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.experience-brand img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.experience-brand--light {
+  padding: 0.3rem 0.45rem;
+  background: var(--white);
+}
+
+.experience-brand--dark {
+  padding: 0.3rem 0.45rem;
+  border-color: #29354a;
+  background: #172033;
+}
+
+.experience-brand--full {
+  background: #101722;
+}
+
+.experience-brand--fallback {
+  justify-content: flex-start;
+  padding: 0 0.55rem;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 0.7rem;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+
 .experience-role {
   font-size: 0.9rem;
 }
@@ -351,8 +426,8 @@ button {
 }
 
 .experience-row > button {
-  width: 28px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: 0;
@@ -441,7 +516,7 @@ button {
   grid-template-columns: 30px minmax(90px, 0.65fr) minmax(220px, 1.4fr) minmax(
       240px,
       1.45fr
-    ) 72px 44px;
+    ) 72px 74px;
   align-items: center;
   gap: 1.25rem;
   min-height: 62px;
@@ -469,6 +544,8 @@ button {
 }
 
 .project-row > a {
+  min-width: 44px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -508,8 +585,7 @@ button {
 }
 
 .education-grid p,
-.minor-section p,
-.minor-section a {
+.minor-section p {
   margin: 0;
   color: var(--muted);
   font-size: 0.86rem;
@@ -522,6 +598,7 @@ button {
 }
 
 .minor-section a {
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
@@ -577,6 +654,7 @@ button {
   font-size: 0.84rem;
   font-weight: 700;
   text-underline-offset: 5px;
+  min-height: 44px;
 }
 
 .contact-links a svg {
@@ -608,6 +686,7 @@ button {
   border-left: 1px solid var(--line);
   background: var(--white);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transform: translateX(24px);
   transition:
@@ -617,6 +696,7 @@ button {
 
 .chat-panel.is-open {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   transform: translateX(0);
 }
@@ -769,7 +849,14 @@ button {
 }
 
 .chat-form input::placeholder {
-  color: #7b8498;
+  color: var(--muted);
+}
+
+.chat-error {
+  margin: 0.55rem 0 0;
+  color: #a31d1d;
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .chat-form button {
@@ -787,6 +874,7 @@ button {
 }
 
 .contact-chat-link {
+  min-height: 44px;
   display: none;
   align-items: center;
   gap: 0.55rem;
@@ -831,12 +919,12 @@ button {
 
 @media (max-width: 1080px) {
   .experience-row {
-    grid-template-columns: minmax(145px, 1fr) minmax(170px, 1fr) 100px minmax(250px, 1.6fr) 28px;
+    grid-template-columns: minmax(145px, 1fr) minmax(170px, 1fr) 100px minmax(250px, 1.6fr) 44px;
     column-gap: 1rem;
   }
 
   .project-row {
-    grid-template-columns: 28px 90px minmax(180px, 1fr) minmax(190px, 1fr) 60px 40px;
+    grid-template-columns: 28px 90px minmax(180px, 1fr) minmax(190px, 1fr) 60px 74px;
     gap: 0.8rem;
   }
 }
@@ -872,7 +960,7 @@ button {
   }
 
   .mobile-language-switch button {
-    min-width: 32px;
+    min-width: 44px;
     min-height: 44px;
     border: 0;
     padding: 0;
@@ -906,6 +994,10 @@ button {
   .header-actions nav {
     display: grid;
     gap: 1.1rem;
+  }
+
+  .header-actions nav a {
+    min-height: 44px;
   }
 
   .header-actions .language-switch {
@@ -981,7 +1073,7 @@ button {
   }
 
   .experience-row {
-    grid-template-columns: 1fr auto 28px;
+    grid-template-columns: 1fr auto 44px;
     grid-template-areas:
       "company period ask"
       "role period ask"
@@ -991,8 +1083,28 @@ button {
     padding: 1.15rem 0 1.15rem 2rem;
   }
 
-  .experience-row h3 {
+  .experience-company {
     grid-area: company;
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .experience-brand {
+    width: 72px;
+    height: 26px;
+    margin: 0;
+    border-radius: 5px;
+  }
+
+  .experience-brand--fallback {
+    padding-inline: 0.4rem;
+    font-size: 0.6rem;
+  }
+
+  .experience-row h3 {
+    min-width: 0;
   }
 
   .experience-role {
@@ -1164,6 +1276,7 @@ button {
     min-width: 0;
     max-height: 76vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 0.55rem 1.25rem max(1.4rem, env(safe-area-inset-bottom));
     border: 0;
     border-radius: 14px 14px 0 0;
@@ -1309,6 +1422,7 @@ button {
   }
 
   .wordmark {
+    min-height: 0;
     display: block;
     font-size: 1.6rem;
     font-weight: 760;
@@ -1415,8 +1529,16 @@ button {
     break-inside: avoid;
   }
 
-  .experience-row h3 {
+  .experience-company {
+    display: block;
     grid-area: company;
+  }
+
+  .experience-brand {
+    display: none;
+  }
+
+  .experience-row h3 {
     font-size: 9.6pt;
     line-height: 1.25;
     letter-spacing: -0.01em;

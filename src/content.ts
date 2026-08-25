@@ -2,8 +2,18 @@ export type Language = "en" | "es";
 
 export type LocalizedText = Record<Language, string>;
 
+export type ExperienceBrand =
+  | {
+      src: string;
+      treatment?: "light" | "dark" | "full";
+    }
+  | {
+      fallback: string;
+    };
+
 export type Experience = {
   company: string;
+  brand: ExperienceBrand;
   role: LocalizedText;
   period: string;
   summary: LocalizedText;
@@ -27,6 +37,13 @@ export const copy = {
     capabilities: { en: "Capabilities", es: "Capacidades" },
     projects: { en: "Independent projects", es: "Proyectos independientes" },
     about: { en: "About", es: "Sobre mí" },
+    mainLabel: { en: "Main navigation", es: "Navegación principal" },
+    languageLabel: { en: "Language", es: "Idioma" },
+    mobileLanguageLabel: { en: "Mobile language", es: "Idioma en móvil" },
+    openMenu: { en: "Open menu", es: "Abrir menú" },
+    closeMenu: { en: "Close menu", es: "Cerrar menú" },
+    switchToEnglish: { en: "Switch language to English", es: "Cambiar idioma a inglés" },
+    switchToSpanish: { en: "Switch language to Spanish", es: "Cambiar idioma a español" },
   },
   download: { en: "Download CV", es: "Descargar CV" },
   hero: {
@@ -76,6 +93,11 @@ export const copy = {
     },
     contact: { en: "Contact Rodrigo", es: "Contactar a Rodrigo" },
     newChat: { en: "New chat", es: "Nuevo chat" },
+    send: { en: "Send question", es: "Enviar pregunta" },
+    questionRequired: {
+      en: "Enter a question before sending.",
+      es: "Escribí una pregunta antes de enviarla.",
+    },
     thinking: { en: "Checking approved sources…", es: "Consultando fuentes aprobadas…" },
     unknownSource: { en: "No approved source", es: "Sin fuente aprobada" },
     unknown: {
@@ -83,11 +105,16 @@ export const copy = {
       es: "No tengo una fuente aprobada para responder eso. Podés contactar a Rodrigo y preguntarle directamente.",
     },
   },
+  projectActions: {
+    live: { en: "Live", es: "Abrir" },
+    ask: { en: "Ask", es: "Preguntar" },
+  },
 } as const;
 
 export const experiences: Experience[] = [
   {
     company: "ClassDojo",
+    brand: { src: "/brands/classdojo.svg" },
     role: { en: "Fullstack Software Engineer", es: "Fullstack Software Engineer" },
     period: "2022–Present",
     summary: {
@@ -97,6 +124,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "SCVSoft",
+    brand: { src: "/brands/scvsoft.png", treatment: "dark" },
     role: { en: "Tech Lead", es: "Tech Lead" },
     period: "2021",
     summary: {
@@ -106,6 +134,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "Medallia",
+    brand: { src: "/brands/medallia.svg" },
     role: { en: "Senior Engineering Manager", es: "Senior Engineering Manager" },
     period: "2018–2021",
     summary: {
@@ -115,6 +144,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "FutureAdvisor / SCVSoft",
+    brand: { src: "/brands/futureadvisor.png", treatment: "full" },
     role: { en: "Lead Software Engineer", es: "Lead Software Engineer" },
     period: "2016–2018",
     summary: {
@@ -124,6 +154,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "Lemonade / VSKO",
+    brand: { fallback: "Lemonade" },
     role: { en: "Software Engineer", es: "Software Engineer" },
     period: "2013–2016",
     summary: {
@@ -133,6 +164,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "DLA TV",
+    brand: { src: "/brands/dla-tv.png", treatment: "full" },
     role: { en: "Head of Development", es: "Head of Development" },
     period: "2012–2013",
     summary: {
@@ -142,6 +174,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "TeraCode / OpenEnglish",
+    brand: { src: "/brands/teracode.svg", treatment: "dark" },
     role: {
       en: "Software Engineer → Project Manager",
       es: "Software Engineer → Project Manager",
@@ -154,6 +187,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "Bumeran",
+    brand: { src: "/brands/bumeran.png" },
     role: { en: "Software Engineer", es: "Software Engineer" },
     period: "2007–2009",
     summary: {
@@ -163,6 +197,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "Globant",
+    brand: { src: "/brands/globant.png" },
     role: { en: "Functional Analyst", es: "Analista funcional" },
     period: "2006–2007",
     summary: {
@@ -172,6 +207,7 @@ export const experiences: Experience[] = [
   },
   {
     company: "Claxson / Mixplay",
+    brand: { src: "/brands/claxson.png", treatment: "dark" },
     role: { en: "Senior Developer", es: "Senior Developer" },
     period: "2003–2006",
     summary: {

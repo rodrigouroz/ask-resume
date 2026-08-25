@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createVectorSearch, EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "./vectorSearch";
+import { EMBEDDING_DIMENSIONS, EMBEDDING_MODEL } from "./modelConfig";
+import { createVectorSearch } from "./vectorSearchCore";
 
 describe("Vectorize semantic search", () => {
   it("embeds the bilingual query and returns stable source ids from indexed metadata", async () => {

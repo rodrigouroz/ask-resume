@@ -4,8 +4,8 @@ import { z } from "zod";
 import type { Language } from "../content";
 import type { CanonicalEvidence } from "./contracts";
 import type { GroundedModel } from "./model";
+import { ASSISTANT_MODEL } from "./modelConfig";
 
-export const ASSISTANT_MODEL = "gpt-5.6-sol";
 const MODERATION = {
   model: "omni-moderation-latest",
   policy: { input: { mode: "block" }, output: { mode: "block" } },

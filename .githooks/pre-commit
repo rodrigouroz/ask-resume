@@ -1,0 +1,34 @@
+#!/bin/sh
+
+repo_root=$(git rev-parse --show-toplevel) || exit 1
+fallow="$repo_root/node_modules/.bin/fallow"
+
+if [ ! -x "$fallow" ]; then
+  echo "Fallow is not installed. Run npm install before committing." >&2
+  exit 1
+fi
+
+diff_file=$(mktemp "${TMPDIR:-/tmp}/ask-rodrigo-pre-commit.XXXXXX") || exit 1
+trap 'rm -f "$diff_file"' EXIT HUP INT TERM
+git diff --cached --binary --no-ext-diff >"$diff_file" || exit 1
+
+if [ ! -s "$diff_file" ]; then
+  exit 0
+fi
+
+if ! npm --prefix "$repo_root" run test:coverage; then
+  echo "Coverage failed; Fallow audit was not run." >&2
+  exit 1
+fi
+
+upstream=$(git rev-parse --abbrev-ref '@{upstream}' 2>/dev/null || true)
+if [ -z "$upstream" ]; then
+  upstream="main"
+fi
+
+base=$(git merge-base HEAD "$upstream" 2>/dev/null || true)
+if [ -z "$base" ]; then
+  base="$upstream"
+fi
+
+npm --prefix "$repo_root" run fallow:check -- --base "$base" --diff-file "$diff_file"

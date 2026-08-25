@@ -87,10 +87,40 @@ test("opens Rodrigo’s assistant as a bottom sheet on mobile", async ({ page },
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only behavior");
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last().click();
+  const opener = page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last();
+  await opener.click();
 
-  await expect(page.getByRole("complementary", { name: "Rodrigo’s assistant" })).toBeVisible();
-  await expect(
-    page.getByRole("textbox", { name: "Ask about experience, projects, or skills…" }),
-  ).toBeFocused();
+  const dialog = page.getByRole("dialog", { name: "Rodrigo’s assistant" });
+  const input = page.getByRole("textbox", {
+    name: "Ask about experience, projects, or skills…",
+  });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+  await expect(page.locator(".page-shell")).toHaveAttribute("inert", "");
+  await expect(input).toBeFocused();
+
+  await input.press("Escape");
+
+  await expect(page.locator(".chat-panel")).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator(".page-shell")).not.toHaveAttribute("inert", "");
+  await expect(opener).toBeFocused();
+});
+
+test("keeps key mobile actions at least 44 CSS pixels", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only behavior");
+  await page.goto("/");
+
+  const targets = [
+    page.getByRole("button", { name: "Ask about ClassDojo" }),
+    page.getByRole("link", { name: "Open Coro live site" }),
+    page.getByRole("button", { name: "Ask about Coro" }),
+  ];
+
+  for (const target of targets) {
+    await target.scrollIntoViewIfNeeded();
+    const box = await target.boundingBox();
+    expect(box, "target should have a measurable box").not.toBeNull();
+    expect(box!.width).toBeGreaterThanOrEqual(44);
+    expect(box!.height).toBeGreaterThanOrEqual(44);
+  }
 });

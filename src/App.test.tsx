@@ -1,7 +1,25 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+
+function mockMobileViewport() {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn<(query: string) => MediaQueryList>((query) => {
+      return {
+        matches: query === "(max-width: 860px)",
+        media: query,
+        onchange: null,
+        addEventListener: () => undefined,
+        removeEventListener: () => undefined,
+        addListener: () => undefined,
+        removeListener: () => undefined,
+        dispatchEvent: () => false,
+      };
+    }),
+  );
+}
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -44,6 +62,11 @@ beforeEach(() => {
       );
     }),
   );
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("Ask Rodrigo public interface", () => {
@@ -106,7 +129,7 @@ describe("Ask Rodrigo public interface", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "ES" }));
+    await user.click(screen.getAllByRole("button", { name: "Switch language to Spanish" })[0]!);
 
     expect(
       screen.getByRole("heading", {
@@ -122,6 +145,23 @@ describe("Ask Rodrigo public interface", () => {
     ).toBeInTheDocument();
     expect(window.localStorage.getItem("ask-rodrigo-language")).toBe("es");
     expect(document.documentElement).toHaveAttribute("lang", "es");
+    expect(screen.getByRole("button", { name: "Enviar pregunta" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Preguntar sobre ClassDojo" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Abrir sitio de Coro" })).toBeInTheDocument();
+  });
+
+  it("uses the first supported browser language when no preference was saved", () => {
+    vi.spyOn(window.navigator, "languages", "get").mockReturnValue(["pt-BR", "es-AR", "en-US"]);
+
+    render(<App />);
+
+    expect(document.documentElement).toHaveAttribute("lang", "es");
+    expect(
+      screen.getByRole("heading", {
+        level: 1,
+        name: "Ingeniero de software que lleva productos desde la ambigüedad hasta la operación.",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("restores the document language from the saved UI preference", () => {
@@ -137,11 +177,81 @@ describe("Ask Rodrigo public interface", () => {
     render(<App />);
 
     const menu = screen.getByRole("button", { name: "Open menu" });
+    expect(menu).toHaveAttribute("aria-controls", "mobile-navigation");
     await user.click(menu);
     expect(menu).toHaveAttribute("aria-expanded", "true");
 
+    await user.keyboard("{Escape}");
+    expect(menu).toHaveAttribute("aria-expanded", "false");
+    expect(menu).toHaveFocus();
+
+    await user.click(menu);
     await user.click(screen.getByRole("link", { name: "Experience" }));
     expect(menu).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("removes the closed assistant from keyboard and assistive-technology navigation", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const panel = screen.getByRole("complementary", { name: "Rodrigo’s assistant" });
+    await user.click(screen.getByRole("button", { name: "Close Rodrigo’s assistant" }));
+
+    expect(panel).toHaveAttribute("aria-hidden", "true");
+    expect(panel).toHaveAttribute("inert");
+  });
+
+  it("treats the mobile assistant as a modal and restores focus after Escape", async () => {
+    mockMobileViewport();
+    const user = userEvent.setup();
+    render(<App />);
+
+    const opener = screen.getAllByRole("button", { name: "Ask about Rodrigo" }).at(-1)!;
+    await user.click(opener);
+
+    const dialog = screen.getByRole("dialog", { name: "Rodrigo’s assistant" });
+    expect(dialog).toHaveAttribute("aria-modal", "true");
+    expect(document.querySelector(".page-shell")).toHaveAttribute("inert");
+    expect(document.body).toHaveClass("assistant-modal-open");
+    expect(
+      screen.getByRole("textbox", { name: "Ask about experience, projects, or skills…" }),
+    ).toHaveFocus();
+
+    const firstDialogControl = screen.getByRole("button", { name: "New chat" });
+    const lastDialogControl = screen.getByRole("link", { name: "Contact Rodrigo" });
+    lastDialogControl.focus();
+    await user.tab();
+    expect(firstDialogControl).toHaveFocus();
+    await user.tab({ shift: true });
+    expect(lastDialogControl).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(dialog).toHaveAttribute("aria-hidden", "true"));
+    expect(document.querySelector(".page-shell")).not.toHaveAttribute("inert");
+    expect(document.body).not.toHaveClass("assistant-modal-open");
+    expect(opener).toHaveFocus();
+  });
+
+  it("shows an inline error for an empty question and exposes form metadata", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const input = screen.getByRole("textbox", {
+      name: "Ask about experience, projects, or skills…",
+    });
+    expect(input).toHaveAttribute("name", "question");
+    expect(input).toHaveAttribute("autocomplete", "off");
+    expect(input).toHaveAttribute("maxlength", "500");
+
+    await user.click(screen.getByRole("button", { name: "Send question" }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Enter a question before sending.");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input).toHaveFocus();
+
+    await user.type(input, "What did Rodrigo build in Coro?");
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("downloads the canonical generated CV", () => {

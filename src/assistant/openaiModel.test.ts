@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { assistantCorpus } from "./corpus";
-import { ASSISTANT_MODEL, createOpenAIModel } from "./openaiModel";
+import { ASSISTANT_MODEL } from "./modelConfig";
+import { createOpenAIModel } from "./openaiModel";
 
 const classDojoEvidence = assistantCorpus.find(
   ({ sourceId }) => sourceId === "classdojo-current-role",

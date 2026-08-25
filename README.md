@@ -50,22 +50,24 @@ Each request follows a narrow, auditable path:
 2. Language resolution uses the question when it is clearly Spanish or English and the UI language only when the question is mixed or ambiguous.
 3. GPT-5.6 Sol is forced to call `search_rodrigo_corpus` once. That call plans a search; it cannot answer the visitor.
 4. The Worker fuses deterministic bilingual lexical results with semantic Vectorize results. Only approved corpus IDs can survive retrieval, and lexical retrieval remains the failure fallback.
-5. GPT-5.6 Sol drafts from the retrieved evidence only, returning supporting source IDs.
-6. A separate model pass rejects the answer unless every factual claim is supported and the response language is correct.
-7. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
+5. Alfred's always-on policy prevents impersonation, private-data claims, outside knowledge, and unsupported inference independently of which evidence retrieval returns.
+6. GPT-5.6 Sol drafts from the retrieved evidence only, returning supporting source IDs.
+7. A separate model pass rejects the answer unless every factual claim is supported and the response language is correct.
+8. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
 
 The corpus is intentionally stored once in canonical English. The model may translate an answer, but translated copies are never persisted as competing sources of truth.
 
 ## Corpus approval
 
-Public evidence lives in `src/assistant/corpus.ts`. Every fact has a stable `factId`, approval status, review date, entities, and claim types; every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
+Public evidence lives in `src/assistant/corpus.ts`. Every fact has a stable `factId`, approval status, its own review date, entities, and a claim type from the controlled registry. Time-sensitive facts also have an explicit expiration date and disappear from retrieval after it passes; editing another fact does not renew them. Every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
 
 To change a professional claim:
 
 1. Get Rodrigo's explicit approval for the exact fact.
 2. Add or update the canonical English fact without renaming an existing ID merely for wording or localization.
-3. Add a deterministic retrieval case and, when model behavior changes, a live evaluation case.
-4. Run the quality gates below and inspect the visible citation target.
+3. Set or update that fact's own review date. Give current employment, availability, visas, current tools, and live URLs a proportionate expiration date.
+4. Add a deterministic retrieval case and, when model behavior changes, a live evaluation case.
+5. Run the quality gates below and inspect the visible citation target.
 
 Preparation notes, private repositories, email, and unapproved CV material are not runtime evidence.
 

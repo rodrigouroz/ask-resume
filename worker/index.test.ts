@@ -24,7 +24,9 @@ const model: GroundedModel = {
       language === "es"
         ? "Rodrigo trabaja en ClassDojo desde 2022."
         : "Rodrigo has worked at ClassDojo since 2022.",
-    sourceIds: evidence.map(({ sourceId }: CanonicalEvidence) => sourceId),
+    sourceIds: evidence
+      .filter(({ sourceId }: CanonicalEvidence) => sourceId === "classdojo-current-role")
+      .map(({ sourceId }: CanonicalEvidence) => sourceId),
   })),
   verify: vi.fn<GroundedModel["verify"]>(async () => ({
     answersQuestion: true,

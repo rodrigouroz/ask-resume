@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
-import { assistantCorpus } from "./corpus";
+import { getCurrentAssistantCorpus } from "./corpus";
 import { ASSISTANT_MODEL } from "./modelConfig";
 import { createOpenAIModel } from "./openaiModel";
 
-const classDojoEvidence = assistantCorpus.find(
+const classDojoEvidence = getCurrentAssistantCorpus("2026-08-25").find(
   ({ sourceId }) => sourceId === "classdojo-current-role",
 );
 if (!classDojoEvidence) throw new Error("Missing ClassDojo test evidence");
@@ -65,6 +65,13 @@ describe("OpenAI grounded model", () => {
       reasoning: { effort: "medium" },
     });
     expect(parse.mock.calls[0]?.[0].instructions).toContain("Spanish");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain(
+      "You are Alfred, Rodrigo Uroz's professional assistant",
+    );
+    expect(parse.mock.calls[0]?.[0].instructions).toContain("You are not Rodrigo");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain("approved public corpus");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain("no access to private repositories");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain("direct the visitor to Rodrigo");
   });
 
   it("verifies every claim against only the cited evidence", async () => {

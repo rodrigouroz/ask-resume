@@ -28,8 +28,9 @@ try {
     "bundler",
     "--skipLibCheck",
   ]);
-  const { assistantCorpus } = await import(pathToFileURL(temporaryModule).href);
-  const approved = assistantCorpus.filter(({ status }) => status === "approved");
+  const { getCurrentAssistantCorpus } = await import(pathToFileURL(temporaryModule).href);
+  const today = new Date().toISOString().slice(0, 10);
+  const approved = getCurrentAssistantCorpus(today).filter(({ status }) => status === "approved");
   const inputs = approved.map(({ title, searchTerms, facts }) =>
     [title, searchTerms.join(" · "), ...facts.map(({ text }) => text)].join("\n"),
   );
@@ -39,13 +40,21 @@ try {
     encoding_format: "float",
     input: inputs,
   });
-  const records = approved.map(({ sourceId, sectionId, reviewedAt }, index) => {
+  const records = approved.map(({ sourceId, sectionId, facts }, index) => {
     const values = response.data[index]?.embedding;
     if (!values) throw new Error(`Missing embedding for ${sourceId}`);
     return JSON.stringify({
       id: sourceId,
       values,
-      metadata: { sourceId, sectionId, status: "approved", reviewedAt },
+      metadata: {
+        sourceId,
+        sectionId,
+        status: "approved",
+        reviewedAt: facts
+          .map(({ reviewedAt }) => reviewedAt)
+          .sort()
+          .at(-1),
+      },
     });
   });
 

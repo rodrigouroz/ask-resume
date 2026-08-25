@@ -1,16 +1,78 @@
 import { describe, expect, it } from "vitest";
-import { assistantCorpus } from "./corpus";
+import { projects } from "../content";
+import { getCurrentAssistantCorpus } from "./corpus";
+import type { CanonicalEvidence, CanonicalFact, ClaimType } from "./contracts";
+import { currentCorpus, validateCorpus } from "./corpusValidation";
 import { retrieveEvidence } from "./retrieve";
 
+const assistantCorpus = getCurrentAssistantCorpus("2026-08-25");
+
 describe("approved canonical corpus", () => {
-  it("gives every approved fact a stable unique id and review metadata", () => {
+  it("gives every approved fact a stable unique id and independent review metadata", () => {
     const facts = assistantCorpus.flatMap((source) => source.facts);
 
     expect(facts.length).toBeGreaterThan(50);
     expect(new Set(facts.map((fact) => fact.factId)).size).toBe(facts.length);
     expect(facts.every((fact) => fact.status === "approved")).toBe(true);
-    expect(facts.every((fact) => fact.reviewedAt === "2026-08-25")).toBe(true);
+    expect(facts.every((fact) => /^\d{4}-\d{2}-\d{2}$/.test(fact.reviewedAt))).toBe(true);
     expect(facts.every((fact) => fact.text.trim().length > 0)).toBe(true);
+  });
+
+  it("expires time-sensitive facts without removing durable facts from the same source", () => {
+    const [career] = currentCorpus(assistantCorpus, "2026-11-26").filter(
+      ({ sourceId }) => sourceId === "career-overview",
+    );
+
+    expect(career?.facts.map(({ factId }) => factId)).toContain("career-years");
+    expect(career?.facts.map(({ factId }) => factId)).not.toContain("career-openness");
+  });
+
+  it("rejects duplicate source and fact ids", () => {
+    const first = assistantCorpus[0];
+    if (!first) throw new Error("Missing corpus fixture");
+
+    expect(() => validateCorpus([...assistantCorpus, first])).toThrow(/duplicate sourceId/);
+    expect(() =>
+      validateCorpus([
+        ...assistantCorpus,
+        { ...first, sourceId: "unique-source", facts: first.facts },
+      ]),
+    ).toThrow(/duplicate factId/);
+  });
+
+  const invalidFacts: readonly [string, Partial<CanonicalFact>, RegExp][] = [
+    ["empty text", { text: "" }, /must not be empty/],
+    [
+      "invalid URL",
+      { text: "Available at http://example.com", claimTypes: ["url"] },
+      /invalid URL/,
+    ],
+    [
+      "unknown claim type",
+      { claimTypes: ["positionng"] as unknown as readonly ClaimType[] },
+      /unknown claimType/,
+    ],
+    [
+      "missing expiration",
+      { claimTypes: ["availability", "current-status"] },
+      /must have expiresAt/,
+    ],
+  ];
+
+  it.each(invalidFacts)("rejects %s", (_label, changes, expected) => {
+    const base = assistantCorpus[0];
+    const baseFact = base?.facts[0];
+    if (!base || !baseFact) throw new Error("Missing corpus fixture");
+    const fact = {
+      ...baseFact,
+      ...changes,
+      claimTypes: (changes.claimTypes ?? baseFact.claimTypes) as readonly ClaimType[],
+    };
+    const corpus: readonly CanonicalEvidence[] = [
+      { ...base, sourceId: "validation-fixture", facts: [fact] },
+    ];
+
+    expect(() => validateCorpus(corpus)).toThrow(expected);
   });
 
   it.each([
@@ -18,9 +80,18 @@ describe("approved canonical corpus", () => {
     ["What did Rodrigo do with LLMs and Langfuse at ClassDojo?", "classdojo-current-role"],
     ["How did he build and train engineering teams?", "leadership-capability"],
     ["How does Ballast validate its optimizer?", "ballast-product"],
+    ["¿Cómo decide qué construir si hay ambigüedad?", "product-engineering-capability"],
+    ["¿Cuándo merece un concepto una frontera de dominio?", "systems-boundary-capability"],
+    ["¿Qué aprendizaje cambió su forma de liderar personas?", "leadership-capability"],
+    ["How does Rodrigo decide when an LLM belongs in a product?", "ai-engineering-principles"],
+    ["What did Rodrigo contribute to OpenClaw?", "openclaw-contributions"],
+    ["¿Cómo evita depender de un proveedor?", "systems-boundary-capability"],
+    ["¿Qué es Daturno y cómo funciona?", "daturno-product"],
+    ["¿Trabajó en productos usados por millones de personas?", "career-overview"],
     ["¿Cómo protege Traza la privacidad?", "traza-product"],
     ["Why did Rodrigo build Coro?", "coro-product"],
     ["¿Por qué creó Jacara?", "jacara-product"],
+    ["Is Jacara or Tiny Adventures the public name?", "jacara-product"],
   ])("retrieves %s from the approved dossier", async (question, expectedSourceId) => {
     const evidence = await retrieveEvidence(question);
 
@@ -31,5 +102,63 @@ describe("approved canonical corpus", () => {
     expect(new Set(assistantCorpus.map(({ canonicalLanguage }) => canonicalLanguage))).toEqual(
       new Set(["en"]),
     );
+  });
+
+  it("uses Ballast's confirmed public custom domain everywhere", () => {
+    const ballastProject = projects.find(({ name }) => name === "Ballast");
+    const ballastFact = assistantCorpus
+      .find(({ sourceId }) => sourceId === "ballast-product")
+      ?.facts.find(({ factId }) => factId === "ballast-url");
+
+    expect(ballastProject?.url).toBe("https://ballast.rodrigouroz.com");
+    expect(ballastFact?.text).toContain("https://ballast.rodrigouroz.com");
+    expect(ballastFact?.text).not.toContain("pages.dev");
+  });
+
+  it("publishes Daturno with a current, bounded maturity claim", () => {
+    const daturnoProject = projects.find(({ name }) => name === "Daturno");
+    const daturnoFacts = assistantCorpus.find(
+      ({ sourceId }) => sourceId === "daturno-product",
+    )?.facts;
+
+    expect(daturnoProject?.url).toBe("https://daturno.com");
+    expect(daturnoFacts?.find(({ factId }) => factId === "daturno-url")?.expiresAt).toBe(
+      "2026-11-25",
+    );
+    expect(daturnoFacts?.find(({ factId }) => factId === "daturno-maturity")?.text).toContain(
+      "publicly available for businesses to register and use",
+    );
+    expect(daturnoFacts?.find(({ factId }) => factId === "daturno-ownership")?.text).toContain(
+      "only builder",
+    );
+    expect(daturnoFacts?.find(({ factId }) => factId === "daturno-operation")?.text).toContain(
+      "production telemetry",
+    );
+  });
+
+  it("includes approved OpenClaw contributions and product-scale positioning", () => {
+    const openClawFactIds = assistantCorpus
+      .find(({ sourceId }) => sourceId === "openclaw-contributions")
+      ?.facts.map(({ factId }) => factId);
+    const careerFactIds = assistantCorpus
+      .find(({ sourceId }) => sourceId === "career-overview")
+      ?.facts.map(({ factId }) => factId);
+
+    expect(openClawFactIds).toEqual(
+      expect.arrayContaining(["openclaw-memory-ranking", "openclaw-compaction-memory"]),
+    );
+    expect(careerFactIds).toContain("career-millions-scale");
+  });
+
+  it("omits Janus and Ronda from the public corpus and keeps Jacara user-facing", () => {
+    const serializedCorpus = JSON.stringify(assistantCorpus);
+    const jacaraPurpose = assistantCorpus
+      .find(({ sourceId }) => sourceId === "jacara-product")
+      ?.facts.find(({ factId }) => factId === "jacara-purpose")?.text;
+
+    expect(serializedCorpus).not.toMatch(/Janus/i);
+    expect(serializedCorpus).not.toMatch(/Ronda/i);
+    expect(jacaraPurpose).toContain("user-facing name");
+    expect(jacaraPurpose).toContain("earlier internal name");
   });
 });

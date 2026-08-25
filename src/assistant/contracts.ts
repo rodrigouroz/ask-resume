@@ -1,5 +1,8 @@
 import type { Language } from "../content";
 import { z } from "zod";
+import type { ClaimType } from "./claimTypes.js";
+
+export type { ClaimType } from "./claimTypes.js";
 
 export type SectionId = "experience" | "capabilities" | "projects" | "education" | "about";
 
@@ -27,20 +30,22 @@ export type AskResponse = {
   citations: Citation[];
 };
 
+export type IsoDate = `${number}-${number}-${number}`;
+
 export type CanonicalFact = {
   factId: string;
   text: string;
   entities: readonly string[];
-  claimTypes: readonly string[];
+  claimTypes: readonly ClaimType[];
   status: "approved";
-  reviewedAt: "2026-08-25";
+  reviewedAt: IsoDate;
+  expiresAt?: IsoDate;
 };
 
 export type CanonicalEvidence = Citation & {
   canonicalLanguage: "en";
   title: string;
   status: "approved";
-  reviewedAt: "2026-08-25";
   facts: readonly CanonicalFact[];
   searchTerms: readonly string[];
 };

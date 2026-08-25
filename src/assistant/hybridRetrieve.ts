@@ -1,5 +1,6 @@
-import { assistantCorpus } from "./corpus";
+import { getCurrentAssistantCorpus } from "./corpus";
 import type { CanonicalEvidence } from "./contracts";
+import { todayIsoDate } from "./corpusValidation";
 import { retrieveEvidence } from "./retrieve";
 import type { EvidenceRetriever } from "./retrieve";
 
@@ -28,7 +29,7 @@ export function createHybridEvidenceRetriever({
     }
 
     const bySourceId = new Map(
-      assistantCorpus
+      getCurrentAssistantCorpus(todayIsoDate())
         .filter(({ status }) => status === "approved")
         .map((evidence) => [evidence.sourceId, evidence] as const),
     );

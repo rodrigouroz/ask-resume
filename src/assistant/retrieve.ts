@@ -1,5 +1,6 @@
-import { assistantCorpus } from "./corpus";
+import { getCurrentAssistantCorpus } from "./corpus";
 import type { CanonicalEvidence } from "./contracts";
+import { todayIsoDate } from "./corpusValidation";
 
 export type EvidenceRetriever = (
   question: string,
@@ -21,6 +22,9 @@ const STOP_WORDS = new Set([
   "es",
   "expectativa",
   "he",
+  "had",
+  "has",
+  "have",
   "his",
   "in",
   "is",
@@ -35,6 +39,7 @@ const STOP_WORDS = new Set([
   "su",
   "sus",
   "the",
+  "to",
   "un",
   "una",
   "what",
@@ -44,26 +49,38 @@ const STOP_WORDS = new Set([
 
 const SPANISH_TO_CANONICAL: Readonly<Record<string, string>> = {
   construyo: "built",
+  contratando: "hiring",
   creo: "built",
+  decide: "decide",
+  decisiones: "decisions",
   empresas: "companies",
+  equipos: "team",
   educacion: "education",
   enseno: "teaching",
   experiencia: "experience",
   estudio: "education",
+  formando: "training",
   habilidades: "capabilities",
   intereses: "interests",
   idiomas: "language",
   ingeniero: "engineer",
   liderazgo: "leadership",
   lidero: "leadership",
+  incertidumbre: "uncertainty",
   portafolio: "portfolio",
   profesor: "professor",
+  privacidad: "privacy",
+  prueba: "validation",
+  pruebas: "validation",
   proyecto: "project",
   proyectos: "project",
   tecnologias: "technology",
   tecnologia: "technology",
+  valida: "validation",
+  validacion: "validation",
   trabajo: "worked",
   trabaja: "worked",
+  armando: "building",
 };
 
 function tokenize(value: string): string[] {
@@ -80,7 +97,9 @@ function tokenize(value: string): string[] {
 
 function scoreEvidence(queryTokens: readonly string[], evidence: CanonicalEvidence): number {
   const sourceTokens = new Set(tokenize(`${evidence.title} ${evidence.searchTerms.join(" ")}`));
-  const factTokens = new Set(tokenize(evidence.facts.map(({ text }) => text).join(" ")));
+  const factTokens = new Set(
+    tokenize(evidence.facts.map(({ entities, text }) => `${text} ${entities.join(" ")}`).join(" ")),
+  );
 
   return queryTokens.reduce((score, token) => {
     if (sourceTokens.has(token)) return score + 3;
@@ -91,15 +110,11 @@ function scoreEvidence(queryTokens: readonly string[], evidence: CanonicalEviden
 
 export const retrieveEvidence: EvidenceRetriever = (question) => {
   const queryTokens = tokenize(question);
-  const ranked = assistantCorpus
+  const ranked = getCurrentAssistantCorpus(todayIsoDate())
     .map((evidence) => ({ evidence, score: scoreEvidence(queryTokens, evidence) }))
     .filter(({ score }) => score >= 3)
     .sort((left, right) => right.score - left.score);
 
   if (ranked.length === 0) return [];
-  const bestScore = ranked[0]?.score ?? 0;
-  return ranked
-    .filter(({ score }) => score === bestScore)
-    .slice(0, 3)
-    .map(({ evidence }) => evidence);
+  return ranked.slice(0, 3).map(({ evidence }) => evidence);
 };

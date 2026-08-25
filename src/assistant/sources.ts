@@ -45,6 +45,18 @@ const labels: Readonly<Record<string, Record<Language, string>>> = {
     en: "Product engineering · Capabilities",
     es: "Ingeniería de producto · Capacidades",
   },
+  "systems-boundary-capability": {
+    en: "Provider-independent systems · Capabilities",
+    es: "Sistemas independientes del proveedor · Capacidades",
+  },
+  "ai-engineering-principles": {
+    en: "AI engineering · Working principles",
+    es: "Ingeniería con IA · Principios de trabajo",
+  },
+  "openclaw-contributions": {
+    en: "OpenClaw · Open-source contributions",
+    es: "OpenClaw · Contribuciones open source",
+  },
   "leadership-capability": {
     en: "Leadership · Capabilities",
     es: "Liderazgo · Capacidades",
@@ -64,6 +76,10 @@ const labels: Readonly<Record<string, Record<Language, string>>> = {
   "traza-product": {
     en: "Traza · Independent project",
     es: "Traza · Proyecto independiente",
+  },
+  "daturno-product": {
+    en: "Daturno · Independent product",
+    es: "Daturno · Producto independiente",
   },
   "ballast-product": {
     en: "Ballast · Independent project",

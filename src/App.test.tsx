@@ -125,6 +125,15 @@ describe("Ask Rodrigo public interface", () => {
     ).toBeTruthy();
   });
 
+  it("links Daturno as a public independent product", () => {
+    render(<App />);
+
+    expect(screen.getByRole("link", { name: "Open Daturno live site" })).toHaveAttribute(
+      "href",
+      "https://daturno.com",
+    );
+  });
+
   it("switches the public resume and assistant to Spanish", async () => {
     const user = userEvent.setup();
     render(<App />);

@@ -32,6 +32,14 @@
     "sourceIds": ["ballast-product"]
   },
   {
+    "id": "ballast-public-url-es",
+    "question": "¿Cuál es la URL pública de Ballast?",
+    "uiLanguage": "en",
+    "language": "es",
+    "statuses": ["answered"],
+    "sourceIds": ["ballast-product"]
+  },
+  {
     "id": "mixed-ui-fallback",
     "question": "ClassDojo experiencia?",
     "uiLanguage": "es",
@@ -46,6 +54,78 @@
     "language": "en",
     "statuses": ["answered"],
     "sourceIds": ["assistant-identity"]
+  },
+  {
+    "id": "ai-boundary-en",
+    "question": "How does Rodrigo decide when to use an LLM?",
+    "uiLanguage": "es",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["ai-engineering-principles"]
+  },
+  {
+    "id": "provider-boundary-es",
+    "question": "¿Cómo evita Rodrigo depender de un proveedor externo?",
+    "uiLanguage": "en",
+    "language": "es",
+    "statuses": ["answered"],
+    "sourceIds": ["systems-boundary-capability"]
+  },
+  {
+    "id": "ambiguity-method-es",
+    "question": "¿Qué regla concreta usa Rodrigo para decidir qué construir cuando todavía hay mucha ambigüedad?",
+    "uiLanguage": "en",
+    "language": "es",
+    "statuses": ["answered"],
+    "sourceIds": ["product-engineering-capability"]
+  },
+  {
+    "id": "domain-boundary-criterion-en",
+    "question": "When does Rodrigo give a concept its own domain-model boundary?",
+    "uiLanguage": "es",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["systems-boundary-capability"]
+  },
+  {
+    "id": "leadership-lesson-es",
+    "question": "¿Qué aprendizaje de liderazgo cambió su forma de dirigir personas?",
+    "uiLanguage": "en",
+    "language": "es",
+    "statuses": ["answered"],
+    "sourceIds": ["leadership-capability"]
+  },
+  {
+    "id": "millions-scale-en",
+    "question": "Has Rodrigo worked on products used by millions of people?",
+    "uiLanguage": "en",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["career-overview"]
+  },
+  {
+    "id": "daturno-purpose-es",
+    "question": "¿Qué es Daturno y cómo combina reglas con IA?",
+    "uiLanguage": "en",
+    "language": "es",
+    "statuses": ["answered"],
+    "sourceIds": ["daturno-product"]
+  },
+  {
+    "id": "openclaw-contributions",
+    "question": "What exactly did Rodrigo implement in OpenClaw?",
+    "uiLanguage": "en",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["openclaw-contributions"]
+  },
+  {
+    "id": "unknown-daturno-traction",
+    "question": "How many customers use Daturno?",
+    "uiLanguage": "en",
+    "language": "en",
+    "statuses": ["unknown"],
+    "sourceIds": []
   },
   {
     "id": "unknown-salary",

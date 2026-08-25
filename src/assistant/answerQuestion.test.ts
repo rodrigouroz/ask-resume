@@ -11,7 +11,9 @@ describe("bilingual grounded answers", () => {
           language === "es"
             ? "Rodrigo trabaja en ClassDojo como Fullstack Software Engineer desde 2022."
             : "Rodrigo has worked at ClassDojo as a Fullstack Software Engineer since 2022.",
-        sourceIds: evidence.map(({ sourceId }: CanonicalEvidence) => sourceId),
+        sourceIds: evidence
+          .filter(({ sourceId }: CanonicalEvidence) => sourceId === "classdojo-current-role")
+          .map(({ sourceId }: CanonicalEvidence) => sourceId),
       })),
       verify: vi.fn<GroundedModel["verify"]>(async () => ({
         answersQuestion: true,
@@ -114,10 +116,28 @@ describe("bilingual grounded answers", () => {
   });
 
   it("rejects a grounded answer that does not actually answer the question", async () => {
+    const relatedEvidence = {
+      sourceId: "leadership-capability",
+      sectionId: "capabilities",
+      canonicalLanguage: "en",
+      title: "Leadership · Capabilities",
+      status: "approved",
+      searchTerms: ["leadership"],
+      facts: [
+        {
+          factId: "leadership-progression",
+          text: "Rodrigo has moved between hands-on engineering and people management.",
+          entities: ["Rodrigo Uroz"],
+          claimTypes: ["leadership", "role"],
+          status: "approved",
+          reviewedAt: "2026-08-25",
+        },
+      ],
+    } as const satisfies CanonicalEvidence;
     const model: GroundedModel = {
       draft: vi.fn<GroundedModel["draft"]>(async () => ({
-        answer: "Rodrigo has worked at ClassDojo since 2022.",
-        sourceIds: ["classdojo-current-role"],
+        answer: "Rodrigo moved from management because he prefers hands-on work.",
+        sourceIds: ["leadership-capability"],
       })),
       verify: vi.fn<GroundedModel["verify"]>(async () => ({
         answersQuestion: false,
@@ -125,10 +145,13 @@ describe("bilingual grounded answers", () => {
         supported: true,
       })),
     };
-    const answerQuestion = createAnswerService({ model });
+    const answerQuestion = createAnswerService({
+      model,
+      retrieve: async () => [relatedEvidence],
+    });
 
     const response = await answerQuestion({
-      question: "What is Rodrigo's home address?",
+      question: "Why did Rodrigo leave engineering management?",
       uiLanguage: "en",
     });
 

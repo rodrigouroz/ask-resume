@@ -1,117 +1,278 @@
 [
   {
-    "id": "classdojo-en",
-    "question": "What did Rodrigo do at ClassDojo?",
-    "expectedSourceIds": ["classdojo-current-role"]
+    "id": "direct-classdojo-es",
+    "question": "¿En qué trabajó Rodrigo en ClassDojo?",
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-current-role"],
+    "expectedFactIds": ["classdojo-typescript"]
   },
   {
-    "id": "classdojo-es",
-    "question": "¿Qué hizo Rodrigo en ClassDojo?",
-    "expectedSourceIds": ["classdojo-current-role"]
+    "id": "current-employer-en",
+    "question": "Where does Rodrigo work now?",
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-current-role"],
+    "expectedFactIds": ["classdojo-current-employment"]
   },
   {
-    "id": "classdojo-ai",
+    "id": "current-availability-es",
+    "question": "¿Está abierto a propuestas o colaboraciones ahora?",
+    "behavior": "answer",
+    "expectedSourceIds": ["career-overview"],
+    "expectedFactIds": ["career-openness"]
+  },
+  {
+    "id": "classdojo-ai-en",
     "question": "How has Rodrigo used LLMs and Langfuse professionally?",
-    "expectedSourceIds": ["classdojo-current-role"]
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-current-role"],
+    "expectedFactIds": ["classdojo-llms", "classdojo-langfuse"]
   },
   {
-    "id": "iot-en",
-    "question": "Did Rodrigo reverse engineer IoT devices?",
-    "expectedSourceIds": ["scvsoft-iot-tech-lead"]
+    "id": "architecture-en",
+    "question": "What experience does he have modernizing monoliths and APIs?",
+    "behavior": "answer",
+    "expectedSourceIds": ["technical-capabilities"],
+    "expectedFactIds": ["technical-architecture"]
   },
   {
     "id": "iot-es",
-    "question": "¿Hizo ingeniería inversa de dispositivos IoT?",
-    "expectedSourceIds": ["scvsoft-iot-tech-lead"]
+    "question": "¿Alguna vez tuvo que entender dispositivos IoT con APIs mal documentadas?",
+    "behavior": "answer",
+    "expectedSourceIds": ["scvsoft-iot-tech-lead"],
+    "expectedFactIds": ["scvsoft-reverse-engineering"]
   },
   {
-    "id": "medallia",
-    "question": "What did Rodrigo modernize at Medallia?",
-    "expectedSourceIds": ["medallia-engineering-management"]
+    "id": "leadership-cross-source-en",
+    "question": "Compare Rodrigo's leadership experience at Medallia and FutureAdvisor.",
+    "behavior": "answer",
+    "expectedSourceIds": ["medallia-engineering-management", "futureadvisor-lead-engineer"],
+    "expectedFactIds": ["medallia-team", "futureadvisor-team"]
   },
   {
-    "id": "futureadvisor",
-    "question": "How did he improve FutureAdvisor's daily processing?",
-    "expectedSourceIds": ["futureadvisor-lead-engineer"]
+    "id": "leadership-teams-es",
+    "question": "¿Qué experiencia tiene armando, contratando y formando equipos?",
+    "behavior": "answer",
+    "expectedSourceIds": ["leadership-capability"],
+    "expectedFactIds": ["leadership-build", "leadership-people"]
   },
   {
-    "id": "leadership",
-    "question": "Has Rodrigo built, hired, and trained engineering teams?",
-    "expectedSourceIds": ["leadership-capability"]
+    "id": "futureadvisor-outcome-en",
+    "question": "Did he ever make a production workflow faster and cheaper?",
+    "behavior": "answer",
+    "expectedSourceIds": ["futureadvisor-lead-engineer"],
+    "expectedFactIds": ["futureadvisor-outcome"]
   },
   {
-    "id": "teaching",
-    "question": "What did Rodrigo teach at UTN?",
-    "expectedSourceIds": ["utn-education-and-teaching"]
+    "id": "project-comparison-es",
+    "question": "¿En qué se diferencian Traza y Ballast?",
+    "behavior": "answer",
+    "expectedSourceIds": ["traza-product", "ballast-product"],
+    "expectedFactIds": ["traza-domain", "ballast-simulation"]
   },
   {
-    "id": "education-es",
-    "question": "¿Qué estudió Rodrigo?",
-    "expectedSourceIds": ["utn-education-and-teaching"]
+    "id": "coro-architecture-es",
+    "question": "¿Cómo separa Coro el enrutamiento semántico de la traducción?",
+    "behavior": "answer",
+    "expectedSourceIds": ["coro-product"],
+    "expectedFactIds": ["coro-routing"]
   },
   {
-    "id": "silver",
-    "question": "What does Rodrigo mentor at Silver.dev?",
-    "expectedSourceIds": ["silver-mentoring"]
+    "id": "traza-privacy-en",
+    "question": "How does Traza keep private financial corrections from leaking into reusable knowledge?",
+    "behavior": "answer",
+    "expectedSourceIds": ["traza-product"],
+    "expectedFactIds": ["traza-corrections"],
+    "forbiddenSourceIds": ["personal-background"]
   },
   {
-    "id": "coro-en",
-    "question": "Why did Rodrigo build Coro?",
-    "expectedSourceIds": ["coro-product"]
+    "id": "ballast-validation-en",
+    "question": "How does Ballast check that an optimized plan holds up?",
+    "behavior": "answer",
+    "expectedSourceIds": ["ballast-product"],
+    "expectedFactIds": ["ballast-optimizer", "ballast-validation"]
   },
   {
-    "id": "coro-es",
-    "question": "¿Por qué Rodrigo construyó Coro?",
-    "expectedSourceIds": ["coro-product"]
+    "id": "ballast-public-url-es",
+    "question": "¿Cuál es la URL pública de Ballast?",
+    "behavior": "answer",
+    "expectedSourceIds": ["ballast-product"],
+    "expectedFactIds": ["ballast-url"]
   },
   {
-    "id": "traza",
-    "question": "How does Traza keep financial enrichment private?",
-    "expectedSourceIds": ["traza-product"]
+    "id": "jacara-physical-es",
+    "question": "¿Por qué Jacara no usa el teléfono como tablero principal?",
+    "behavior": "answer",
+    "expectedSourceIds": ["jacara-product"],
+    "expectedFactIds": ["jacara-phone-role"]
   },
   {
-    "id": "ballast",
-    "question": "How does Ballast validate its genetic optimizer?",
-    "expectedSourceIds": ["ballast-product"]
+    "id": "working-principles-en",
+    "question": "How does Rodrigo test an idea when a key capability is uncertain?",
+    "behavior": "answer",
+    "expectedSourceIds": ["technical-capabilities"],
+    "expectedFactIds": ["technical-validation"]
   },
   {
-    "id": "jacara",
-    "question": "Why is Jacara physical-first instead of another screen game?",
-    "expectedSourceIds": ["jacara-product"]
+    "id": "ambiguity-method-es",
+    "question": "¿Qué regla concreta usa Rodrigo para decidir qué construir cuando todavía hay mucha ambigüedad?",
+    "behavior": "answer",
+    "expectedSourceIds": ["product-engineering-capability"],
+    "expectedFactIds": ["product-ambiguity-method"]
   },
   {
-    "id": "historical",
-    "question": "What earlier independent software did Rodrigo build?",
-    "expectedSourceIds": ["historical-independent-projects"]
+    "id": "domain-boundary-criterion-es",
+    "question": "¿Qué criterio le indica que un concepto merece una frontera propia en el modelo de dominio?",
+    "behavior": "answer",
+    "expectedSourceIds": ["systems-boundary-capability"],
+    "expectedFactIds": ["systems-domain-boundary-criterion"]
   },
   {
-    "id": "languages",
-    "question": "Can Rodrigo work professionally in English?",
-    "expectedSourceIds": ["international-work-profile"]
+    "id": "leadership-lesson-es",
+    "question": "¿Qué aprendizaje de liderazgo cambió su forma de dirigir personas?",
+    "behavior": "answer",
+    "expectedSourceIds": ["leadership-capability"],
+    "expectedFactIds": ["leadership-work-serves-life"]
   },
   {
-    "id": "visa",
-    "question": "Does Rodrigo have a US visa?",
-    "expectedSourceIds": ["international-work-profile"]
+    "id": "ai-boundary-en",
+    "question": "How does Rodrigo decide when to use an LLM?",
+    "behavior": "answer",
+    "expectedSourceIds": ["ai-engineering-principles"],
+    "expectedFactIds": ["ai-deterministic-core"]
   },
   {
-    "id": "assistant-name",
-    "question": "What is the assistant called?",
-    "expectedSourceIds": ["assistant-identity"]
+    "id": "provider-independent-es",
+    "question": "¿Cómo evita depender de un proveedor externo?",
+    "behavior": "answer",
+    "expectedSourceIds": ["systems-boundary-capability"],
+    "expectedFactIds": ["systems-provider-independent-models"]
   },
   {
-    "id": "unknown-salary",
-    "question": "What salary does Rodrigo expect?",
-    "expectedSourceIds": []
+    "id": "uncertainty-method-es",
+    "question": "¿Cómo valida una tecnología incierta?",
+    "behavior": "answer",
+    "expectedSourceIds": ["technical-capabilities"],
+    "expectedFactIds": ["technical-validation"]
   },
   {
-    "id": "unknown-address",
-    "question": "What is Rodrigo's home address?",
-    "expectedSourceIds": []
+    "id": "role-fit-en",
+    "question": "What kinds of problems is Rodrigo best suited for?",
+    "behavior": "answer",
+    "expectedSourceIds": ["career-overview"],
+    "expectedFactIds": ["career-openness"]
   },
   {
-    "id": "unknown-family",
-    "question": "How many children does Rodrigo have?",
-    "expectedSourceIds": []
+    "id": "scale-zero-to-one-en",
+    "question": "Has Rodrigo worked both at scale and on zero-to-one products?",
+    "behavior": "answer",
+    "expectedSourceIds": ["career-overview"],
+    "expectedFactIds": ["career-scale-and-zero-to-one"]
+  },
+  {
+    "id": "millions-scale-en",
+    "question": "Has Rodrigo worked on products used by millions of people?",
+    "behavior": "answer",
+    "expectedSourceIds": ["career-overview"],
+    "expectedFactIds": ["career-millions-scale"]
+  },
+  {
+    "id": "teaching-engineering-es",
+    "question": "¿Qué relación hay entre su experiencia docente y su trabajo como ingeniero?",
+    "behavior": "answer",
+    "expectedSourceIds": ["utn-education-and-teaching"],
+    "expectedFactIds": ["utn-teaching-engineering-connection"]
+  },
+  {
+    "id": "openclaw-contributions-en",
+    "question": "What did Rodrigo contribute to OpenClaw?",
+    "behavior": "answer",
+    "expectedSourceIds": ["openclaw-contributions"],
+    "expectedFactIds": ["openclaw-memory-ranking", "openclaw-compaction-memory"]
+  },
+  {
+    "id": "daturno-purpose-es",
+    "question": "¿Qué es Daturno y cómo funciona?",
+    "behavior": "answer",
+    "expectedSourceIds": ["daturno-product"],
+    "expectedFactIds": [
+      "daturno-purpose",
+      "daturno-bounded-ai",
+      "daturno-ownership",
+      "daturno-operation"
+    ]
+  },
+  {
+    "id": "daturno-traction-unknown-en",
+    "question": "How many customers use Daturno?",
+    "behavior": "fallback",
+    "expectedSourceIds": ["daturno-product"],
+    "expectedFactIds": ["daturno-maturity"],
+    "factsThatMustNotSupportAnswer": ["daturno-maturity"]
+  },
+  {
+    "id": "jacara-public-name-en",
+    "question": "Is Jacara or Tiny Adventures the public name?",
+    "behavior": "answer",
+    "expectedSourceIds": ["jacara-product"],
+    "expectedFactIds": ["jacara-purpose"]
+  },
+  {
+    "id": "llm-principles-es",
+    "question": "¿Cómo usa LLMs sin delegarles las decisiones importantes?",
+    "behavior": "answer",
+    "expectedSourceIds": ["technical-capabilities"],
+    "expectedFactIds": ["technical-ai-native"]
+  },
+  {
+    "id": "education-degree-en",
+    "question": "What degree did Rodrigo complete?",
+    "behavior": "answer",
+    "expectedSourceIds": ["utn-education-and-teaching"],
+    "expectedFactIds": ["utn-degree"]
+  },
+  {
+    "id": "education-incomplete-es",
+    "question": "¿Terminó el posgrado de ITBA–EOI?",
+    "behavior": "answer",
+    "expectedSourceIds": ["itba-eoi-coursework"],
+    "expectedFactIds": ["itba-no-degree"]
+  },
+  {
+    "id": "assistant-boundary-en",
+    "question": "Can Alfred inspect Rodrigo's private repositories?",
+    "behavior": "answer",
+    "expectedSourceIds": ["assistant-identity"],
+    "expectedFactIds": ["assistant-identity-public-only"]
+  },
+  {
+    "id": "unknown-private-content-en",
+    "question": "What unreleased products are hidden in Rodrigo's private repositories?",
+    "behavior": "fallback",
+    "expectedSourceIds": [],
+    "expectedFactIds": [],
+    "forbiddenSourceIds": ["historical-independent-projects"]
+  },
+  {
+    "id": "unknown-salary-es",
+    "question": "¿Cuál es su expectativa salarial?",
+    "behavior": "fallback",
+    "expectedSourceIds": [],
+    "expectedFactIds": []
+  },
+  {
+    "id": "unknown-management-opinion-en",
+    "question": "Why did Rodrigo leave engineering management?",
+    "behavior": "fallback",
+    "expectedSourceIds": ["leadership-capability"],
+    "expectedFactIds": ["leadership-progression"],
+    "factsThatMustNotSupportAnswer": ["leadership-progression"]
+  },
+  {
+    "id": "unknown-family-es",
+    "question": "¿Cuántos hijos tiene Rodrigo?",
+    "behavior": "fallback",
+    "expectedSourceIds": [],
+    "expectedFactIds": [],
+    "forbiddenSourceIds": ["jacara-product", "personal-background"]
   }
 ]

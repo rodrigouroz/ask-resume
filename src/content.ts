@@ -296,13 +296,22 @@ export const projects: Project[] = [
     url: "https://traza.rodrigouroz.com",
   },
   {
+    name: "Daturno",
+    summary: {
+      en: "WhatsApp-first scheduling for businesses.",
+      es: "Agenda de turnos por WhatsApp para negocios.",
+    },
+    evidence: "Scheduling rules · Bounded AI · Operations",
+    url: "https://daturno.com",
+  },
+  {
     name: "Ballast",
     summary: {
       en: "Inspectable portfolio scenarios.",
       es: "Escenarios de portafolio inspeccionables.",
     },
     evidence: "Monte Carlo · Optimization · Tax lots",
-    url: "https://ballast-dashboard.pages.dev",
+    url: "https://ballast.rodrigouroz.com",
   },
   {
     name: "Jacara",
@@ -333,7 +342,7 @@ export const education = [
   {
     title: "UTN faculty · 2003–2021",
     detail: {
-      en: "Associate Professor, Systems Analysis · Teaching Assistant, Operative Systems (early years)",
+      en: "Associate Professor, Systems Analysis · Teaching Assistant, Operating Systems (Sistemas Operativos; early years)",
       es: "Docente adjunto, Análisis de Sistemas · Ayudante, Sistemas Operativos (primeros años)",
     },
   },

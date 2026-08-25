@@ -82,8 +82,7 @@ describe("bilingual grounded answers", () => {
     expect(response).toEqual({
       status: "unknown",
       language: "es",
-      answer:
-        "No tengo evidencia aprobada suficiente para responder eso. Podés contactar a Rodrigo y preguntarle directamente.",
+      answer: "No tengo información suficiente para responder eso.",
       citations: [],
     });
     expect(draft).not.toHaveBeenCalled();

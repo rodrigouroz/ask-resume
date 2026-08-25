@@ -370,13 +370,16 @@ button {
   min-width: 0;
 }
 
+.experience-company h3 {
+  width: fit-content;
+}
+
 .experience-brand {
-  width: 96px;
-  height: 32px;
+  width: 108px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 0.45rem;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -682,9 +685,10 @@ button {
   right: max(var(--page-gutter), calc((100vw - var(--page-max)) / 2 + var(--page-gutter)));
   width: min(31vw, 455px);
   min-width: 370px;
-  padding: 1.5rem 0 1rem 2rem;
+  padding: 1.5rem 1.5rem 1rem 2rem;
   border-left: 1px solid var(--line);
   background: var(--white);
+  box-shadow: -24px 24px 64px rgba(25, 37, 73, 0.07);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -705,7 +709,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
 }
 
 .chat-header-actions {
@@ -739,14 +745,54 @@ button {
 }
 
 .chat-transcript {
-  min-height: 225px;
+  min-height: 0;
   max-height: min(52vh, 480px);
   display: flex;
   flex-direction: column;
   gap: 1.35rem;
   overflow-y: auto;
-  padding-bottom: 1.5rem;
+  padding-block: 1.25rem 1.5rem;
   border-bottom: 1px solid var(--line);
+}
+
+.chat-empty {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.35rem;
+  border: 1px solid #dce4ff;
+  border-radius: 16px;
+  background: linear-gradient(145deg, var(--blue-soft), var(--white) 78%);
+}
+
+.chat-empty > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+  color: var(--white);
+  background: var(--blue);
+  font-size: 1rem;
+}
+
+.chat-empty h3,
+.chat-empty p {
+  margin: 0;
+}
+
+.chat-empty h3 {
+  font-size: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.chat-empty p {
+  margin-top: 0.55rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
 }
 
 .chat-turn {
@@ -769,9 +815,24 @@ button {
 }
 
 .chat-answer {
-  margin: 0;
   font-size: 0.92rem;
   line-height: 1.65;
+}
+
+.chat-answer p,
+.chat-answer ul {
+  margin: 0;
+}
+
+.chat-answer ul {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+  padding-left: 1.2rem;
+}
+
+.chat-answer li::marker {
+  color: var(--blue);
 }
 
 .chat-thinking {
@@ -828,8 +889,24 @@ button {
   text-underline-offset: 4px;
 }
 
-.chat-source-unknown {
-  color: var(--muted);
+.chat-fallback-cta {
+  width: fit-content;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 1rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--blue);
+  border-radius: 3px;
+  color: var(--blue);
+  font-size: 0.8rem;
+  font-weight: 720;
+  text-underline-offset: 4px;
+}
+
+.chat-fallback-cta svg {
+  width: 16px;
 }
 
 .chat-form {
@@ -1085,15 +1162,12 @@ button {
 
   .experience-company {
     grid-area: company;
-    display: grid;
-    grid-template-columns: 72px minmax(0, 1fr);
-    align-items: center;
-    gap: 0.65rem;
+    display: block;
   }
 
   .experience-brand {
-    width: 72px;
-    height: 26px;
+    width: 96px;
+    height: 32px;
     margin: 0;
     border-radius: 5px;
   }
@@ -1303,7 +1377,12 @@ button {
   }
 
   .chat-transcript {
-    min-height: 235px;
+    min-height: 0;
+    max-height: min(48vh, 420px);
+  }
+
+  .chat-empty {
+    min-height: 190px;
   }
 
   .contact-chat-link {
@@ -1536,6 +1615,16 @@ button {
 
   .experience-brand {
     display: none;
+  }
+
+  .experience-company-name.sr-only {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
   }
 
   .experience-row h3 {

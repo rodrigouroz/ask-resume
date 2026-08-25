@@ -75,6 +75,7 @@ export function createOpenAIModel(
           "Do not invent conditions, alternatives, causes, sequencing, or decision rules that the evidence does not explicitly state.",
           "Preserve quantifiers and qualifiers literally; for example, keep 'sometimes' as 'sometimes' instead of rewriting it as an inferred 'if' condition.",
           "Keep the answer under 120 words and use only as many high-signal facts as needed; a simple question may need one or two.",
+          "Use short paragraphs. When three or more parallel facts are needed, put each on its own line beginning with '- '.",
           "Preserve the evidence's level of certainty and attribution; do not merge separate facts into a stronger claim.",
           "When a fact includes reviewedAt or expiresAt, preserve that temporal qualification when it matters to the question.",
           `Write the complete answer in ${languageName(language)}.`,

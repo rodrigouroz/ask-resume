@@ -49,14 +49,15 @@ beforeEach(() => {
           ? {
               status: "answered",
               language: uiLanguage,
-              answer: "A grounded test answer.",
+              answer: normalized.includes("bullets")
+                ? "At ClassDojo, Rodrigo worked on: - TypeScript migration. - Product integrations. - LLM developer workflows."
+                : "A grounded test answer.",
               citations: [{ sourceId, sectionId }],
             }
           : {
               status: "unknown",
               language: uiLanguage,
-              answer:
-                "I don’t have enough approved evidence to answer that. You can contact Rodrigo directly and ask him.",
+              answer: "I don’t have enough information to answer that.",
               citations: [],
             },
       );
@@ -80,6 +81,7 @@ describe("Ask Rodrigo public interface", () => {
     expect(
       screen.queryByRole("button", { name: "What is Rodrigo working on at ClassDojo?" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ask a focused question" })).toBeInTheDocument();
     expect(fetch).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "Close Rodrigo’s assistant" }));
@@ -99,7 +101,7 @@ describe("Ask Rodrigo public interface", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it("shows a specific accessible loading state while checking sources", async () => {
+  it("shows a concise accessible loading state while answering", async () => {
     vi.mocked(fetch).mockImplementationOnce(() => new Promise(() => undefined));
     const user = userEvent.setup();
     render(<App />);
@@ -110,8 +112,23 @@ describe("Ask Rodrigo public interface", () => {
     await user.type(input, "What is Rodrigo working on at ClassDojo?");
     await user.click(screen.getByRole("button", { name: "Send question" }));
 
-    expect(screen.getByRole("status", { name: "Checking approved sources…" })).toBeInTheDocument();
+    expect(screen.getByRole("status", { name: "Answering…" })).toBeInTheDocument();
     expect(screen.getByText("What is Rodrigo working on at ClassDojo?")).toBeInTheDocument();
+  });
+
+  it("renders parallel answer facts as a semantic list", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const input = screen.getByRole("textbox", {
+      name: "Ask about experience, projects, or skills…",
+    });
+    await user.type(input, "List ClassDojo work as bullets");
+    await user.click(screen.getByRole("button", { name: "Send question" }));
+
+    const list = await screen.findByRole("list");
+    expect(within(list).getAllByRole("listitem")).toHaveLength(3);
+    expect(within(list).getByText("TypeScript migration.")).toBeInTheDocument();
   });
 
   it("presents professional experience before independent projects", () => {
@@ -324,12 +341,13 @@ describe("Ask Rodrigo public interface", () => {
     await user.click(screen.getByRole("button", { name: "Send question" }));
 
     expect(
-      await screen.findByText(
-        "I don’t have enough approved evidence to answer that. You can contact Rodrigo directly and ask him.",
-      ),
+      await screen.findByText("I don’t have enough information to answer that."),
     ).toBeInTheDocument();
-    expect(screen.getByText("[No approved source]")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "[No approved source]" })).not.toBeInTheDocument();
+    const assistant = screen.getByRole("complementary", { name: "Rodrigo’s assistant" });
+    expect(within(assistant).getByRole("link", { name: "hello@rodrigouroz.com" })).toHaveAttribute(
+      "href",
+      "mailto:hello@rodrigouroz.com",
+    );
   });
 
   it("keeps up to six completed turns in-tab and sends them only as conversation context", async () => {

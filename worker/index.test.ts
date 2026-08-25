@@ -262,8 +262,7 @@ describe("POST /api/ask", () => {
     await expect(response.json()).resolves.toEqual({
       status: "unknown",
       language: "es",
-      answer:
-        "No tengo evidencia aprobada suficiente para responder eso. Podés contactar a Rodrigo y preguntarle directamente.",
+      answer: "No tengo información suficiente para responder eso.",
       citations: [],
     });
   });

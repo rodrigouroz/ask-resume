@@ -98,11 +98,15 @@ export const copy = {
       en: "Enter a question before sending.",
       es: "Escribí una pregunta antes de enviarla.",
     },
-    thinking: { en: "Checking approved sources…", es: "Consultando fuentes aprobadas…" },
-    unknownSource: { en: "No approved source", es: "Sin fuente aprobada" },
+    emptyTitle: { en: "Ask a focused question", es: "Hacé una pregunta concreta" },
+    emptyBody: {
+      en: "Explore Rodrigo’s experience, projects, skills, or approach to product engineering.",
+      es: "Explorá la experiencia, los proyectos, las habilidades o el enfoque de Rodrigo sobre ingeniería de producto.",
+    },
+    thinking: { en: "Answering…", es: "Respondiendo…" },
     unknown: {
-      en: "I don’t have an approved source for that. You can contact Rodrigo directly and ask him.",
-      es: "No tengo una fuente aprobada para responder eso. Podés contactar a Rodrigo y preguntarle directamente.",
+      en: "I don’t have enough information to answer that.",
+      es: "No tengo información suficiente para responder eso.",
     },
   },
   projectActions: {

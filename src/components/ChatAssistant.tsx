@@ -120,10 +120,12 @@ export function ChatAssistant(props: ChatAssistantProps) {
           onAsk={onAsk}
         />
 
-        <a className="contact-chat-link" href={externalLinks.email}>
-          <MailIcon />
-          {text(copy.chat.contact)}
-        </a>
+        {turns.length === 0 && !pendingQuestion ? (
+          <a className="contact-chat-link" href={externalLinks.email}>
+            <MailIcon />
+            {text(copy.chat.contact)}
+          </a>
+        ) : null}
       </aside>
     </>
   );

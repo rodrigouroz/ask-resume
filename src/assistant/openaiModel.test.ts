@@ -46,6 +46,9 @@ describe("OpenAI grounded model", () => {
     );
     expect(parse.mock.calls[0]?.[0].instructions).toContain("Do not invent conditions");
     expect(parse.mock.calls[0]?.[0].instructions).toContain("keep 'sometimes' as 'sometimes'");
+    expect(parse.mock.calls[0]?.[0].instructions).toContain(
+      "put each on its own line beginning with '- '",
+    );
   });
 
   it("verifies every claim against only the cited evidence", async () => {

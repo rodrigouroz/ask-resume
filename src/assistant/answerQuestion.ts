@@ -6,8 +6,8 @@ import { retrieveEvidence } from "./retrieve";
 import type { EvidenceRetriever } from "./retrieve";
 
 const fallback: Record<Language, string> = {
-  en: "I don’t have enough approved evidence to answer that. You can contact Rodrigo directly and ask him.",
-  es: "No tengo evidencia aprobada suficiente para responder eso. Podés contactar a Rodrigo y preguntarle directamente.",
+  en: "I don’t have enough information to answer that.",
+  es: "No tengo información suficiente para responder eso.",
 };
 
 export function unknownAnswer(language: Language): AskResponse {

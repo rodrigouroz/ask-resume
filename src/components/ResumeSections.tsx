@@ -66,26 +66,28 @@ export function ExperienceSection({ language, onAsk }: SectionProps) {
           <article className="experience-row" key={`${experience.company}-${experience.period}`}>
             <span className="timeline-dot" aria-hidden="true" />
             <div className="experience-company">
-              {"src" in experience.brand ? (
-                <span
-                  className={`experience-brand experience-brand--${experience.brand.treatment ?? "light"}`}
-                  aria-hidden="true"
-                >
-                  <img
-                    src={experience.brand.src}
-                    alt=""
-                    width="96"
-                    height="32"
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </span>
-              ) : (
-                <span className="experience-brand experience-brand--fallback" aria-hidden="true">
-                  {experience.brand.fallback}
-                </span>
-              )}
-              <h3>{experience.company}</h3>
+              <h3>
+                {"src" in experience.brand ? (
+                  <span
+                    className={`experience-brand experience-brand--${experience.brand.treatment ?? "light"}`}
+                    aria-hidden="true"
+                  >
+                    <img
+                      src={experience.brand.src}
+                      alt=""
+                      width="108"
+                      height="36"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </span>
+                ) : (
+                  <span className="experience-brand experience-brand--fallback" aria-hidden="true">
+                    {experience.brand.fallback}
+                  </span>
+                )}
+                <span className="experience-company-name sr-only">{experience.company}</span>
+              </h3>
             </div>
             <p className="experience-role">{text(experience.role)}</p>
             <p className="experience-period">{experience.period}</p>

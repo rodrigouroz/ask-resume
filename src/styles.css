@@ -105,6 +105,10 @@ button {
   text-decoration: none;
 }
 
+.print-contact-details {
+  display: none;
+}
+
 .header-actions,
 .header-actions nav,
 .language-switch {
@@ -1223,13 +1227,14 @@ button {
   .mobile-menu-button,
   .download-link,
   .hero-actions,
+  .location-line,
   .chat-panel,
   .desktop-chat-tab,
   .mobile-chat-bar,
   .mobile-scrim,
   .experience-row button,
   .project-row button,
-  .contact-links a[href$=".pdf"] {
+  .contact-links {
     display: none !important;
   }
 
@@ -1239,10 +1244,28 @@ button {
 
   .site-header {
     min-height: 26px;
+    gap: 1rem;
   }
 
   .wordmark {
     font-size: 1rem;
+  }
+
+  .print-contact-details {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.3rem;
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.6rem;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .print-contact-details a {
+    color: inherit;
+    text-decoration: none;
   }
 
   .hero {

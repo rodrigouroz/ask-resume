@@ -18,6 +18,14 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
         Rodrigo Uroz
       </a>
 
+      <div className="print-contact-details" aria-label="Contact details">
+        <span>{text(copy.hero.location)}</span>
+        <span aria-hidden="true">·</span>
+        <a href={externalLinks.email}>hello@rodrigouroz.com</a>
+        <span aria-hidden="true">·</span>
+        <a href={externalLinks.github}>github.com/rodrigouroz</a>
+      </div>
+
       <div className="mobile-language-switch" aria-label="Mobile language">
         <button
           type="button"

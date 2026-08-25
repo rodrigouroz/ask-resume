@@ -44,7 +44,7 @@ test("answers a professional question with a visible source", async ({ page }, t
   await page.goto("/");
 
   if (testInfo.project.name.startsWith("mobile")) {
-    await page.getByRole("button", { name: "Ask Rodrigo", exact: true }).last().click();
+    await page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last().click();
   }
 
   const input = page.getByRole("textbox", {
@@ -69,7 +69,7 @@ test("keeps the question language independent from the selected UI language", as
   await page.goto("/");
 
   if (testInfo.project.name.startsWith("mobile")) {
-    await page.getByRole("button", { name: "Ask Rodrigo", exact: true }).last().click();
+    await page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last().click();
   }
 
   const input = page.getByRole("textbox", {
@@ -83,13 +83,13 @@ test("keeps the question language independent from the selected UI language", as
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
-test("opens Ask Rodrigo as a bottom sheet on mobile", async ({ page }, testInfo) => {
+test("opens Rodrigo’s assistant as a bottom sheet on mobile", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only behavior");
   await page.goto("/");
 
-  await page.getByRole("button", { name: "Ask Rodrigo", exact: true }).last().click();
+  await page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last().click();
 
-  await expect(page.getByRole("complementary", { name: "Ask Rodrigo" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Rodrigo’s assistant" })).toBeVisible();
   await expect(
     page.getByRole("textbox", { name: "Ask about experience, projects, or skills…" }),
   ).toBeFocused();

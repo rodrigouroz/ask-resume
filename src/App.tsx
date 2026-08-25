@@ -51,7 +51,7 @@ export function App() {
       <div id="top" className="page-shell">
         <Header language={language} onLanguageChange={changeLanguage} />
         <main id="main-content" className={chatOpen ? "chat-is-open" : ""}>
-          <Hero language={language} onAsk={ask} />
+          <Hero language={language} onOpenAssistant={() => setChatOpen(true)} />
           <ExperienceSection language={language} onAsk={ask} />
           <CapabilitiesSection language={language} />
           <ProjectsSection language={language} onAsk={ask} />

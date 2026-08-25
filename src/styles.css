@@ -674,6 +674,51 @@ button {
   flex-direction: column;
 }
 
+.chat-empty-state {
+  display: grid;
+  gap: 1rem;
+}
+
+.chat-empty-state > p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.chat-suggestions {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.chat-suggestions button {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--ink);
+  background: var(--white);
+  font: inherit;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-suggestions button:hover,
+.chat-suggestions button:focus-visible {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.chat-suggestions svg {
+  width: 16px;
+  flex: 0 0 auto;
+}
+
 .chat-turn + .chat-turn {
   padding-top: 1.35rem;
   border-top: 1px solid var(--line);

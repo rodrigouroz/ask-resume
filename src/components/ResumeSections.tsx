@@ -15,7 +15,12 @@ type SectionProps = {
   onAsk: (question: string) => void;
 };
 
-export function Hero({ language, onAsk }: SectionProps) {
+type HeroProps = {
+  language: Language;
+  onOpenAssistant: () => void;
+};
+
+export function Hero({ language, onOpenAssistant }: HeroProps) {
   const text = (value: Record<Language, string>) => value[language];
 
   return (
@@ -28,12 +33,8 @@ export function Hero({ language, onAsk }: SectionProps) {
             {text(copy.hero.action)}
             <ArrowRightIcon />
           </a>
-          <button
-            className="text-link hero-ask"
-            type="button"
-            onClick={() => onAsk(text(copy.chat.initialQuestion))}
-          >
-            Ask Rodrigo
+          <button className="text-link hero-ask" type="button" onClick={onOpenAssistant}>
+            {text(copy.chat.cta)}
           </button>
           <a className="secondary-button mobile-hero-download" href={externalLinks.cv} download>
             {text(copy.download)}
@@ -227,8 +228,8 @@ export function ContactSection({ language }: { language: Language }) {
         <p>© 2026 Rodrigo Uroz</p>
         <p>
           {language === "en"
-            ? "Ask Rodrigo uses curated professional sources. Chats are not stored by this site."
-            : "Ask Rodrigo usa fuentes profesionales curadas. Este sitio no guarda los chats."}
+            ? "Rodrigo’s assistant uses curated professional sources. Chats are not stored by this site."
+            : "El asistente de Rodrigo usa fuentes profesionales curadas. Este sitio no guarda los chats."}
         </p>
       </div>
     </footer>

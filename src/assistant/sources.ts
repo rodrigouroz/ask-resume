@@ -3,8 +3,8 @@ import type { Citation, SectionId } from "./contracts";
 
 const labels: Readonly<Record<string, Record<Language, string>>> = {
   "assistant-identity": {
-    en: "Ask Rodrigo · Assistant identity",
-    es: "Ask Rodrigo · Identidad del asistente",
+    en: "Rodrigo’s assistant · Identity",
+    es: "Asistente de Rodrigo · Identidad",
   },
   "career-overview": {
     en: "Professional experience overview",

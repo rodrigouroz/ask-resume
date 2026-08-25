@@ -53,12 +53,12 @@ export function ChatAssistant({
     <>
       <button className="desktop-chat-tab" type="button" onClick={onOpen} hidden={open}>
         <ChatIcon />
-        Ask Rodrigo
+        {text(copy.chat.cta)}
       </button>
 
       <button className="mobile-chat-bar" type="button" onClick={onOpen}>
         <ChatIcon />
-        Ask Rodrigo
+        {text(copy.chat.cta)}
       </button>
 
       <div
@@ -67,15 +67,15 @@ export function ChatAssistant({
         aria-hidden="true"
       />
 
-      <aside className={`chat-panel ${open ? "is-open" : ""}`} aria-label="Ask Rodrigo">
+      <aside className={`chat-panel ${open ? "is-open" : ""}`} aria-label={text(copy.chat.title)}>
         <div className="chat-handle" aria-hidden="true" />
         <div className="chat-header">
-          <h2>Ask Rodrigo</h2>
+          <h2>{text(copy.chat.title)}</h2>
           <div className="chat-header-actions">
             <button className="new-chat-button" type="button" onClick={onNewChat}>
               {text(copy.chat.newChat)}
             </button>
-            <button type="button" aria-label="Close Ask Rodrigo" onClick={onClose}>
+            <button type="button" aria-label={text(copy.chat.close)} onClick={onClose}>
               <CloseIcon />
             </button>
           </div>
@@ -83,12 +83,16 @@ export function ChatAssistant({
 
         <div className="chat-transcript" aria-live="polite">
           {turns.length === 0 && pendingQuestion === null ? (
-            <div className="chat-turn">
-              <p className="chat-question">{text(copy.chat.initialQuestion)}</p>
-              <p className="chat-answer">{text(copy.chat.initialAnswer)}</p>
-              <a className="chat-source" href="#experience" onClick={onClose}>
-                [{sourceLabel("classdojo-current-role", language)}]
-              </a>
+            <div className="chat-empty-state">
+              <p>{text(copy.chat.welcome)}</p>
+              <div className="chat-suggestions">
+                {copy.chat.suggestions[language].map((suggestion) => (
+                  <button type="button" onClick={() => onAsk(suggestion)} key={suggestion}>
+                    {suggestion}
+                    <ArrowRightIcon />
+                  </button>
+                ))}
+              </div>
             </div>
           ) : null}
           {turns.map(({ question: turnQuestion, response }) => (

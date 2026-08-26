@@ -30,7 +30,7 @@ The responsive résumé and genuinely bilingual assistant are implemented end to
 - Vitest + Testing Library
 - Playwright desktop/mobile end-to-end tests
 
-Node 24 is the supported runtime. Use the version in `.node-version` or `.nvmrc`.
+Node 26 is the supported runtime. Use the version in `.node-version` or `.nvmrc`.
 
 ## Development
 

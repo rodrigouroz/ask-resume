@@ -13,7 +13,7 @@ Thanks for helping improve Ask Rodrigo.
 
 ## Development workflow
 
-Use Node 24 and install from the lockfile:
+Use Node 26 and install from the lockfile:
 
 ```bash
 npm ci

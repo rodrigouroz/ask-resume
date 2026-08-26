@@ -21,6 +21,7 @@ describe("approved canonical corpus", () => {
       "career-openness",
       "classdojo-current-employment",
       "classdojo-orchestrators-current",
+      "classdojo-skills-dx",
       "international-current-location",
       "international-visa",
       "international-flexibility",
@@ -38,6 +39,33 @@ describe("approved canonical corpus", () => {
     for (const factId of timeSensitiveFactIds) {
       expect(factsById.get(factId)?.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     }
+  });
+
+  it("keeps established ClassDojo facts in their focused evidence sources", () => {
+    const factIdsBySource = new Map(
+      assistantCorpus.map(({ facts, sourceId }) => [sourceId, facts.map(({ factId }) => factId)]),
+    );
+
+    expect(factIdsBySource.get("classdojo-current-role")).toEqual([
+      "classdojo-role-period",
+      "classdojo-current-employment",
+      "classdojo-cloud",
+    ]);
+    expect(factIdsBySource.get("classdojo-platform-modernization")).toContain(
+      "classdojo-typescript",
+    );
+    expect(factIdsBySource.get("classdojo-tutor-product")).toEqual(
+      expect.arrayContaining(["classdojo-external-product", "classdojo-zoom"]),
+    );
+    expect(factIdsBySource.get("classdojo-ai-engineering")).toEqual(
+      expect.arrayContaining([
+        "classdojo-llms",
+        "classdojo-langfuse",
+        "classdojo-orchestrators",
+        "classdojo-orchestrators-current",
+        "classdojo-skills-dx",
+      ]),
+    );
   });
 
   it("expires time-sensitive facts without removing durable facts from the same source", () => {

@@ -14,6 +14,22 @@ const labels: Readonly<Record<string, Record<Language, string>>> = {
     en: "ClassDojo · Experience",
     es: "ClassDojo · Experiencia",
   },
+  "classdojo-platform-modernization": {
+    en: "ClassDojo · Platform modernization",
+    es: "ClassDojo · Modernización de plataforma",
+  },
+  "classdojo-tutor-product": {
+    en: "ClassDojo · Tutor product",
+    es: "ClassDojo · Producto Tutor",
+  },
+  "classdojo-district-solutions": {
+    en: "ClassDojo · District communications and insights",
+    es: "ClassDojo · Comunicaciones e insights distritales",
+  },
+  "classdojo-ai-engineering": {
+    en: "ClassDojo · AI product and developer workflows",
+    es: "ClassDojo · Producto con IA y flujos de desarrollo",
+  },
   "scvsoft-iot-tech-lead": { en: "SCVSoft · Experience", es: "SCVSoft · Experiencia" },
   "medallia-engineering-management": {
     en: "Medallia · Experience",

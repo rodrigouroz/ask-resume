@@ -89,52 +89,141 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
       expiresAt: "2026-11-25",
     },
     {
-      factId: "classdojo-typescript",
-      text: "He helped migrate ClassDojo's web monorepo to TypeScript.",
-      reviewedAt: "2026-08-25",
-    },
-    {
-      factId: "classdojo-external-product",
-      text: "He helped integrate an externally developed product into ClassDojo's architecture.",
-      reviewedAt: "2026-08-25",
-    },
-    {
-      factId: "classdojo-zoom",
-      text: "The integration connected third-party services, including Zoom for classes.",
-      reviewedAt: "2026-08-25",
-    },
-    {
-      factId: "classdojo-llms",
-      text: "Rodrigo contributed to ClassDojo's early LLM product features and developer workflows.",
-      reviewedAt: "2026-08-25",
-    },
-    {
-      factId: "classdojo-langfuse",
-      text: "He has used Langfuse in his LLM work at ClassDojo.",
-      reviewedAt: "2026-08-25",
-    },
-    {
-      factId: "classdojo-orchestrators",
-      text: "Rodrigo evaluates LLMs and orchestration tools as their capabilities change.",
-      reviewedAt: "2026-08-25",
-    },
-    {
-      factId: "classdojo-orchestrators-current",
-      text: "As of August 25, 2026, Rodrigo uses Conductor in this work.",
-      reviewedAt: "2026-08-25",
-      expiresAt: "2026-11-25",
-    },
-    {
-      factId: "classdojo-skills-dx",
-      text: "Rodrigo works with ClassDojo's in-house agent skills and evaluates new tools by whether they improve developer experience.",
-      reviewedAt: "2026-08-25",
-    },
-    {
       factId: "classdojo-cloud",
       text: "His ClassDojo work includes production systems on AWS and Kubernetes.",
       reviewedAt: "2026-08-25",
     },
   ]),
+  source("classdojo-platform-modernization", "experience", "ClassDojo · Platform modernization", [
+    {
+      factId: "classdojo-typescript",
+      text: "Rodrigo helped migrate ClassDojo's web monorepo to TypeScript incrementally so product work could continue while type coverage and shared contracts improved.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-platform-developer-productivity",
+      text: "His platform work included API type utilities, migration tracking, type checking, and CI and deployment workflow improvements.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-platform-reliability",
+      text: "He also worked on reliability and observability for real-time product behavior rather than treating modernization as a type-only effort.",
+      reviewedAt: "2026-08-26",
+    },
+  ]),
+  source("classdojo-tutor-product", "experience", "ClassDojo · Tutor product", [
+    {
+      factId: "classdojo-external-product",
+      text: "Rodrigo helped integrate an externally developed tutoring product into ClassDojo's architecture and operating environment.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-tutor-fullstack",
+      text: "He worked across the Tutor backend, customer-facing web experience, and administrative tools instead of owning only one application layer.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-tutor-scheduling",
+      text: "His Tutor work included tutor availability, scheduling, sessions, time-zone behavior, and attendance flows.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-zoom",
+      text: "The Tutor integration connected scheduled classes to Zoom.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-tutor-commercial-flows",
+      text: "He contributed to subscription, payment, pricing, trial, and product-experiment flows around Tutor.",
+      reviewedAt: "2026-08-26",
+    },
+    {
+      factId: "classdojo-tutor-operability",
+      text: "He also worked on notifications, analytics events, automated tests, staging support, and operational fixes needed to run Tutor as part of ClassDojo.",
+      reviewedAt: "2026-08-26",
+    },
+  ]),
+  source(
+    "classdojo-district-solutions",
+    "experience",
+    "ClassDojo · District communications and insights",
+    [
+      {
+        factId: "classdojo-district-focus",
+        text: "Rodrigo's District Solutions work covers communication, announcement, and insight products at both district and school scope.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-audience-modeling",
+        text: "He has worked on recipient and audience modeling across ClassDojo accounts, classes, schools, districts, distribution lists, and roster or SIS data.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-multichannel-communications",
+        text: "His communications work includes email, SMS, voice, and in-product delivery concerns, including recipient resolution and delivery-state behavior.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-communications-operability",
+        text: "He has worked on recipient exports, failure states, queue behavior, monitoring, and operational diagnostics for communication workflows.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-insights-composition",
+        text: "For School Insights, Rodrigo worked on composing product-level communication facts from messaging, stories, calendar, school, and rostering domains while keeping ownership boundaries explicit.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-insights-data-semantics",
+        text: "He treats true zeroes, unavailable metrics, account status, and roster-source differences as explicit product, API, sorting, and presentation semantics.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-district-end-to-end",
+        text: "This work has crossed backend services, frontend experiences, exports, automated tests, performance analysis, staged rollout, and production validation.",
+        reviewedAt: "2026-08-26",
+      },
+    ],
+  ),
+  source(
+    "classdojo-ai-engineering",
+    "experience",
+    "ClassDojo · AI product and developer workflows",
+    [
+      {
+        factId: "classdojo-llms",
+        text: "Rodrigo contributed to ClassDojo's early LLM product features and to later AI-assisted product and developer workflows.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-langfuse",
+        text: "His LLM work at ClassDojo has included prompt management, tracing, and evaluation with Langfuse.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-bounded-ai",
+        text: "His applied-AI work keeps model behavior behind explicit context, structured contracts, validation, observable traces, and tested failure paths.",
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-orchestrators",
+        text: "Rodrigo evaluates LLMs and orchestration tools as their capabilities change.",
+        reviewedAt: "2026-08-25",
+      },
+      {
+        factId: "classdojo-orchestrators-current",
+        text: "As of August 25, 2026, Rodrigo uses Conductor in this work.",
+        reviewedAt: "2026-08-25",
+        expiresAt: "2026-11-25",
+      },
+      {
+        factId: "classdojo-skills-dx",
+        text: "Rodrigo works with ClassDojo's in-house agent skills and coding-agent workflows, evaluating tools by whether they improve developer experience and verified delivery.",
+        reviewedAt: "2026-08-26",
+        expiresAt: "2026-11-26",
+      },
+    ],
+  ),
   source("scvsoft-iot-tech-lead", "experience", "SCVSoft · Experience", [
     {
       factId: "scvsoft-period-role",

@@ -24,7 +24,8 @@ function mockMobileViewport() {
 beforeEach(() => {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (_url: string, init?: RequestInit) => {
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === "/api/analytics") return new Response(null, { status: 204 });
       if (typeof init?.body !== "string") throw new Error("Expected a JSON request body");
       const { question, uiLanguage } = JSON.parse(init.body) as {
         question: string;
@@ -65,6 +66,14 @@ beforeEach(() => {
   );
 });
 
+function analyticsCalls() {
+  return vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/analytics");
+}
+
+function askCalls() {
+  return vi.mocked(fetch).mock.calls.filter(([url]) => url === "/api/ask");
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
@@ -89,7 +98,11 @@ describe("Ask Rodrigo public interface", () => {
       name: "Software engineer building products from ambiguity to operation.",
     });
     await user.click(within(hero).getByRole("button", { name: "Ask about Rodrigo" }));
-    expect(fetch).not.toHaveBeenCalled();
+    expect(analyticsCalls()).toHaveLength(1);
+
+    await user.click(screen.getByRole("button", { name: "Close Rodrigo’s assistant" }));
+    await user.click(within(hero).getByRole("button", { name: "Ask about Rodrigo" }));
+    expect(analyticsCalls()).toHaveLength(1);
 
     const input = screen.getByRole("textbox", {
       name: "Ask about experience, projects, or skills…",
@@ -98,11 +111,16 @@ describe("Ask Rodrigo public interface", () => {
     await user.click(screen.getByRole("button", { name: "Send question" }));
 
     expect(await screen.findByText("A grounded test answer.")).toBeInTheDocument();
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(analyticsCalls()).toHaveLength(1);
+    expect(askCalls()).toHaveLength(1);
   });
 
   it("shows a concise accessible loading state while answering", async () => {
-    vi.mocked(fetch).mockImplementationOnce(() => new Promise(() => undefined));
+    vi.mocked(fetch).mockImplementation((url) =>
+      url === "/api/analytics"
+        ? Promise.resolve(new Response(null, { status: 204 }))
+        : new Promise(() => undefined),
+    );
     const user = userEvent.setup();
     render(<App />);
 
@@ -364,7 +382,7 @@ describe("Ask Rodrigo public interface", () => {
     await user.type(input, "Why did he build it?");
     await user.click(screen.getByRole("button", { name: "Send question" }));
 
-    const calls = vi.mocked(fetch).mock.calls;
+    const calls = askCalls();
     const requestBody = calls.at(-1)?.[1]?.body;
     if (typeof requestBody !== "string") throw new Error("Expected a serialized request body");
     const secondBody = JSON.parse(requestBody) as {

@@ -20,7 +20,7 @@ The responsive résumé and genuinely bilingual assistant are implemented end to
 ## Stack
 
 - React 19 + Vite 8
-- Cloudflare Workers + Durable Objects + rate-limit binding
+- Cloudflare Workers + Durable Objects + Analytics Engine + rate-limit binding
 - OpenAI Responses API + GPT-5.6 Terra and Sol structured outputs
 - Zod request and response contracts
 - TypeScript 7 native compiler with strict settings
@@ -40,6 +40,26 @@ npm run dev
 ```
 
 For local model calls, create an uncommitted `.dev.vars` file containing `OPENAI_API_KEY`. In production, configure it with `wrangler secret put OPENAI_API_KEY`; never store the value in Git.
+
+### Privacy-safe analytics
+
+Cloudflare Web Analytics measures aggregate visits and page performance. The application also writes three anonymous product events to the `ask_rodrigo_funnel` Analytics Engine dataset:
+
+- `chat_opened`: the visitor intentionally opens or first engages with the assistant, at most once per page load.
+- `question_submitted`: a valid question reaches the Worker after request validation and rate limiting.
+- `answer_succeeded`: the assistant returns a grounded `answered` response.
+
+Events contain only the event name and a numeric count. They never include question text, answers, the safety ID, IP addresses, or another visitor identifier. Query aggregate totals with:
+
+```sql
+SELECT
+  blob1 AS event,
+  SUM(_sample_interval * double1) AS total
+FROM ask_rodrigo_funnel
+WHERE timestamp >= NOW() - INTERVAL '30' DAY
+GROUP BY event
+ORDER BY event
+```
 
 ## Assistant architecture
 
@@ -108,6 +128,7 @@ src/assistant/                  Corpus, language, model, eval, and citation cont
 src/components/chat/            Chat focus, transcript, and composer modules
 worker/index.ts                 Same-origin /api/ask boundary and abuse controls
 worker/dailyBudget.ts           Exact UTC-day assistant-request budget
+worker/productAnalytics.ts      Anonymous Analytics Engine funnel events
 scripts/                        Live evals, quality audit, and PDF generation
 src/components/                 Accessible presentation and interactions
 e2e/                            Desktop and mobile product flows

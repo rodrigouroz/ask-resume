@@ -19,6 +19,12 @@
     "enabled": true,
     "head_sampling_rate": 1,
   },
+  "analytics_engine_datasets": [
+    {
+      "binding": "PRODUCT_ANALYTICS",
+      "dataset": "ask_rodrigo_funnel",
+    },
+  ],
   "ratelimits": [
     {
       "name": "ASK_RATE_LIMITER",

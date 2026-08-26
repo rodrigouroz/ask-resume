@@ -20,7 +20,6 @@
     "prepare": "npm run hooks:install",
     "eval:live": "node scripts/eval-live.mjs",
     "cv:pdf": "npm run build && node scripts/generate-cv.mjs",
-    "vectorize:prepare": "node scripts/prepare-vector-index.mjs",
     "cf:types": "wrangler types --check",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run cf:types"
   },

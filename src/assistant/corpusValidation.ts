@@ -13,12 +13,6 @@ function assertNonEmpty(value: string, label: string): void {
   if (value.trim().length === 0) throw new Error(`${label} must not be empty`);
 }
 
-function validateEntities(fact: CanonicalFact): void {
-  if (fact.entities.some((entity) => entity.trim().length === 0)) {
-    throw new Error(`fact ${fact.factId} has an empty entity`);
-  }
-}
-
 function validateDates(fact: CanonicalFact): void {
   if (!isIsoDate(fact.reviewedAt)) {
     throw new Error(`fact ${fact.factId} has invalid reviewedAt ${String(fact.reviewedAt)}`);
@@ -49,7 +43,6 @@ function validateUrls(fact: CanonicalFact): void {
 function validateFact(fact: CanonicalFact, sourceId: string): void {
   assertNonEmpty(fact.factId, `factId in ${sourceId}`);
   assertNonEmpty(fact.text, `fact ${fact.factId}`);
-  validateEntities(fact);
   validateDates(fact);
   validateUrls(fact);
 }
@@ -64,10 +57,6 @@ export function validateCorpus(corpus: readonly CanonicalEvidence[]): void {
     if (sourceIds.has(source.sourceId)) throw new Error(`duplicate sourceId ${source.sourceId}`);
     sourceIds.add(source.sourceId);
     if (source.facts.length === 0) throw new Error(`source ${source.sourceId} has no facts`);
-    if (source.searchTerms.some((term) => term.trim().length === 0)) {
-      throw new Error(`source ${source.sourceId} has an empty search term`);
-    }
-
     for (const fact of source.facts) {
       if (factIds.has(fact.factId)) throw new Error(`duplicate factId ${fact.factId}`);
       factIds.add(fact.factId);

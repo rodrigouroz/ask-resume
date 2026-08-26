@@ -32,7 +32,6 @@ export type IsoDate = `${number}-${number}-${number}`;
 export type CanonicalFact = {
   factId: string;
   text: string;
-  entities: readonly string[];
   reviewedAt: IsoDate;
   expiresAt?: IsoDate;
 };
@@ -40,7 +39,6 @@ export type CanonicalFact = {
 export type CanonicalEvidence = Citation & {
   title: string;
   facts: readonly CanonicalFact[];
-  searchTerms: readonly string[];
 };
 
 export const askRequestSchema = z.object({

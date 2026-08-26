@@ -3,9 +3,6 @@ import { askRequestSchema } from "../src/assistant/contracts";
 import type { GroundedModel } from "../src/assistant/model";
 import { createOpenAIModel } from "../src/assistant/openaiModel";
 import { resolveResponseLanguage } from "../src/assistant/language";
-import { createHybridEvidenceRetriever } from "../src/assistant/hybridRetrieve";
-import { retrieveEvidence } from "../src/assistant/retrieve";
-import { createOpenAIVectorSearch } from "../src/assistant/vectorSearch";
 
 type ModelFactory = (env: Env) => GroundedModel;
 type BudgetConsumer = (env: Env) => Promise<boolean>;
@@ -59,12 +56,7 @@ export function createWorker(
       }
 
       try {
-        const retrieve = env.RODRIGO_CORPUS
-          ? createHybridEvidenceRetriever({
-              semanticSearch: createOpenAIVectorSearch(env.OPENAI_API_KEY, env.RODRIGO_CORPUS),
-            })
-          : retrieveEvidence;
-        const answerQuestion = createAnswerService({ model: modelFactory(env), retrieve });
+        const answerQuestion = createAnswerService({ model: modelFactory(env) });
         return json(await answerQuestion(parsed.data));
       } catch {
         return json(

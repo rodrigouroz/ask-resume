@@ -6,7 +6,7 @@ The project is also a public example of a grounded AI product: curated sources, 
 
 ## Current status
 
-The responsive résumé and genuinely bilingual assistant are implemented end to end. A Cloudflare Worker retrieves approved evidence from one canonical English corpus, GPT-5.6 Sol drafts in the question's language, and a second grounded-model pass rejects unsupported claims before the response reaches the UI. A print-tested PDF résumé is generated from the same public presentation.
+The responsive résumé and genuinely bilingual assistant are implemented end to end. A Cloudflare Worker gives GPT-5.6 Terra one canonical English corpus, then GPT-5.6 Sol checks the draft against only its cited sources before the response reaches the UI. A print-tested PDF résumé is generated from the same public presentation.
 
 ## Product principles
 
@@ -20,9 +20,8 @@ The responsive résumé and genuinely bilingual assistant are implemented end to
 ## Stack
 
 - React 19 + Vite 8
-- Cloudflare Workers + Vectorize + Durable Objects + rate-limit binding
-- OpenAI Responses API + GPT-5.6 Sol structured outputs and forced tool use
-- `text-embedding-3-large` embeddings at 1,024 dimensions
+- Cloudflare Workers + Durable Objects + rate-limit binding
+- OpenAI Responses API + GPT-5.6 Terra and Sol structured outputs
 - Zod request and response contracts
 - TypeScript 7 native compiler with strict settings
 - Oxfmt
@@ -48,39 +47,26 @@ Each request follows a narrow, auditable path:
 
 1. The UI sends the question, selected UI language, up to six in-memory conversation turns, and a non-identifying session safety ID.
 2. Language resolution uses the question when it is clearly Spanish or English and the UI language only when the question is mixed or ambiguous.
-3. The Worker searches the question directly, fusing deterministic bilingual lexical results with semantic Vectorize results. Only IDs from the approved corpus can survive retrieval, and lexical retrieval remains the failure fallback.
-4. Alfred's always-on policy prevents impersonation, private-data claims, outside knowledge, and unsupported inference independently of which evidence retrieval returns.
-5. GPT-5.6 Sol drafts from the retrieved evidence only, returning supporting source IDs.
-6. A separate model pass rejects the answer unless every factual claim is supported and the response language is correct.
-7. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
+3. Alfred's always-on policy prevents impersonation, private-data claims, outside knowledge, and unsupported inference.
+4. GPT-5.6 Terra receives the complete current corpus before the dynamic question and conversation context, allowing the stable prefix to benefit from OpenAI's prompt cache. It returns an answer and the source IDs that directly support it, or an empty result when the corpus is insufficient.
+5. Empty results use the deterministic contact fallback without another model call. Otherwise, GPT-5.6 Sol checks the draft against only the cited sources and rejects it unless every factual claim is supported and the response language is correct.
+6. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
 
 The corpus is intentionally stored once in canonical English. The model may translate an answer, but translated copies are never persisted as competing sources of truth.
 
 ## Corpus approval
 
-Public evidence lives in `src/assistant/corpus.ts`. Being in that runtime corpus is the approval boundary: every fact has a stable `factId`, its own review date, and explicit entities used for lexical retrieval. Time-sensitive facts also have an expiration date and disappear from retrieval after it passes; editing another fact does not renew them. Every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
+Public evidence lives in `src/assistant/corpus.ts`. Being in that runtime corpus is the approval boundary: every fact has a stable `factId` and its own review date. Time-sensitive facts also have an expiration date and disappear from the model context after it passes; editing another fact does not renew them. Every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
 
 To change a professional claim:
 
 1. Get Rodrigo's explicit approval for the exact fact.
 2. Add or update the canonical English fact without renaming an existing ID merely for wording or localization.
 3. Set or update that fact's own review date. Give current employment, availability, visas, current tools, and live URLs a proportionate expiration date.
-4. Add a deterministic retrieval case and, when model behavior changes, a live evaluation case.
+4. Add or update a live evaluation case when the change affects model behavior.
 5. Run the quality gates below and inspect the visible citation target.
 
 Preparation notes, private repositories, email, and unapproved CV material are not runtime evidence.
-
-## Vector index
-
-Create and populate the production Vectorize index after editing approved corpus facts:
-
-```bash
-npx wrangler vectorize create ask-rodrigo-corpus --dimensions=1024 --metric=cosine
-npm run vectorize:prepare
-npx wrangler vectorize insert ask-rodrigo-corpus --file=.wrangler/vectorize/ask-rodrigo-corpus.ndjson
-```
-
-`vectorize:prepare` embeds only approved canonical sources and requires `OPENAI_API_KEY`. The generated NDJSON is ignored by Git.
 
 ## PDF résumé
 
@@ -118,16 +104,16 @@ The hook audits the pending changes for newly introduced dead code, complexity, 
 ```text
 src/content.ts                  Localized résumé presentation
 src/assistant/corpus.ts         Canonical approved public evidence
-src/assistant/                  Language, retrieval, model, eval, and citation contracts
+src/assistant/                  Corpus, language, model, eval, and citation contracts
 src/components/chat/            Chat focus, transcript, and composer modules
 worker/index.ts                 Same-origin /api/ask boundary and abuse controls
-worker/dailyBudget.ts           Exact UTC-day model-call budget
-scripts/                        Vector indexing, live evals, and PDF generation
+worker/dailyBudget.ts           Exact UTC-day assistant-request budget
+scripts/                        Live evals, quality audit, and PDF generation
 src/components/                 Accessible presentation and interactions
 e2e/                            Desktop and mobile product flows
 ```
 
-The assistant has no repository, browser, email, filesystem, or network tool. Its only model tool produces a query for the application-controlled approved corpus. Abuse controls include strict request schemas, per-IP rate limiting, a global daily Durable Object budget, input/output moderation, bounded token and history sizes, `store: false`, a restrictive Content Security Policy, and honest failure behavior.
+The assistant has no repository, browser, email, filesystem, network, or external tool access. Abuse controls include strict request schemas, per-IP rate limiting, a global daily Durable Object budget, input/output moderation, bounded token and history sizes, `store: false`, a restrictive Content Security Policy, and honest failure behavior.
 
 Turnstile is deliberately deferred until traffic produces a concrete suspicious-client signal. The current public baseline avoids visitor friction while retaining rate limits and an exact global cost ceiling.
 

@@ -3,7 +3,6 @@ import { projects } from "../content";
 import { getCurrentAssistantCorpus } from "./corpus";
 import type { CanonicalEvidence, CanonicalFact } from "./contracts";
 import { currentCorpus, validateCorpus } from "./corpusValidation";
-import { retrieveEvidence } from "./retrieve";
 
 const assistantCorpus = getCurrentAssistantCorpus("2026-08-25");
 
@@ -78,29 +77,6 @@ describe("approved canonical corpus", () => {
     ];
 
     expect(() => validateCorpus(corpus)).toThrow(expected);
-  });
-
-  it.each([
-    ["¿Cómo se llama el asistente?", "assistant-identity"],
-    ["What did Rodrigo do with LLMs and Langfuse at ClassDojo?", "classdojo-current-role"],
-    ["How did he build and train engineering teams?", "leadership-capability"],
-    ["How does Ballast validate its optimizer?", "ballast-product"],
-    ["¿Cómo decide qué construir si hay ambigüedad?", "product-engineering-capability"],
-    ["¿Cuándo merece un concepto una frontera de dominio?", "systems-boundary-capability"],
-    ["¿Qué aprendizaje cambió su forma de liderar personas?", "leadership-capability"],
-    ["How does Rodrigo decide when an LLM belongs in a product?", "ai-engineering-principles"],
-    ["What did Rodrigo contribute to OpenClaw?", "openclaw-contributions"],
-    ["¿Cómo evita depender de un proveedor?", "systems-boundary-capability"],
-    ["¿Qué es Daturno y cómo funciona?", "daturno-product"],
-    ["¿Trabajó en productos usados por millones de personas?", "career-overview"],
-    ["¿Cómo protege Traza la privacidad?", "traza-product"],
-    ["Why did Rodrigo build Coro?", "coro-product"],
-    ["¿Por qué creó Jacara?", "jacara-product"],
-    ["Is Jacara or Tiny Adventures the public name?", "jacara-product"],
-  ])("retrieves %s from the approved dossier", async (question, expectedSourceId) => {
-    const evidence = await retrieveEvidence(question);
-
-    expect(evidence.map(({ sourceId }) => sourceId)).toContain(expectedSourceId);
   });
 
   it("uses Ballast's confirmed public custom domain everywhere", () => {

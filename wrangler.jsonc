@@ -26,12 +26,6 @@
       "simple": { "limit": 10, "period": 60 },
     },
   ],
-  "vectorize": [
-    {
-      "binding": "RODRIGO_CORPUS",
-      "index_name": "ask-rodrigo-corpus",
-    },
-  ],
   "durable_objects": {
     "bindings": [
       {

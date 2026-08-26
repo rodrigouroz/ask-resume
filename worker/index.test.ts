@@ -1,32 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { CanonicalEvidence } from "../src/assistant/contracts";
-import type { SemanticSearch } from "../src/assistant/hybridRetrieve";
 import type { GroundedModel } from "../src/assistant/model";
 
 const workerDependencies = vi.hoisted(() => ({
   createOpenAIModel: vi.fn<(apiKey: string) => GroundedModel>(),
-  createOpenAIVectorSearch:
-    vi.fn<(apiKey: string, index: Env["RODRIGO_CORPUS"]) => SemanticSearch>(),
 }));
 
 vi.mock("../src/assistant/openaiModel", () => ({
   createOpenAIModel: workerDependencies.createOpenAIModel,
 }));
-vi.mock("../src/assistant/vectorSearch", () => ({
-  createOpenAIVectorSearch: workerDependencies.createOpenAIVectorSearch,
-}));
 vi.mock("./dailyBudget", () => ({ AskDailyBudget: class AskDailyBudget {} }));
 import { createWorker } from "./index";
 
 const model: GroundedModel = {
-  draft: vi.fn<GroundedModel["draft"]>(async ({ evidence, language }) => ({
+  draft: vi.fn<GroundedModel["draft"]>(async ({ language }) => ({
     answer:
       language === "es"
         ? "Rodrigo trabaja en ClassDojo desde 2022."
         : "Rodrigo has worked at ClassDojo since 2022.",
-    sourceIds: evidence
-      .filter(({ sourceId }: CanonicalEvidence) => sourceId === "classdojo-current-role")
-      .map(({ sourceId }: CanonicalEvidence) => sourceId),
+    sourceIds: ["classdojo-current-role"],
   })),
   verify: vi.fn<GroundedModel["verify"]>(async () => ({
     answersQuestion: true,
@@ -37,7 +28,7 @@ const model: GroundedModel = {
 
 function env(
   rateLimitSuccess = true,
-  overrides: Partial<Pick<Env, "ASK_DAILY_BUDGET" | "RODRIGO_CORPUS">> = {},
+  overrides: Partial<Pick<Env, "ASK_DAILY_BUDGET">> = {},
   limit = vi.fn<RateLimit["limit"]>(async () => ({ success: rateLimitSuccess })),
 ): Env {
   return {
@@ -51,7 +42,6 @@ describe("POST /api/ask", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     workerDependencies.createOpenAIModel.mockReturnValue(model);
-    workerDependencies.createOpenAIVectorSearch.mockReturnValue(async () => []);
   });
 
   it("leaves non-API routes to the configured asset fallback", async () => {
@@ -218,29 +208,19 @@ describe("POST /api/ask", () => {
     expect(consume).toHaveBeenCalledOnce();
   });
 
-  it("uses the production model and Vectorize bindings when the corpus index is available", async () => {
-    const semanticSearch = vi.fn<SemanticSearch>(async () => [
-      { sourceId: "classdojo-current-role", score: 0.95 },
-    ]);
-    const vectorIndex = { query: vi.fn<() => never>() } as unknown as Env["RODRIGO_CORPUS"];
-    workerDependencies.createOpenAIVectorSearch.mockReturnValue(semanticSearch);
+  it("uses the production model with the configured OpenAI secret", async () => {
     const worker = createWorker();
     const response = await worker.fetch!(
       new Request("https://rodrigouroz.com/api/ask", {
         method: "POST",
         body: JSON.stringify({ question: "ClassDojo?", uiLanguage: "en" }),
       }),
-      env(true, { RODRIGO_CORPUS: vectorIndex }),
+      env(),
       {} as ExecutionContext,
     );
 
     expect(response.status).toBe(200);
     expect(workerDependencies.createOpenAIModel).toHaveBeenCalledWith("unused-in-test");
-    expect(workerDependencies.createOpenAIVectorSearch).toHaveBeenCalledWith(
-      "unused-in-test",
-      vectorIndex,
-    );
-    expect(semanticSearch).toHaveBeenCalledWith("ClassDojo?", 6);
   });
 
   it("returns the localized honest fallback when model initialization fails", async () => {

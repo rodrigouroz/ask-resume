@@ -8,7 +8,7 @@ export type GroundedDraft = {
 
 export type GroundedModel = {
   draft(input: {
-    evidence: readonly CanonicalEvidence[];
+    corpus: readonly CanonicalEvidence[];
     history?: readonly ConversationTurn[];
     language: Language;
     question: string;

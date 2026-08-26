@@ -8,6 +8,6 @@ Until a dedicated security address is configured, contact Rodrigo through the co
 
 ## Scope
 
-Security reports may cover the public application, retrieval boundary, model prompt-injection defenses, citation validation, abuse controls, or accidental disclosure of non-public corpus data.
+Security reports may cover the public application, corpus boundary, model prompt-injection defenses, citation validation, abuse controls, or accidental disclosure of non-public corpus data.
 
 The application must never require access to Rodrigo's private repositories at runtime. Secrets and private source material do not belong in this repository.

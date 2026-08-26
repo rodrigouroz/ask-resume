@@ -42,4 +42,4 @@ Keep changes focused and document any visible deviation from the approved design
 
 The corpus is a public trust boundary, not a convenient place for plausible biography. A new fact must be explicitly approved by Rodrigo and must include its own stable ID, approval state, and review date. Do not promote preparation notes or implementation details discovered in a repository into approved evidence.
 
-When a fact changes, update deterministic retrieval coverage in `src/assistant/evals/retrieval.json`. When the change affects model behavior or safety, also update `src/assistant/evals/live.json` and run the live suite against the intended environment. Equivalent Spanish and English questions should retrieve the same stable evidence IDs.
+When a fact change affects model behavior or safety, update `src/assistant/evals/live.json` and run the live suite against the intended environment. Equivalent Spanish and English questions should return the same stable evidence IDs.

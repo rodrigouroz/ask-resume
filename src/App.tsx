@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { trackClientAnalyticsEvent } from "./analytics";
 import { useAssistantConversation } from "./assistant/useAssistantConversation";
 import type { Language } from "./content";
 import { ChatAssistant } from "./components/ChatAssistant";
@@ -45,6 +46,7 @@ export function App() {
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const mobileLayout = useMobileLayout();
   const [chatOpen, setChatOpen] = useState(() => !isMobileLayout());
+  const chatOpenTracked = useRef(false);
   const conversation = useAssistantConversation(language);
 
   useEffect(() => {
@@ -62,12 +64,20 @@ export function App() {
     window.localStorage.setItem("ask-rodrigo-language", next);
   }, []);
 
+  const openAssistant = useCallback(() => {
+    setChatOpen(true);
+    if (chatOpenTracked.current) return;
+
+    chatOpenTracked.current = true;
+    trackClientAnalyticsEvent("chat_opened");
+  }, []);
+
   const ask = useCallback(
     (question: string) => {
-      setChatOpen(true);
+      openAssistant();
       void conversation.ask(question);
     },
-    [conversation],
+    [conversation, openAssistant],
   );
 
   return (
@@ -83,7 +93,7 @@ export function App() {
       >
         <Header language={language} onLanguageChange={changeLanguage} />
         <main id="main-content" className={chatOpen ? "chat-is-open" : ""}>
-          <Hero language={language} onOpenAssistant={() => setChatOpen(true)} />
+          <Hero language={language} onOpenAssistant={openAssistant} />
           <ExperienceSection language={language} onAsk={ask} />
           <CapabilitiesSection language={language} />
           <ProjectsSection language={language} onAsk={ask} />
@@ -98,7 +108,7 @@ export function App() {
         loading={conversation.loading}
         pendingQuestion={conversation.pendingQuestion}
         turns={conversation.turns}
-        onOpen={() => setChatOpen(true)}
+        onOpen={openAssistant}
         onClose={() => setChatOpen(false)}
         onAsk={ask}
         onNewChat={conversation.clear}

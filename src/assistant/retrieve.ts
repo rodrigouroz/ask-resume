@@ -9,11 +9,13 @@ export type EvidenceRetriever = (
 const STOP_WORDS = new Set([
   "a",
   "about",
+  "and",
   "at",
   "como",
   "cual",
   "cuales",
   "de",
+  "del",
   "did",
   "does",
   "en",
@@ -26,11 +28,13 @@ const STOP_WORDS = new Set([
   "has",
   "have",
   "his",
+  "how",
   "in",
   "is",
   "la",
   "lo",
   "on",
+  "of",
   "para",
   "por",
   "que",
@@ -44,15 +48,19 @@ const STOP_WORDS = new Set([
   "una",
   "what",
   "where",
+  "which",
   "who",
 ]);
 
-const SPANISH_TO_CANONICAL: Readonly<Record<string, string>> = {
+const TOKEN_ALIASES: Readonly<Record<string, string>> = {
+  agentes: "agents",
+  codigo: "coding",
   construyo: "built",
   contratando: "hiring",
   creo: "built",
   decide: "decide",
   decisiones: "decisions",
+  distritales: "district",
   empresas: "companies",
   equipos: "team",
   educacion: "education",
@@ -61,6 +69,7 @@ const SPANISH_TO_CANONICAL: Readonly<Record<string, string>> = {
   estudio: "education",
   formando: "training",
   habilidades: "capabilities",
+  hizo: "do",
   intereses: "interests",
   idiomas: "language",
   ingeniero: "engineer",
@@ -68,6 +77,8 @@ const SPANISH_TO_CANONICAL: Readonly<Record<string, string>> = {
   lidero: "leadership",
   incertidumbre: "uncertainty",
   portafolio: "portfolio",
+  partes: "parts",
+  producto: "product",
   profesor: "professor",
   privacidad: "privacy",
   prueba: "validation",
@@ -80,6 +91,8 @@ const SPANISH_TO_CANONICAL: Readonly<Record<string, string>> = {
   validacion: "validation",
   trabajo: "worked",
   trabaja: "worked",
+  uso: "use",
+  work: "worked",
   armando: "building",
 };
 
@@ -90,7 +103,7 @@ function tokenize(value: string): string[] {
       .replace(/[\u0300-\u036f]/g, "")
       .toLocaleLowerCase()
       .match(/[a-z0-9]+/g)
-      ?.map((token) => SPANISH_TO_CANONICAL[token] ?? token)
+      ?.map((token) => TOKEN_ALIASES[token] ?? token)
       .filter((token) => token.length > 1 && !STOP_WORDS.has(token)) ?? []
   );
 }

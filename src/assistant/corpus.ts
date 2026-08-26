@@ -145,21 +145,13 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
     [
       "classdojo",
       "fullstack",
-      "typescript",
-      "monorepo",
-      "zoom",
-      "llm",
-      "langfuse",
-      "conductor",
       "aws",
       "kubernetes",
-      "developer experience",
       "current employer",
       "work now",
       "works now",
       "empleador actual",
       "trabaja ahora",
-      "experiencia de desarrollo",
     ],
     [
       {
@@ -174,55 +166,6 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
         entities: ["Rodrigo Uroz", "ClassDojo"],
         reviewedAt: "2026-08-25",
         expiresAt: "2026-11-25",
-      },
-      {
-        factId: "classdojo-typescript",
-        text: "He helped migrate ClassDojo's web monorepo to TypeScript.",
-        entities: ["Rodrigo Uroz", "ClassDojo", "TypeScript"],
-        reviewedAt: "2026-08-25",
-      },
-      {
-        factId: "classdojo-external-product",
-        text: "He helped integrate an externally developed product into ClassDojo's architecture.",
-        entities: ["Rodrigo Uroz", "ClassDojo"],
-        reviewedAt: "2026-08-25",
-      },
-      {
-        factId: "classdojo-zoom",
-        text: "The integration connected third-party services, including Zoom for classes.",
-        entities: ["ClassDojo", "Zoom"],
-        reviewedAt: "2026-08-25",
-      },
-      {
-        factId: "classdojo-llms",
-        text: "Rodrigo contributed to ClassDojo's early LLM product features and developer workflows.",
-        entities: ["Rodrigo Uroz", "ClassDojo", "LLMs"],
-        reviewedAt: "2026-08-25",
-      },
-      {
-        factId: "classdojo-langfuse",
-        text: "He has used Langfuse in his LLM work at ClassDojo.",
-        entities: ["Rodrigo Uroz", "ClassDojo", "Langfuse"],
-        reviewedAt: "2026-08-25",
-      },
-      {
-        factId: "classdojo-orchestrators",
-        text: "Rodrigo evaluates LLMs and orchestration tools as their capabilities change.",
-        entities: ["Rodrigo Uroz", "LLMs"],
-        reviewedAt: "2026-08-25",
-      },
-      {
-        factId: "classdojo-orchestrators-current",
-        text: "As of August 25, 2026, Rodrigo uses Conductor in this work.",
-        entities: ["Rodrigo Uroz", "Conductor"],
-        reviewedAt: "2026-08-25",
-        expiresAt: "2026-11-25",
-      },
-      {
-        factId: "classdojo-skills-dx",
-        text: "Rodrigo works with ClassDojo's in-house agent skills and evaluates new tools by whether they improve developer experience.",
-        entities: ["Rodrigo Uroz", "ClassDojo"],
-        reviewedAt: "2026-08-25",
       },
       {
         factId: "classdojo-cloud",
@@ -241,7 +184,6 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
       "platform modernization",
       "typescript migration",
       "web monorepo",
-      "teach",
       "ci",
       "deployment",
       "realtime reliability",
@@ -253,7 +195,7 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
     ],
     [
       {
-        factId: "classdojo-incremental-modernization",
+        factId: "classdojo-typescript",
         text: "Rodrigo helped migrate ClassDojo's web monorepo to TypeScript incrementally so product work could continue while type coverage and shared contracts improved.",
         entities: ["Rodrigo Uroz", "ClassDojo", "TypeScript"],
         reviewedAt: "2026-08-26",
@@ -298,8 +240,8 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
     ],
     [
       {
-        factId: "classdojo-tutor-integration",
-        text: "Rodrigo helped integrate a tutoring product into ClassDojo's architecture and operating environment.",
+        factId: "classdojo-external-product",
+        text: "Rodrigo helped integrate an externally developed tutoring product into ClassDojo's architecture and operating environment.",
         entities: ["Rodrigo Uroz", "ClassDojo", "Tutor"],
         reviewedAt: "2026-08-26",
       },
@@ -311,8 +253,14 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
       },
       {
         factId: "classdojo-tutor-scheduling",
-        text: "His Tutor work included tutor availability, scheduling, sessions, time-zone behavior, Zoom integration, and attendance flows.",
-        entities: ["Rodrigo Uroz", "ClassDojo", "Tutor", "Zoom"],
+        text: "His Tutor work included tutor availability, scheduling, sessions, time-zone behavior, and attendance flows.",
+        entities: ["Rodrigo Uroz", "ClassDojo", "Tutor"],
+        reviewedAt: "2026-08-26",
+      },
+      {
+        factId: "classdojo-zoom",
+        text: "The Tutor integration connected scheduled classes to Zoom.",
+        entities: ["ClassDojo", "Tutor", "Zoom"],
         reviewedAt: "2026-08-26",
       },
       {
@@ -424,14 +372,14 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
     ],
     [
       {
-        factId: "classdojo-ai-product-and-workflows",
+        factId: "classdojo-llms",
         text: "Rodrigo contributed to ClassDojo's early LLM product features and to later AI-assisted product and developer workflows.",
         entities: ["Rodrigo Uroz", "ClassDojo", "LLMs"],
         reviewedAt: "2026-08-26",
       },
       {
-        factId: "classdojo-ai-observability",
-        text: "His LLM work at ClassDojo includes prompt management, tracing, and evaluation with Langfuse.",
+        factId: "classdojo-langfuse",
+        text: "His LLM work at ClassDojo has included prompt management, tracing, and evaluation with Langfuse.",
         entities: ["Rodrigo Uroz", "ClassDojo", "Langfuse"],
         reviewedAt: "2026-08-26",
       },
@@ -442,10 +390,24 @@ const assistantCorpus: readonly CanonicalEvidence[] = [
         reviewedAt: "2026-08-26",
       },
       {
-        factId: "classdojo-agent-developer-experience",
+        factId: "classdojo-orchestrators",
+        text: "Rodrigo evaluates LLMs and orchestration tools as their capabilities change.",
+        entities: ["Rodrigo Uroz", "LLMs"],
+        reviewedAt: "2026-08-25",
+      },
+      {
+        factId: "classdojo-orchestrators-current",
+        text: "As of August 25, 2026, Rodrigo uses Conductor in this work.",
+        entities: ["Rodrigo Uroz", "Conductor"],
+        reviewedAt: "2026-08-25",
+        expiresAt: "2026-11-25",
+      },
+      {
+        factId: "classdojo-skills-dx",
         text: "Rodrigo works with ClassDojo's in-house agent skills and coding-agent workflows, evaluating tools by whether they improve developer experience and verified delivery.",
         entities: ["Rodrigo Uroz", "ClassDojo"],
         reviewedAt: "2026-08-26",
+        expiresAt: "2026-11-26",
       },
     ],
   ),

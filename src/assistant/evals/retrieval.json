@@ -24,25 +24,36 @@
     "id": "classdojo-ai-en",
     "question": "How has Rodrigo used LLMs and Langfuse professionally?",
     "behavior": "answer",
-    "expectedSourceIds": ["classdojo-current-role", "classdojo-ai-engineering"],
-    "expectedFactIds": ["classdojo-llms", "classdojo-langfuse", "classdojo-ai-observability"]
+    "expectedSourceIds": ["classdojo-ai-engineering"],
+    "expectedFactIds": ["classdojo-llms", "classdojo-langfuse"]
   },
   {
     "id": "classdojo-modernization-en",
     "question": "How did Rodrigo modernize ClassDojo's web platform and developer workflows?",
     "behavior": "answer",
     "expectedSourceIds": ["classdojo-platform-modernization"],
-    "expectedFactIds": [
-      "classdojo-incremental-modernization",
-      "classdojo-platform-developer-productivity"
-    ]
+    "expectedFactIds": ["classdojo-typescript", "classdojo-platform-developer-productivity"]
+  },
+  {
+    "id": "classdojo-modernization-es",
+    "question": "¿Cómo modernizó Rodrigo la plataforma web de ClassDojo y los flujos de desarrollo?",
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-platform-modernization"],
+    "expectedFactIds": ["classdojo-typescript", "classdojo-platform-developer-productivity"]
+  },
+  {
+    "id": "classdojo-tutor-en",
+    "question": "What did Rodrigo do in Tutor with availability, scheduling, Zoom, and attendance?",
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-tutor-product"],
+    "expectedFactIds": ["classdojo-tutor-scheduling", "classdojo-zoom"]
   },
   {
     "id": "classdojo-tutor-es",
     "question": "¿Qué hizo Rodrigo en Tutor con disponibilidad, agenda, Zoom y asistencia?",
     "behavior": "answer",
     "expectedSourceIds": ["classdojo-tutor-product"],
-    "expectedFactIds": ["classdojo-tutor-scheduling"]
+    "expectedFactIds": ["classdojo-tutor-scheduling", "classdojo-zoom"]
   },
   {
     "id": "classdojo-district-en",
@@ -52,15 +63,25 @@
     "expectedFactIds": ["classdojo-audience-modeling", "classdojo-insights-composition"]
   },
   {
+    "id": "classdojo-district-es",
+    "question": "¿Cómo trabajó Rodrigo en comunicaciones distritales, audiencias de destinatarios y School Insights?",
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-district-solutions"],
+    "expectedFactIds": ["classdojo-audience-modeling", "classdojo-insights-composition"]
+  },
+  {
     "id": "classdojo-ai-workflows-en",
     "question": "How has Rodrigo used Langfuse, structured outputs, and coding agents at ClassDojo?",
     "behavior": "answer",
     "expectedSourceIds": ["classdojo-ai-engineering"],
-    "expectedFactIds": [
-      "classdojo-ai-observability",
-      "classdojo-bounded-ai",
-      "classdojo-agent-developer-experience"
-    ]
+    "expectedFactIds": ["classdojo-langfuse", "classdojo-bounded-ai", "classdojo-skills-dx"]
+  },
+  {
+    "id": "classdojo-ai-workflows-es",
+    "question": "¿Cómo usó Rodrigo Langfuse, salidas estructuradas y agentes de código en ClassDojo?",
+    "behavior": "answer",
+    "expectedSourceIds": ["classdojo-ai-engineering"],
+    "expectedFactIds": ["classdojo-langfuse", "classdojo-bounded-ai", "classdojo-skills-dx"]
   },
   {
     "id": "architecture-en",

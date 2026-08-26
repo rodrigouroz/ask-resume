@@ -5,7 +5,7 @@ import type { SemanticSearch } from "./hybridRetrieve";
 describe("hybrid corpus retrieval", () => {
   it("combines exact lexical evidence with semantic evidence using stable source ids", async () => {
     const semanticSearch = vi.fn<SemanticSearch>(async () => [
-      { sourceId: "classdojo-current-role", score: 0.91 },
+      { sourceId: "classdojo-ai-engineering", score: 0.91 },
       { sourceId: "technical-capabilities", score: 0.72 },
     ]);
     const retrieve = createHybridEvidenceRetriever({ semanticSearch });
@@ -16,7 +16,7 @@ describe("hybrid corpus retrieval", () => {
       "What did Rodrigo do with LLMs and Langfuse at ClassDojo?",
       6,
     );
-    expect(evidence[0]?.sourceId).toBe("classdojo-current-role");
+    expect(evidence[0]?.sourceId).toBe("classdojo-ai-engineering");
     expect(evidence.map(({ sourceId }) => sourceId)).toContain("technical-capabilities");
   });
 
@@ -50,6 +50,6 @@ describe("hybrid corpus retrieval", () => {
 
     const evidence = await retrieve("ClassDojo TypeScript monorepo");
 
-    expect(evidence[0]?.sourceId).toBe("classdojo-current-role");
+    expect(evidence[0]?.sourceId).toBe("classdojo-platform-modernization");
   });
 });

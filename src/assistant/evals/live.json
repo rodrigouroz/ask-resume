@@ -16,6 +16,38 @@
     "sourceIds": ["classdojo-current-role"]
   },
   {
+    "id": "classdojo-modernization",
+    "question": "How did Rodrigo modernize ClassDojo's web platform?",
+    "uiLanguage": "en",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["classdojo-platform-modernization"]
+  },
+  {
+    "id": "classdojo-tutor",
+    "question": "¿En qué partes del producto Tutor trabajó Rodrigo?",
+    "uiLanguage": "es",
+    "language": "es",
+    "statuses": ["answered"],
+    "sourceIds": ["classdojo-tutor-product"]
+  },
+  {
+    "id": "classdojo-district-solutions",
+    "question": "What did Rodrigo work on in district communications and School Insights?",
+    "uiLanguage": "en",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["classdojo-district-solutions"]
+  },
+  {
+    "id": "classdojo-ai-engineering",
+    "question": "How has Rodrigo used Langfuse and coding agents at ClassDojo?",
+    "uiLanguage": "en",
+    "language": "en",
+    "statuses": ["answered"],
+    "sourceIds": ["classdojo-ai-engineering"]
+  },
+  {
     "id": "ballast-en",
     "question": "How does Ballast validate its optimizer?",
     "uiLanguage": "es",

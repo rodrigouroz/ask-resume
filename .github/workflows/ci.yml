@@ -27,10 +27,9 @@ jobs:
       - run: npm ci
       - run: npm run check
       - run: npm run test:coverage
-      - if: github.event_name == 'pull_request'
-        run: npm run fallow:check -- --base origin/${{ github.base_ref }}
-      - if: github.event_name == 'push'
-        run: npm run fallow:check -- --base HEAD^
+      - run: npm run fallow:check -- --base "$FALLOW_BASE"
+        env:
+          FALLOW_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
 
   e2e:
     runs-on: ubuntu-latest

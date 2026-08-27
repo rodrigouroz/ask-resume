@@ -73,6 +73,8 @@ npm run eval:live -- https://your-worker-preview.your-account.workers.dev
 npm run verify:live -- https://your-worker-preview.your-account.workers.dev
 ```
 
+Each entry in `profile/evidence.json.evals` defines an observable acceptance case. Declared `sourceIds` are exact by default; a synthesis case may explicitly list every valid citation in `allowedSourceIds` while keeping `sourceIds` as the required subset. `required` and `forbidden` check stable answer content, `history` exercises follow-up questions, and `attempts` requires repeated success for nondeterministic or adversarial cases.
+
 `npm run deploy` generates a temporary Wrangler configuration from the active `profile/`. The preview uses `<workerName>-preview`, no custom routes, and its own Analytics Engine dataset, rate limiter, and daily budget.
 
 The template limits the chat to 200 questions per day. A measured answered request against the larger Rodrigo corpus used about 45.7 neurons, implying roughly 219 similar requests within the free allocation. Corpus size, answer length, model behavior, and other Workers AI usage on the same account change that number, so treat 200 as a conservative starter default and monitor aggregate `workers_ai_usage` logs.

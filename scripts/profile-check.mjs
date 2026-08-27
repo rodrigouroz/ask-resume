@@ -81,9 +81,18 @@ for (const item of evidence.items) {
 }
 
 for (const testCase of evidence.evals) {
-  for (const sourceId of testCase.sourceIds ?? []) {
+  const referencedSourceIds = [...(testCase.sourceIds ?? []), ...(testCase.allowedSourceIds ?? [])];
+  for (const sourceId of referencedSourceIds) {
     if (!sourceIds.has(sourceId)) {
       throw new Error(`eval ${testCase.id} references unknown sourceId ${sourceId}`);
+    }
+  }
+  if (testCase.allowedSourceIds) {
+    const allowedSourceIds = new Set(testCase.allowedSourceIds);
+    for (const sourceId of testCase.sourceIds ?? []) {
+      if (!allowedSourceIds.has(sourceId)) {
+        throw new Error(`eval ${testCase.id} requires sourceId ${sourceId} outside its allowlist`);
+      }
     }
   }
 }

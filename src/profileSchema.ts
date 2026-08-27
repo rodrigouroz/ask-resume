@@ -203,8 +203,20 @@ const liveEvalSchema = z.object({
   question: z.string().min(1),
   uiLanguage: languageSchema,
   language: languageSchema,
+  attempts: z.number().int().min(1).max(5).optional(),
   statuses: z.array(z.enum(["answered", "unknown"])).min(1),
   sourceIds: z.array(identifierSchema).optional(),
+  allowedSourceIds: z.array(identifierSchema).optional(),
+  history: z
+    .array(
+      z.object({
+        question: z.string().trim().min(1).max(500),
+        answer: z.string().trim().min(1).max(2_000),
+      }),
+    )
+    .max(6)
+    .optional(),
+  required: z.array(z.string().min(1)).optional(),
   forbidden: z.array(z.string().min(1)).optional(),
 });
 

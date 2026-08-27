@@ -1,6 +1,6 @@
 {
-  "name": "ask-rodrigo",
-  "version": "0.1.0",
+  "name": "ask-resume",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {

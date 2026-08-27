@@ -10,6 +10,20 @@ import {
 } from "../src/assistant/groundingPrompt";
 import type { GroundedModel } from "../src/assistant/model";
 
+const usageSchema = z
+  .object({
+    prompt_tokens: z.number().int().nonnegative(),
+    completion_tokens: z.number().int().nonnegative(),
+    total_tokens: z.number().int().nonnegative(),
+    prompt_tokens_details: z
+      .object({ cached_tokens: z.number().int().nonnegative().optional() })
+      .optional(),
+    completion_tokens_details: z
+      .object({ reasoning_tokens: z.number().int().nonnegative().optional() })
+      .optional(),
+  })
+  .passthrough();
+
 const completionSchema = z.union([
   z.object({
     choices: z
@@ -23,8 +37,9 @@ const completionSchema = z.union([
         }),
       )
       .min(1),
+    usage: usageSchema.optional(),
   }),
-  z.object({ response: z.unknown() }),
+  z.object({ response: z.unknown(), usage: usageSchema.optional() }),
 ]);
 
 function jsonSchema(properties: Record<string, unknown>, required: string[]) {
@@ -90,6 +105,19 @@ async function runStructured<T>(
     throw new Error("Workers AI returned an invalid completion envelope");
   }
   const completion = completionResult.data;
+  if (completion.usage) {
+    console.log(
+      "workers_ai_usage",
+      JSON.stringify({
+        model,
+        promptTokens: completion.usage.prompt_tokens,
+        cachedPromptTokens: completion.usage.prompt_tokens_details?.cached_tokens ?? 0,
+        completionTokens: completion.usage.completion_tokens,
+        reasoningTokens: completion.usage.completion_tokens_details?.reasoning_tokens ?? 0,
+        totalTokens: completion.usage.total_tokens,
+      }),
+    );
+  }
   const content =
     "response" in completion ? completion.response : completion.choices[0]?.message.content;
   if (content === undefined || content === null || content === "") {
@@ -145,6 +173,7 @@ export function createWorkersAIModel(ai: Ai, model: string, profileSlug: string)
             },
           ],
           max_completion_tokens: 700,
+          chat_template_kwargs: { enable_thinking: false },
           reasoning_effort: "low",
           response_format: draftResponseFormat,
           store: false,
@@ -179,6 +208,7 @@ export function createWorkersAIModel(ai: Ai, model: string, profileSlug: string)
             },
           ],
           max_completion_tokens: 300,
+          chat_template_kwargs: { enable_thinking: false },
           reasoning_effort: "low",
           response_format: verificationResponseFormat,
           store: false,

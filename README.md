@@ -62,7 +62,7 @@ PDF acceptance includes rendered-page inspection, extractable text, working link
 
 ## Deploy a preview
 
-The default provider is Cloudflare Workers AI with `@cf/zai-org/glm-5.3-flash`. It uses the Worker `AI` binding, so no model API key is required. GLM-5.3 requires a Workers Paid plan or prepaid AI Gateway credits.
+The default provider is Cloudflare Workers AI with `@cf/zai-org/glm-4.7-flash`. It uses the Worker `AI` binding, requires no model API key, and is available on the Workers Free plan. Cloudflare currently includes 10,000 Workers AI neurons per account per day; the quota resets at 00:00 UTC and requests fail after it is exhausted.
 
 ```bash
 npx wrangler login
@@ -73,6 +73,8 @@ npm run verify:live -- https://your-worker-preview.your-account.workers.dev
 
 `npm run deploy` generates a temporary Wrangler configuration from the active `profile/`. The preview uses `<workerName>-preview`, no custom routes, and its own Analytics Engine dataset, rate limiter, and daily budget.
 
+The template limits the chat to 200 questions per day. A measured answered request against the larger Rodrigo corpus used about 45.7 neurons, implying roughly 219 similar requests within the free allocation. Corpus size, answer length, model behavior, and other Workers AI usage on the same account change that number, so treat 200 as a conservative starter default and monitor aggregate `workers_ai_usage` logs.
+
 After the preview passes and you have reviewed the site, chat, SEO, and PDFs:
 
 ```bash
@@ -81,7 +83,7 @@ npm run deploy:production
 
 Production deployment enables the custom domains configured in `profile/profile.json`. Use it only after confirming those routes and the target Cloudflare account.
 
-OpenAI remains available as an optional fallback. To use it, set `deployment.aiProvider` to `openai`, copy `.dev.vars.example` to `.dev.vars` for local development, and add `OPENAI_API_KEY` to the deployed Worker with `wrangler secret put`. The current provider evaluation and acceptance evidence are recorded in [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
+OpenAI remains available as an optional fallback. To use it, set `deployment.aiProvider` to `openai`, copy `.dev.vars.example` to `.dev.vars` for local development, and add `OPENAI_API_KEY` to the deployed Worker with `wrangler secret put`. GLM-5.3 remains a paid Workers AI option by changing only `deployment.workersAiModel`. The current provider evaluation and acceptance evidence are recorded in [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
 
 ## Evidence and privacy boundary
 

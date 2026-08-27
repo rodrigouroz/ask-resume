@@ -332,8 +332,8 @@
     "customDomains": [],
     "analyticsDataset": "ask_marina_soler_funnel",
     "rateLimitNamespaceId": "2001",
-    "dailyQuestionLimit": 250,
+    "dailyQuestionLimit": 200,
     "aiProvider": "workers-ai",
-    "workersAiModel": "@cf/zai-org/glm-5.3-flash"
+    "workersAiModel": "@cf/zai-org/glm-4.7-flash"
   }
 }

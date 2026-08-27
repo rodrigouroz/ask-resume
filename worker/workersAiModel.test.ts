@@ -45,6 +45,7 @@ describe("Workers AI grounded model", () => {
     expect(modelName).toBe("@cf/zai-org/glm-4.7-flash");
     expect(input).toMatchObject({
       reasoning_effort: "low",
+      chat_template_kwargs: { enable_thinking: false },
       max_completion_tokens: 700,
       response_format: {
         type: "json_schema",
@@ -88,6 +89,9 @@ describe("Workers AI grounded model", () => {
       `FACTUAL_QUESTION_FOR_VERIFICATION:\\nWhere does ${profile.identity.firstName} work?`,
     );
     expect(JSON.stringify(calls[0]?.[1])).toContain("CITATIONS_RENDERED_BY_APPLICATION");
+    expect(JSON.stringify(calls[0]?.[1])).toContain(
+      "standard technical terms may remain in their original language",
+    );
     expect(calls[0]?.[1]).toMatchObject({ max_completion_tokens: 300, store: false });
     expect(run.mock.calls[0]?.[2]).toEqual({
       extraHeaders: { "x-session-affinity": "test-profile:verify-v1" },
@@ -105,6 +109,41 @@ describe("Workers AI grounded model", () => {
     await expect(
       model.draft({ corpus, language: "es", question: `¿Dónde trabaja ${profile.identity.name}?` }),
     ).resolves.toEqual(expected);
+  });
+
+  it("logs aggregate usage without prompt or response content", async () => {
+    const question = `Where does ${profile.identity.firstName} work?`;
+    const answer = `${profile.identity.name} has professional experience.`;
+    const { ai } = aiWithResult({
+      choices: [
+        { message: { content: JSON.stringify({ answer, sourceIds: [primaryEvidence.sourceId] }) } },
+      ],
+      usage: {
+        prompt_tokens: 100,
+        completion_tokens: 20,
+        total_tokens: 120,
+        prompt_tokens_details: { cached_tokens: 80 },
+      },
+    });
+    const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    try {
+      const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash", "test-profile");
+      await model.draft({ corpus, language: "en", question });
+
+      const usageCall = log.mock.calls.find(([event]) => event === "workers_ai_usage");
+      const output = JSON.stringify(log.mock.calls);
+      expect(JSON.parse(String(usageCall?.[1]))).toMatchObject({
+        promptTokens: 100,
+        cachedPromptTokens: 80,
+        completionTokens: 20,
+        totalTokens: 120,
+      });
+      expect(output).not.toContain(question);
+      expect(output).not.toContain(answer);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it("accepts the top-level response shape used by JSON mode", async () => {

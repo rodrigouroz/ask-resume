@@ -7,14 +7,18 @@
   "routes": [],
   "workers_dev": true,
   "vars": {
-    "AI_PROVIDER": "openai",
-    "WORKERS_AI_MODEL": "@cf/zai-org/glm-4.7-flash",
+    "AI_PROVIDER": "workers-ai",
+    "WORKERS_AI_MODEL": "@cf/zai-org/glm-5.3-flash",
     "PROFILE_SLUG": "marina-soler",
     "DAILY_ASK_LIMIT": "250",
   },
   "assets": {
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"],
+  },
+  "ai": {
+    "binding": "AI",
+    "remote": true,
   },
   "observability": {
     "enabled": true,

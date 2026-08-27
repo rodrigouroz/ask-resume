@@ -333,8 +333,7 @@
     "analyticsDataset": "ask_marina_soler_funnel",
     "rateLimitNamespaceId": "2001",
     "dailyQuestionLimit": 250,
-    "aiProvider": "openai",
-    "workersAiModel": "@cf/zai-org/glm-4.7-flash",
-    "premiumWorkersAiModel": "@cf/zai-org/glm-5.3-flash"
+    "aiProvider": "workers-ai",
+    "workersAiModel": "@cf/zai-org/glm-5.3-flash"
   }
 }

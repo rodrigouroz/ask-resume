@@ -30,7 +30,7 @@ describe("Workers AI grounded model", () => {
         sourceIds: [primaryEvidence.sourceId],
       }),
     ]);
-    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash");
+    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash", "test-profile");
 
     await expect(
       model.draft({ corpus, language: "es", question: `¿Dónde trabaja ${profile.identity.name}?` }),
@@ -45,6 +45,7 @@ describe("Workers AI grounded model", () => {
     expect(modelName).toBe("@cf/zai-org/glm-4.7-flash");
     expect(input).toMatchObject({
       reasoning_effort: "low",
+      max_completion_tokens: 700,
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -53,31 +54,44 @@ describe("Workers AI grounded model", () => {
           required: ["answer", "sourceIds"],
         },
       },
+      store: false,
       temperature: 0,
     });
     expect(input?.response_format).not.toHaveProperty("json_schema.schema");
     expect(JSON.stringify(input)).toContain(primaryEvidence.sourceId);
     expect(JSON.stringify(input)).toContain("Spanish");
+    expect(JSON.stringify(input)).toContain("exact factual intent");
+    expect(run.mock.calls[0]?.[2]).toEqual({
+      extraHeaders: { "x-session-affinity": "test-profile:draft-v2" },
+    });
   });
 
   it("verifies against only the cited evidence", async () => {
     const { ai, run } = aiWithResponses([
       JSON.stringify({ answersQuestion: true, languageMatches: true, supported: true }),
     ]);
-    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-5.3-flash");
+    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-5.3-flash", "test-profile");
 
     await expect(
       model.verify({
         answer: `${profile.identity.name} has professional experience.`,
         evidence: [primaryEvidence],
         language: "en",
-        question: `Where does ${profile.identity.firstName} work?`,
+        question: `Where does ${profile.identity.firstName} work? Please cite sources.`,
       }),
     ).resolves.toEqual({ answersQuestion: true, languageMatches: true, supported: true });
 
     const calls = run.mock.calls as unknown as [string, Record<string, unknown>][];
     expect(JSON.stringify(calls[0]?.[1])).toContain(primaryEvidence.sourceId);
     expect(JSON.stringify(calls[0]?.[1])).not.toContain(secondaryEvidence.sourceId);
+    expect(JSON.stringify(calls[0]?.[1])).toContain(
+      `FACTUAL_QUESTION_FOR_VERIFICATION:\\nWhere does ${profile.identity.firstName} work?`,
+    );
+    expect(JSON.stringify(calls[0]?.[1])).toContain("CITATIONS_RENDERED_BY_APPLICATION");
+    expect(calls[0]?.[1]).toMatchObject({ max_completion_tokens: 300, store: false });
+    expect(run.mock.calls[0]?.[2]).toEqual({
+      extraHeaders: { "x-session-affinity": "test-profile:verify-v1" },
+    });
   });
 
   it("accepts structured objects returned directly by the binding", async () => {
@@ -86,7 +100,7 @@ describe("Workers AI grounded model", () => {
       sourceIds: [primaryEvidence.sourceId],
     };
     const { ai } = aiWithResult({ choices: [{ message: { content: expected } }] });
-    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash");
+    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash", "test-profile");
 
     await expect(
       model.draft({ corpus, language: "es", question: `¿Dónde trabaja ${profile.identity.name}?` }),
@@ -96,7 +110,7 @@ describe("Workers AI grounded model", () => {
   it("accepts the top-level response shape used by JSON mode", async () => {
     const expected = { answersQuestion: true, languageMatches: true, supported: true };
     const { ai } = aiWithResult({ response: expected });
-    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash");
+    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash", "test-profile");
 
     await expect(
       model.verify({
@@ -110,7 +124,7 @@ describe("Workers AI grounded model", () => {
 
   it("fails closed on malformed model JSON", async () => {
     const { ai } = aiWithResponses(["not json"]);
-    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash");
+    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash", "test-profile");
 
     await expect(
       model.draft({

@@ -1,1 +1,2 @@
+# Optional: only needed when profile/profile.json sets aiProvider to "openai".
 OPENAI_API_KEY=replace-with-your-openai-api-key

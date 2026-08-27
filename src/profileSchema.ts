@@ -174,7 +174,6 @@ const profileSchema = z.object({
     dailyQuestionLimit: z.int().positive(),
     aiProvider: z.enum(["openai", "workers-ai"]),
     workersAiModel: z.string().startsWith("@cf/"),
-    premiumWorkersAiModel: z.string().startsWith("@cf/"),
   }),
 });
 

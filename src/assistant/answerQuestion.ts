@@ -9,6 +9,17 @@ export function unknownAnswer(language: Language): AskResponse {
   return { status: "unknown", language, answer: copy.chat.unknown[language], citations: [] };
 }
 
+const instructionOverridePatterns = [
+  /\b(?:this|these|my)\s+(?:instruction|instructions|request|message)\s+(?:must\s+)?(?:override|overrides|supersede|supersedes|replace|replaces)\b/iu,
+  /\b(?:ignore|disregard|bypass|override|overrule)\b[\s\S]{0,120}\b(?:evidence|corpus|system prompt|developer instructions?|previous instructions?|rules?)\b/iu,
+  /\b(?:esta|estas|mi)\s+(?:instrucci[oó]n|instrucciones|petici[oó]n|mensaje)\s+(?:debe\s+)?(?:anular|anula|reemplazar|reemplaza|sobrescribir|sobrescribe)\b/iu,
+  /\b(?:ignora|ignor[aá]|omite|omit[ií]|anula|reemplaza|sobrescribe)(?=\s|$|[.,;:!?])[\s\S]{0,120}\b(?:evidencia|corpus|prompt|instrucciones?|reglas?)\b/iu,
+];
+
+function containsInstructionOverride(question: string): boolean {
+  return instructionOverridePatterns.some((pattern) => pattern.test(question));
+}
+
 export function createAnswerService({ model }: { model: GroundedModel }) {
   return async function answerQuestion({
     question,
@@ -17,6 +28,10 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
     safetyId,
   }: AskRequest): Promise<AskResponse> {
     const language = resolveResponseLanguage(question, uiLanguage);
+    if (containsInstructionOverride(question)) {
+      console.warn("grounded_answer_rejected", JSON.stringify({ stage: "instruction_override" }));
+      return unknownAnswer(language);
+    }
     const safety = safetyId ? { safetyIdentifier: safetyId } : {};
     let stage = "corpus";
 

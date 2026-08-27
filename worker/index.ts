@@ -22,11 +22,12 @@ function createConfiguredModel(env: Env): GroundedModel {
   const provider = env.AI_PROVIDER as string;
   if (provider === "workers-ai") {
     if (!env.AI) throw new Error("Workers AI binding is not configured");
-    return createWorkersAIModel(env.AI, env.WORKERS_AI_MODEL);
+    return createWorkersAIModel(env.AI, env.WORKERS_AI_MODEL, env.PROFILE_SLUG);
   }
   if (provider !== "openai") {
     throw new Error(`Unsupported AI provider: ${provider}`);
   }
+  if (!env.OPENAI_API_KEY) throw new Error("OpenAI API key is not configured");
   return createOpenAIModel(env.OPENAI_API_KEY);
 }
 

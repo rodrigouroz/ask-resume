@@ -37,7 +37,7 @@ describe("OpenAI grounded model", () => {
         policy: { input: { mode: "block" }, output: { mode: "block" } },
       },
     });
-    expect(request?.instructions).toContain("Spanish");
+    expect(request?.instructions).not.toContain("Spanish");
     expect(request?.instructions).toContain(
       `You are ${profile.identity.assistantName}, ${profile.identity.name}'s professional assistant`,
     );
@@ -48,6 +48,7 @@ describe("OpenAI grounded model", () => {
 
     const input = String(request?.input);
     expect(input).toMatch(/^APPROVED_CORPUS:/);
+    expect(input).toContain("Write the complete answer in Spanish.");
     expect(input).toContain(`"sourceId":"${primaryEvidence.sourceId}"`);
     expect(input).toContain(`"sourceId":"${secondaryEvidence.sourceId}"`);
     expect(input.indexOf("APPROVED_CORPUS:")).toBeLessThan(input.indexOf("QUESTION:"));

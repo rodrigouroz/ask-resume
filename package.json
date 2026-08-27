@@ -29,8 +29,8 @@
     "deploy": "npm run cv:pdf && node scripts/deploy.mjs",
     "deploy:production": "npm run cv:pdf && node scripts/deploy.mjs --production",
     "verify:live": "node scripts/verify-live.mjs",
-    "cf:types:generate": "wrangler types --env-file .dev.vars.example",
-    "cf:types": "wrangler types --env-file .dev.vars.example --check",
+    "cf:types:generate": "wrangler types --env-file .dev.vars.types",
+    "cf:types": "wrangler types --env-file .dev.vars.types --check",
     "check": "npm run profile:privacy && npm run profile:check:template && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run cf:types"
   },
   "dependencies": {

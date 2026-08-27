@@ -62,12 +62,11 @@ PDF acceptance includes rendered-page inspection, extractable text, working link
 
 ## Deploy a preview
 
-The default provider is OpenAI. Create a local development secret and deploy the preview Worker:
+The default provider is Cloudflare Workers AI with `@cf/zai-org/glm-5.3-flash`. It uses the Worker `AI` binding, so no model API key is required. GLM-5.3 requires a Workers Paid plan or prepaid AI Gateway credits.
 
 ```bash
-cp .dev.vars.example .dev.vars
+npx wrangler login
 npm run deploy
-npx wrangler secret put OPENAI_API_KEY --name your-worker-preview
 npm run eval:live -- https://your-worker-preview.your-account.workers.dev
 npm run verify:live -- https://your-worker-preview.your-account.workers.dev
 ```
@@ -82,7 +81,7 @@ npm run deploy:production
 
 Production deployment enables the custom domains configured in `profile/profile.json`. Use it only after confirming those routes and the target Cloudflare account.
 
-Workers AI remains available as an evaluation provider. The checked-in GLM presets are not the default because the latest recorded run did not meet the grounding and latency bar. See [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
+OpenAI remains available as an optional fallback. To use it, set `deployment.aiProvider` to `openai`, copy `.dev.vars.example` to `.dev.vars` for local development, and add `OPENAI_API_KEY` to the deployed Worker with `wrangler secret put`. The current provider evaluation and acceptance evidence are recorded in [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
 
 ## Evidence and privacy boundary
 

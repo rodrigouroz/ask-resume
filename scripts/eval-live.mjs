@@ -18,7 +18,10 @@ if (
 }
 const cases = evidence.evals;
 let failures = 0;
-const requestSpacingMs = baseUrl.hostname.endsWith(".workers.dev") ? 6_500 : 0;
+const requestSpacingMs =
+  baseUrl.hostname.endsWith(".workers.dev") || profile.deployment.aiProvider === "workers-ai"
+    ? 6_500
+    : 0;
 let lastRequestStartedAt = 0;
 
 async function waitForRateLimitWindow() {

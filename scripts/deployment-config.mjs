@@ -47,7 +47,7 @@ export async function generateDeploymentConfig({ production = false } = {}) {
     WORKERS_AI_MODEL: deployment.workersAiModel,
   };
   if (deployment.aiProvider === "workers-ai") {
-    config.ai = { binding: "AI" };
+    config.ai = { binding: "AI", remote: true };
   } else {
     delete config.ai;
   }

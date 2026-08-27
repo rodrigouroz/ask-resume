@@ -12,7 +12,7 @@ const shortQuestion = `${firstExperience.company}?`;
 
 const workerDependencies = vi.hoisted(() => ({
   createOpenAIModel: vi.fn<(apiKey: string) => GroundedModel>(),
-  createWorkersAIModel: vi.fn<(ai: Ai, model: string) => GroundedModel>(),
+  createWorkersAIModel: vi.fn<(ai: Ai, model: string, profileSlug: string) => GroundedModel>(),
 }));
 
 vi.mock("../src/assistant/openaiModel", () => ({
@@ -56,7 +56,7 @@ function env(
     },
     WORKERS_AI_MODEL: "@cf/zai-org/glm-4.7-flash",
     ...overrides,
-  } as Env;
+  } as unknown as Env;
 }
 
 function analyticsBinding() {
@@ -268,6 +268,23 @@ describe("POST /api/ask", () => {
     expect(workerDependencies.createOpenAIModel).toHaveBeenCalledWith("unused-in-test");
   });
 
+  it("fails closed when OpenAI is selected without its optional secret", async () => {
+    const testEnv = { ...env(), OPENAI_API_KEY: undefined } as unknown as Env;
+    const worker = createWorker();
+    const response = await worker.fetch!(
+      new Request(profileUrl("/api/ask"), {
+        method: "POST",
+        body: JSON.stringify({ question: shortQuestion, uiLanguage: "en" }),
+      }),
+      testEnv,
+      {} as ExecutionContext,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ status: "unknown" });
+    expect(workerDependencies.createOpenAIModel).not.toHaveBeenCalled();
+  });
+
   it("uses the configured Workers AI binding without requiring the OpenAI provider", async () => {
     workerDependencies.createWorkersAIModel.mockReturnValue(model);
     const testEnv = { ...env(), AI_PROVIDER: "workers-ai" } as unknown as Env;
@@ -285,6 +302,7 @@ describe("POST /api/ask", () => {
     expect(workerDependencies.createWorkersAIModel).toHaveBeenCalledWith(
       testEnv.AI,
       "@cf/zai-org/glm-4.7-flash",
+      profile.identity.slug,
     );
     expect(workerDependencies.createOpenAIModel).not.toHaveBeenCalled();
   });

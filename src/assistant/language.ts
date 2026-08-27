@@ -27,6 +27,7 @@ const spanishSignals = new Set([
   "cual",
   "cuales",
   "contame",
+  "desobedece",
   "que",
   "donde",
   "cuando",

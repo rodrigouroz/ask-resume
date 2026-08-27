@@ -69,7 +69,7 @@ export default defineConfig({
           PROFILE_SLUG: profile.identity.slug,
           WORKERS_AI_MODEL: profile.deployment.workersAiModel,
         },
-        ...(profile.deployment.aiProvider === "workers-ai"
+        ...(profile.deployment.aiProvider === "workers-ai" && !process.env.CI
           ? { ai: { binding: "AI", remote: true } }
           : {}),
         analytics_engine_datasets: [

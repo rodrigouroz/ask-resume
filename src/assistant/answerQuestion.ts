@@ -16,17 +16,39 @@ const instructionOverridePatterns = [
   /\b(?:desobedec[eé]|ignora|ignor[aá]|omite|omit[ií]|anula|reemplaza|sobrescribe)(?=\s|$|[.,;:!?])[\s\S]{0,120}\b(?:evidencia|corpus|prompt|instrucciones?|reglas?)\b/iu,
 ];
 
-const privateDataRequestPatterns = [
-  /\b(?:show|list|reveal|expose|give|provide)\b[\s\S]{0,80}\b(?:private repositor(?:y|ies)|secrets?|passwords?|tokens?|api keys?)\b/iu,
-  /\b(?:mostrame|mostr[aá]|lista|list[aá]|revela|revel[aá]|expone|expon[eé]|dame|provee|prove[eé])\b[\s\S]{0,80}\b(?:repositorios? privados?|secretos?|contraseñas?|tokens?|claves? de api)\b/iu,
+const promptExtractionPatterns = [
+  /\b(?:show|print|reveal|expose|give|provide|repeat|quote|copy|output)\b[\s\S]{0,120}\b(?:(?:(?:hidden|internal|system|developer|secret)\s+){1,2}(?:prompt|instructions?)|(?:approved|hidden|internal|full)\s+corpus)\b/iu,
+  /\b(?:mostrame|mostr[aá]|muestra|mu[eé]strame|imprime|imprim[ií]|revela|revel[aá]|expone|expon[eé]|dame|provee|repite|cit[aá]|copia|copi[aá])(?=\s|$|[.,;:!?])[\s\S]{0,120}\b(?:prompt\s+(?:oculto|interno|del sistema|del desarrollador)|instrucciones?\s+(?:ocultas?|internas?|del sistema|del desarrollador)|corpus\s+(?:aprobado|oculto|interno|completo))\b/iu,
 ];
 
-function containsInstructionOverride(question: string): boolean {
-  return instructionOverridePatterns.some((pattern) => pattern.test(question));
+const privateDataRequestPatterns = [
+  /\b(?:show|list|reveal|expose|give|provide)\b[\s\S]{0,80}\b(?:private repositor(?:y|ies)|secrets?|passwords?|tokens?|api keys?)\b/iu,
+  /\b(?:mostrame|mostr[aá]|muestra|mu[eé]strame|lista|list[aá]|revela|revel[aá]|expone|expon[eé]|dame|provee|prove[eé])(?=\s|$|[.,;:!?])[\s\S]{0,80}\b(?:repositorios? privados?|secretos?|contraseñas?|tokens?|claves? de api)\b/iu,
+];
+
+function normalizeForSafetyMatch(question: string): string {
+  return question
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\u2060\uFEFF]/gu, "")
+    .replace(/\b(?:[\p{L}\p{N}]\s+){2,}[\p{L}\p{N}]\b/gu, (spacedWord) =>
+      spacedWord.replace(/\s+/gu, ""),
+    );
 }
 
-function requestsPrivateData(question: string): boolean {
-  return privateDataRequestPatterns.some((pattern) => pattern.test(question));
+function rejectedQuestionStage(
+  question: string,
+): "instruction_override" | "prompt_extraction" | "private_data_request" | undefined {
+  const normalizedQuestion = normalizeForSafetyMatch(question);
+  if (instructionOverridePatterns.some((pattern) => pattern.test(normalizedQuestion))) {
+    return "instruction_override";
+  }
+  if (promptExtractionPatterns.some((pattern) => pattern.test(normalizedQuestion))) {
+    return "prompt_extraction";
+  }
+  if (privateDataRequestPatterns.some((pattern) => pattern.test(normalizedQuestion))) {
+    return "private_data_request";
+  }
+  return undefined;
 }
 
 export function createAnswerService({ model }: { model: GroundedModel }) {
@@ -37,11 +59,7 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
     safetyId,
   }: AskRequest): Promise<AskResponse> {
     const language = resolveResponseLanguage(question, uiLanguage);
-    const rejectedStage = containsInstructionOverride(question)
-      ? "instruction_override"
-      : requestsPrivateData(question)
-        ? "private_data_request"
-        : undefined;
+    const rejectedStage = rejectedQuestionStage(question);
     if (rejectedStage) {
       console.warn("grounded_answer_rejected", JSON.stringify({ stage: rejectedStage }));
       return unknownAnswer(language);

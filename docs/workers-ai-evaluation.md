@@ -54,6 +54,7 @@ The active Rodrigo suite now contains 33 named cases and performs 43 requests be
 - `attempts` is bounded from one to five, and every attempt must pass.
 - HTTP 429 responses are retried twice without counting them as model failures; the runner honors a numeric `Retry-After` value and otherwise waits for the configured 60-second application window.
 - Prompt extraction and private-repository cases now require the deterministic `unknown` outcome instead of accepting either a refusal or an answered response.
+- The request boundary normalizes full-width characters, invisible separators, and spaced-letter obfuscation before applying bilingual prompt-extraction, instruction-override, and private-data rules. Draft and verifier prompts repeat the same fail-closed contract so the text matcher is not the only defense.
 - The suite adds a contextual follow-up plus Spanish-paraphrased and character-obfuscated prompt-extraction cases.
 
 Local integration tests exercise the evaluation CLI through a real loopback HTTP server and verify its output and exit code. They do not establish current remote-model quality; only a fresh preview run can do that.

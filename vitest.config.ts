@@ -10,7 +10,12 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "json"],
-      include: ["src/**/*.{ts,tsx}", "worker/index.ts"],
+      include: [
+        "src/**/*.{ts,tsx}",
+        "worker/index.ts",
+        "worker/workersAiModel.ts",
+        "worker/workersAiSelection.ts",
+      ],
       exclude: ["src/main.tsx", "src/**/*.test.{ts,tsx}", "src/test/**"],
       thresholds: {
         statements: 80,

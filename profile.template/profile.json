@@ -334,6 +334,6 @@
     "rateLimitNamespaceId": "2001",
     "dailyQuestionLimit": 200,
     "aiProvider": "workers-ai",
-    "workersAiModel": "@cf/zai-org/glm-4.7-flash"
+    "workersAiModel": "auto"
   }
 }

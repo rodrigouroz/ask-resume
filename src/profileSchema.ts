@@ -173,7 +173,7 @@ const profileSchema = z.object({
     rateLimitNamespaceId: z.string().regex(/^\d+$/),
     dailyQuestionLimit: z.int().positive(),
     aiProvider: z.enum(["openai", "workers-ai"]),
-    workersAiModel: z.string().startsWith("@cf/"),
+    workersAiModel: z.union([z.literal("auto"), z.string().startsWith("@cf/")]),
   }),
 });
 

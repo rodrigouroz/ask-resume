@@ -62,7 +62,9 @@ PDF acceptance includes rendered-page inspection, extractable text, working link
 
 ## Deploy a preview
 
-The default provider is Cloudflare Workers AI with `@cf/zai-org/glm-4.7-flash`. It uses the Worker `AI` binding, requires no model API key, and is available on the Workers Free plan. Cloudflare currently includes 10,000 Workers AI neurons per account per day; the quota resets at 00:00 UTC and requests fail after it is exhausted.
+The default provider is Cloudflare Workers AI with `deployment.workersAiModel` set to `auto`. It uses the Worker `AI` binding and requires no model API key. When there is no fresh capability decision, the Worker tries the accepted paid model, `@cf/zai-org/glm-5.3-flash`. If Cloudflare returns its documented `5035` “Workers Paid required” error, that request continues with the accepted free model, `@cf/zai-org/glm-4.7-flash`. The result is persisted for six hours in the existing Durable Object, so later requests and cold Worker isolates call the selected model directly. After the TTL, one request re-evaluates access; this lets an account upgrade take effect without a new deployment. Other errors—including exhausted free quota, timeout, and provider capacity—remain errors and do not silently change models.
+
+Cloudflare currently includes 10,000 Workers AI neurons per account per day; the quota resets at 00:00 UTC and requests fail after it is exhausted. GLM-5.3 requires Workers Paid or configured prepaid AI Gateway credits; GLM-4.7 is available through the free allocation.
 
 ```bash
 npx wrangler login
@@ -83,7 +85,7 @@ npm run deploy:production
 
 Production deployment enables the custom domains configured in `profile/profile.json`. Use it only after confirming those routes and the target Cloudflare account.
 
-OpenAI remains available as an optional fallback. To use it, set `deployment.aiProvider` to `openai`, copy `.dev.vars.example` to `.dev.vars` for local development, and add `OPENAI_API_KEY` to the deployed Worker with `wrangler secret put`. GLM-5.3 remains a paid Workers AI option by changing only `deployment.workersAiModel`. The current provider evaluation and acceptance evidence are recorded in [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
+OpenAI remains available as an optional fallback. To use it, set `deployment.aiProvider` to `openai`, copy `.dev.vars.example` to `.dev.vars` for local development, and add `OPENAI_API_KEY` to the deployed Worker with `wrangler secret put`. To bypass automatic detection, set `deployment.workersAiModel` to a specific `@cf/...` model ID. The current provider evaluation and acceptance evidence are recorded in [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
 
 ## Evidence and privacy boundary
 

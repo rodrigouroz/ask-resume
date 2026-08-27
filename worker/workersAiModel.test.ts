@@ -2,6 +2,11 @@ import { describe, expect, it, vi } from "vitest";
 import { getCurrentAssistantCorpus } from "../src/assistant/corpus";
 import { profile } from "../src/profile";
 import { createWorkersAIModel } from "./workersAiModel";
+import {
+  AUTO_WORKERS_AI_MODEL,
+  FREE_WORKERS_AI_MODEL,
+  PREMIUM_WORKERS_AI_MODEL,
+} from "./workersAiSelection";
 
 const corpus = getCurrentAssistantCorpus("2026-08-25");
 const primaryEvidence = corpus[0];
@@ -172,5 +177,174 @@ describe("Workers AI grounded model", () => {
         question: `Where does ${profile.identity.firstName} work?`,
       }),
     ).rejects.toThrow("malformed JSON");
+  });
+
+  it("selects the premium model when the account can use it", async () => {
+    const { ai, run } = aiWithResponses([
+      JSON.stringify({
+        answer: `${profile.identity.name} has professional experience.`,
+        sourceIds: [primaryEvidence.sourceId],
+      }),
+      JSON.stringify({ answersQuestion: true, languageMatches: true, supported: true }),
+    ]);
+    const persist = vi.fn<(model: string) => Promise<void>>(async () => undefined);
+    const log = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    try {
+      const model = createWorkersAIModel(ai, AUTO_WORKERS_AI_MODEL, "test-profile", {
+        persist,
+      });
+      const draft = await model.draft({
+        corpus,
+        language: "en",
+        question: `Where does ${profile.identity.firstName} work?`,
+      });
+      await model.verify({
+        answer: draft.answer,
+        evidence: [primaryEvidence],
+        language: "en",
+        question: `Where does ${profile.identity.firstName} work?`,
+      });
+
+      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
+        PREMIUM_WORKERS_AI_MODEL,
+        PREMIUM_WORKERS_AI_MODEL,
+      ]);
+      expect(log).toHaveBeenCalledOnce();
+      expect(log).toHaveBeenCalledWith(
+        "workers_ai_model_selected",
+        JSON.stringify({ model: PREMIUM_WORKERS_AI_MODEL, reason: "paid_access" }),
+      );
+      expect(persist).toHaveBeenCalledOnce();
+      expect(persist).toHaveBeenCalledWith(PREMIUM_WORKERS_AI_MODEL);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it("falls back on paid-plan error 5035 and remembers the free model", async () => {
+    const paidPlanError = new Error("AiError 5035: This model requires a Workers Paid plan");
+    const run = vi.fn<(...args: unknown[]) => Promise<unknown>>(async (modelName, input) => {
+      if (modelName === PREMIUM_WORKERS_AI_MODEL) throw paidPlanError;
+      const required = (
+        input as { response_format: { json_schema: { required: readonly string[] } } }
+      ).response_format.json_schema.required;
+      return {
+        choices: [
+          {
+            message: {
+              content: required.includes("answer")
+                ? JSON.stringify({
+                    answer: `${profile.identity.name} has professional experience.`,
+                    sourceIds: [primaryEvidence.sourceId],
+                  })
+                : JSON.stringify({
+                    answersQuestion: true,
+                    languageMatches: true,
+                    supported: true,
+                  }),
+            },
+          },
+        ],
+      };
+    });
+    const persist = vi.fn<(model: string) => Promise<void>>(async () => undefined);
+    const selection = { persist };
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    try {
+      const model = createWorkersAIModel(
+        { run } as unknown as Ai,
+        AUTO_WORKERS_AI_MODEL,
+        "test-profile",
+        selection,
+      );
+      const draft = await model.draft({
+        corpus,
+        language: "en",
+        question: `Where does ${profile.identity.firstName} work?`,
+      });
+      await model.verify({
+        answer: draft.answer,
+        evidence: [primaryEvidence],
+        language: "en",
+        question: `Where does ${profile.identity.firstName} work?`,
+      });
+
+      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
+        PREMIUM_WORKERS_AI_MODEL,
+        FREE_WORKERS_AI_MODEL,
+        FREE_WORKERS_AI_MODEL,
+      ]);
+      expect(selection).toMatchObject({
+        resolvedModel: FREE_WORKERS_AI_MODEL,
+        lastLoggedModel: FREE_WORKERS_AI_MODEL,
+      });
+      expect(persist).toHaveBeenCalledOnce();
+      expect(persist).toHaveBeenCalledWith(FREE_WORKERS_AI_MODEL);
+      expect(info).toHaveBeenCalledWith(
+        "workers_ai_model_selected",
+        JSON.stringify({ model: FREE_WORKERS_AI_MODEL, reason: "paid_plan_required" }),
+      );
+    } finally {
+      info.mockRestore();
+    }
+  });
+
+  it("uses a persisted free-plan selection without probing the premium model", async () => {
+    const { ai, run } = aiWithResponses([
+      JSON.stringify({
+        answer: `${profile.identity.name} has professional experience.`,
+        sourceIds: [primaryEvidence.sourceId],
+      }),
+    ]);
+    const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
+
+    try {
+      const model = createWorkersAIModel(ai, AUTO_WORKERS_AI_MODEL, "test-profile", {
+        resolvedModel: FREE_WORKERS_AI_MODEL,
+      });
+      await model.draft({
+        corpus,
+        language: "en",
+        question: `Where does ${profile.identity.firstName} work?`,
+      });
+
+      expect(run).toHaveBeenCalledOnce();
+      expect(run.mock.calls[0]?.[0]).toBe(FREE_WORKERS_AI_MODEL);
+      expect(info).toHaveBeenCalledWith(
+        "workers_ai_model_selected",
+        JSON.stringify({ model: FREE_WORKERS_AI_MODEL, reason: "persisted" }),
+      );
+    } finally {
+      info.mockRestore();
+    }
+  });
+
+  it("does not hide transient provider errors behind the free model", async () => {
+    const run = vi.fn<(...args: unknown[]) => Promise<unknown>>(async () => {
+      throw new Error("AiError 3040: No more data centers to forward the request to");
+    });
+    const error = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    try {
+      const model = createWorkersAIModel(
+        { run } as unknown as Ai,
+        AUTO_WORKERS_AI_MODEL,
+        "test-profile",
+        {},
+      );
+      await expect(
+        model.draft({
+          corpus,
+          language: "en",
+          question: `Where does ${profile.identity.firstName} work?`,
+        }),
+      ).rejects.toThrow("3040");
+      expect(run).toHaveBeenCalledOnce();
+      expect(run.mock.calls[0]?.[0]).toBe(PREMIUM_WORKERS_AI_MODEL);
+    } finally {
+      error.mockRestore();
+    }
   });
 });

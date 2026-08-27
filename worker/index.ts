@@ -5,8 +5,13 @@ import { createOpenAIModel } from "../src/assistant/openaiModel";
 import { resolveResponseLanguage } from "../src/assistant/language";
 import { clientAnalyticsEventSchema, recordProductAnalyticsEvent } from "./productAnalytics";
 import { createWorkersAIModel } from "./workersAiModel";
+import {
+  AUTO_WORKERS_AI_MODEL,
+  createWorkersAISelectionLoader,
+  type WorkersAIModelSelection,
+} from "./workersAiSelection";
 
-type ModelFactory = (env: Env) => GroundedModel;
+type ModelFactory = (env: Env) => GroundedModel | Promise<GroundedModel>;
 type BudgetConsumer = (env: Env) => Promise<boolean>;
 
 const consumeDailyBudget: BudgetConsumer = async (env) => {
@@ -18,11 +23,14 @@ const consumeDailyBudget: BudgetConsumer = async (env) => {
   return env.ASK_DAILY_BUDGET.getByName(day).consume(limit);
 };
 
-function createConfiguredModel(env: Env): GroundedModel {
+function createConfiguredModel(
+  env: Env,
+  workersAISelection: WorkersAIModelSelection,
+): GroundedModel {
   const provider = env.AI_PROVIDER as string;
   if (provider === "workers-ai") {
     if (!env.AI) throw new Error("Workers AI binding is not configured");
-    return createWorkersAIModel(env.AI, env.WORKERS_AI_MODEL, env.PROFILE_SLUG);
+    return createWorkersAIModel(env.AI, env.WORKERS_AI_MODEL, env.PROFILE_SLUG, workersAISelection);
   }
   if (provider !== "openai") {
     throw new Error(`Unsupported AI provider: ${provider}`);
@@ -74,9 +82,23 @@ async function handleClientAnalytics(request: Request, env: Env): Promise<Respon
 }
 
 export function createWorker(
-  modelFactory: ModelFactory = createConfiguredModel,
+  modelFactory?: ModelFactory,
   budgetConsumer: BudgetConsumer = consumeDailyBudget,
 ): ExportedHandler<Env> {
+  const workersAISelection: WorkersAIModelSelection = {};
+  const loadWorkersAISelection = createWorkersAISelectionLoader(workersAISelection);
+  const resolvedModelFactory =
+    modelFactory ??
+    (async (env: Env) => {
+      if (
+        (env.AI_PROVIDER as string) === "workers-ai" &&
+        (env.WORKERS_AI_MODEL as string) === AUTO_WORKERS_AI_MODEL
+      ) {
+        await loadWorkersAISelection(env);
+      }
+      return createConfiguredModel(env, workersAISelection);
+    });
+
   return {
     async fetch(request, env) {
       const url = new URL(request.url);
@@ -109,7 +131,7 @@ export function createWorker(
       }
 
       try {
-        const answerQuestion = createAnswerService({ model: modelFactory(env) });
+        const answerQuestion = createAnswerService({ model: await resolvedModelFactory(env) });
         const answer = await answerQuestion(parsed.data);
         if (answer.status === "answered") {
           recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, "answer_succeeded", env.PROFILE_SLUG);

@@ -12,7 +12,15 @@ const shortQuestion = `${firstExperience.company}?`;
 
 const workerDependencies = vi.hoisted(() => ({
   createOpenAIModel: vi.fn<(apiKey: string) => GroundedModel>(),
-  createWorkersAIModel: vi.fn<(ai: Ai, model: string, profileSlug: string) => GroundedModel>(),
+  createWorkersAIModel:
+    vi.fn<
+      (
+        ai: Ai,
+        model: string,
+        profileSlug: string,
+        selection: Record<string, unknown>,
+      ) => GroundedModel
+    >(),
 }));
 
 vi.mock("../src/assistant/openaiModel", () => ({
@@ -54,7 +62,7 @@ function env(
     PRODUCT_ANALYTICS: {
       writeDataPoint: vi.fn<AnalyticsEngineDataset["writeDataPoint"]>(),
     },
-    WORKERS_AI_MODEL: "@cf/zai-org/glm-4.7-flash",
+    WORKERS_AI_MODEL: "auto",
     ...overrides,
   } as unknown as Env;
 }
@@ -301,8 +309,9 @@ describe("POST /api/ask", () => {
     expect(response.status).toBe(200);
     expect(workerDependencies.createWorkersAIModel).toHaveBeenCalledWith(
       testEnv.AI,
-      "@cf/zai-org/glm-4.7-flash",
+      "auto",
       profile.identity.slug,
+      expect.any(Object),
     );
     expect(workerDependencies.createOpenAIModel).not.toHaveBeenCalled();
   });

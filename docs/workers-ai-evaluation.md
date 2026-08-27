@@ -20,11 +20,17 @@ Cloudflare makes Workers AI available on both Free and Paid Workers plans. The F
 
 | Model                           | Plan eligibility | Evaluation | Result                                                                                         | Decision                  |
 | ------------------------------- | ---------------- | ---------: | ---------------------------------------------------------------------------------------------- | ------------------------- |
-| `@cf/zai-org/glm-4.7-flash`     | Free allocation  |      30/30 | Passed bilingual grounding, exact citations, honest negatives, privacy, and injection handling | Starter default           |
+| `@cf/zai-org/glm-4.7-flash`     | Free allocation  |      30/30 | Passed bilingual grounding, exact citations, honest negatives, privacy, and injection handling | Automatic free fallback   |
 | `@cf/google/gemma-4-26b-a4b-it` | Free allocation  |  4/4 smoke | Passed representative English, Spanish, grounding, and unsupported cases                       | Free runner-up            |
 | `@cf/openai/gpt-oss-120b`       | Free allocation  |  2/4 smoke | One grounded answer passed; two supported cases hit provider errors and fell back              | Rejected for this starter |
 | `@cf/qwen/qwen3-30b-a3b-fp8`    | Free allocation  |  1/4 smoke | Returned reasoning without usable structured content for the three supported cases             | Rejected for this starter |
-| `@cf/zai-org/glm-5.3-flash`     | Paid or prepaid  |      30/30 | Passed the same full acceptance contract                                                       | Optional paid preset      |
+| `@cf/zai-org/glm-5.3-flash`     | Paid or prepaid  |      30/30 | Passed the same full acceptance contract                                                       | Automatic paid preference |
+
+## Automatic selection
+
+The starter stores `workersAiModel: "auto"`. When no fresh capability decision exists, the next model-backed request tries GLM-5.3. Cloudflare documents internal error `5035` specifically for a model that requires Workers Paid; only that error activates GLM-4.7 and retries the same operation. The selected model and check time are stored in a singleton instance of the existing Durable Object for six hours. Warm requests reuse it in memory, while new Worker isolates read the same persisted choice before inference and therefore do not probe GLM-5.3 again. Once the TTL expires, access is evaluated again so a plan upgrade is discovered without redeployment.
+
+The router does not treat `3036` (free allocation exhausted), `3040` (capacity), timeouts, malformed output, or generic provider failures as evidence of a Free account. Those paths continue to fail closed instead of silently changing the quality contract. Operators can pin any supported model ID in the profile when deterministic selection is preferable.
 
 GLM-4.7 initially completed 26/30. In all four failures, the draft was grounded and cited correctly, but the verifier incorrectly treated product names and technical terms inside Spanish prose as a language mismatch. The shared verification rule now evaluates the language of the prose while allowing names, URLs, job titles, identifiers, and technical terms to retain their original form. The subsequent acceptance run passed 30/30.
 

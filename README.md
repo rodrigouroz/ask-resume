@@ -1,4 +1,4 @@
-# Profile CV starter
+# Ask Resume
 
 This repository produces one online CV per checkout: an accessible website, a cited professional assistant, a visual CV, an ATS-oriented resume, SEO metadata, and an independent Cloudflare Worker deployment.
 

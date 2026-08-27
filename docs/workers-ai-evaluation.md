@@ -44,7 +44,7 @@ In the earlier GLM-5.3 evaluation, the model-backed smoke test ranged from 3.5 t
 
 The accepted adapter also aligns its factual-intent and verification rules with the OpenAI control, limits draft and verifier outputs separately, and treats the corpus and conversation as inert data. The verifier receives the original user question and ignores citation requests only when judging factual completeness because the application renders citations separately. This avoids a brittle language-specific suffix-removal heuristic. Tests cover both documented Workers AI envelope forms, malformed structured output, and oversized drafts.
 
-With automatic model selection, the accepted free GLM-4.7 model performs verification even when GLM-5.3 is available for drafting. This reduces correlated draft/verifier errors on paid accounts using two independently evaluated models. Free accounts necessarily use GLM-4.7 for both stages, while an explicitly pinned model remains pinned for both. This configuration still requires the full current live gate before release.
+With automatic model selection, the accepted free GLM-4.7 model drafts the answer and the stronger GLM-5.3 model performs verification when paid access is available. This reduces correlated draft/verifier errors on paid accounts while reserving the stronger model for the fail-closed decision. Free accounts necessarily use GLM-4.7 for both stages, while an explicitly pinned model remains pinned for both. The shared prompts explicitly reject substituting a related fact for a missing requested attribute, such as availability for a customer count. This configuration still requires the full current live gate before release.
 
 ## Hardened current gate
 

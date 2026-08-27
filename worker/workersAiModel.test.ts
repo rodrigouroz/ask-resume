@@ -72,7 +72,7 @@ describe("Workers AI grounded model", () => {
     expect(JSON.stringify(input)).toContain("Spanish");
     expect(JSON.stringify(input)).toContain("exact factual intent");
     expect(run.mock.calls[0]?.[2]).toEqual({
-      extraHeaders: { "x-session-affinity": "test-profile:draft-v2" },
+      extraHeaders: { "x-session-affinity": "test-profile:draft-v3" },
     });
   });
 
@@ -113,7 +113,7 @@ describe("Workers AI grounded model", () => {
     );
     expect(calls[0]?.[1]).toMatchObject({ max_completion_tokens: 300, store: false });
     expect(run.mock.calls[0]?.[2]).toEqual({
-      extraHeaders: { "x-session-affinity": "test-profile:verify-v2" },
+      extraHeaders: { "x-session-affinity": "test-profile:verify-v3" },
     });
   });
 
@@ -232,8 +232,8 @@ describe("Workers AI grounded model", () => {
       });
 
       expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
-        PREMIUM_WORKERS_AI_MODEL,
         FREE_WORKERS_AI_MODEL,
+        PREMIUM_WORKERS_AI_MODEL,
       ]);
       expect(log).toHaveBeenCalledOnce();
       expect(log).toHaveBeenCalledWith(
@@ -297,8 +297,8 @@ describe("Workers AI grounded model", () => {
       });
 
       expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
-        PREMIUM_WORKERS_AI_MODEL,
         FREE_WORKERS_AI_MODEL,
+        PREMIUM_WORKERS_AI_MODEL,
         FREE_WORKERS_AI_MODEL,
       ]);
       expect(selection).toMatchObject({
@@ -322,6 +322,7 @@ describe("Workers AI grounded model", () => {
         answer: `${profile.identity.name} has professional experience.`,
         sourceIds: [primaryEvidence.sourceId],
       }),
+      JSON.stringify({ answersQuestion: true, languageMatches: true, supported: true }),
     ]);
     const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
 
@@ -329,14 +330,22 @@ describe("Workers AI grounded model", () => {
       const model = createWorkersAIModel(ai, AUTO_WORKERS_AI_MODEL, "test-profile", {
         resolvedModel: FREE_WORKERS_AI_MODEL,
       });
-      await model.draft({
+      const draft = await model.draft({
         corpus,
         language: "en",
         question: `Where does ${profile.identity.firstName} work?`,
       });
+      await model.verify({
+        answer: draft.answer,
+        evidence: [primaryEvidence],
+        language: "en",
+        question: `Where does ${profile.identity.firstName} work?`,
+      });
 
-      expect(run).toHaveBeenCalledOnce();
-      expect(run.mock.calls[0]?.[0]).toBe(FREE_WORKERS_AI_MODEL);
+      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
+        FREE_WORKERS_AI_MODEL,
+        FREE_WORKERS_AI_MODEL,
+      ]);
       expect(info).toHaveBeenCalledWith(
         "workers_ai_model_selected",
         JSON.stringify({ model: FREE_WORKERS_AI_MODEL, reason: "persisted" }),
@@ -367,7 +376,7 @@ describe("Workers AI grounded model", () => {
         }),
       ).rejects.toThrow("3040");
       expect(run).toHaveBeenCalledOnce();
-      expect(run.mock.calls[0]?.[0]).toBe(PREMIUM_WORKERS_AI_MODEL);
+      expect(run.mock.calls[0]?.[0]).toBe(FREE_WORKERS_AI_MODEL);
     } finally {
       error.mockRestore();
     }

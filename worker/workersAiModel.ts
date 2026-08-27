@@ -263,36 +263,34 @@ export function createWorkersAIModel(
   selection: WorkersAIModelSelection = {},
 ): GroundedModel {
   const runWithSelectedModel = createSelectedModelRunner(configuredModel, selection);
-  const verifierModel =
+  const draftModel =
     configuredModel === AUTO_WORKERS_AI_MODEL ? FREE_WORKERS_AI_MODEL : configuredModel;
 
   return {
     async draft({ corpus, history = [], language, question }) {
-      const draft = await runWithSelectedModel((model) =>
-        runStructured(
-          ai,
-          model,
-          `${profileSlug}:draft-v2`,
-          {
-            messages: [
-              {
-                role: "system",
-                content: `${groundingDraftInstructions()} APPROVED_CORPUS:\n${evidenceJson(corpus)}`,
-              },
-              {
-                role: "user",
-                content: `RESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
-              },
-            ],
-            max_completion_tokens: 700,
-            chat_template_kwargs: { enable_thinking: false },
-            reasoning_effort: "low",
-            response_format: draftResponseFormat,
-            store: false,
-            temperature: 0,
-          },
-          groundedDraftSchema,
-        ),
+      const draft = await runStructured(
+        ai,
+        draftModel,
+        `${profileSlug}:draft-v3`,
+        {
+          messages: [
+            {
+              role: "system",
+              content: `${groundingDraftInstructions()} APPROVED_CORPUS:\n${evidenceJson(corpus)}`,
+            },
+            {
+              role: "user",
+              content: `RESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
+            },
+          ],
+          max_completion_tokens: 700,
+          chat_template_kwargs: { enable_thinking: false },
+          reasoning_effort: "low",
+          response_format: draftResponseFormat,
+          store: false,
+          temperature: 0,
+        },
+        groundedDraftSchema,
       );
       console.log(
         "workers_ai_draft_result",
@@ -305,29 +303,31 @@ export function createWorkersAIModel(
     },
 
     async verify({ answer, evidence, history = [], language, question }) {
-      const verification = await runStructured(
-        ai,
-        verifierModel,
-        `${profileSlug}:verify-v2`,
-        {
-          messages: [
-            {
-              role: "system",
-              content: groundingVerificationInstructions(language),
-            },
-            {
-              role: "user",
-              content: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
-            },
-          ],
-          max_completion_tokens: 300,
-          chat_template_kwargs: { enable_thinking: false },
-          reasoning_effort: "low",
-          response_format: verificationResponseFormat,
-          store: false,
-          temperature: 0,
-        },
-        groundingVerificationSchema,
+      const verification = await runWithSelectedModel((model) =>
+        runStructured(
+          ai,
+          model,
+          `${profileSlug}:verify-v3`,
+          {
+            messages: [
+              {
+                role: "system",
+                content: groundingVerificationInstructions(language),
+              },
+              {
+                role: "user",
+                content: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
+              },
+            ],
+            max_completion_tokens: 300,
+            chat_template_kwargs: { enable_thinking: false },
+            reasoning_effort: "low",
+            response_format: verificationResponseFormat,
+            store: false,
+            temperature: 0,
+          },
+          groundingVerificationSchema,
+        ),
       );
       console.log(
         "workers_ai_verification_result",

@@ -21,6 +21,7 @@ const consumeDailyBudget: BudgetConsumer = async (env) => {
 function createConfiguredModel(env: Env): GroundedModel {
   const provider = env.AI_PROVIDER as string;
   if (provider === "workers-ai") {
+    if (!env.AI) throw new Error("Workers AI binding is not configured");
     return createWorkersAIModel(env.AI, env.WORKERS_AI_MODEL);
   }
   if (provider !== "openai") {

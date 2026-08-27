@@ -278,6 +278,31 @@ describe("POST /api/ask", () => {
     expect(workerDependencies.createOpenAIModel).not.toHaveBeenCalled();
   });
 
+  it("fails closed when Workers AI is selected without its binding", async () => {
+    const testEnv = {
+      ...env(),
+      AI: undefined,
+      AI_PROVIDER: "workers-ai",
+    } as unknown as Env;
+    const worker = createWorker();
+
+    const response = await worker.fetch!(
+      new Request("https://profile.example/api/ask", {
+        method: "POST",
+        body: JSON.stringify({
+          question: `Where does ${profile.identity.firstName} work?`,
+          uiLanguage: "en",
+        }),
+      }),
+      testEnv,
+      {} as ExecutionContext,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ status: "unknown" });
+    expect(workerDependencies.createWorkersAIModel).not.toHaveBeenCalled();
+  });
+
   it("returns the localized honest fallback when model initialization fails", async () => {
     const worker = createWorker(() => {
       throw new Error("Missing secret");

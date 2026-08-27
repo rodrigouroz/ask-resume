@@ -46,7 +46,11 @@ export async function generateDeploymentConfig({ production = false } = {}) {
     PROFILE_SLUG: profile.identity.slug,
     WORKERS_AI_MODEL: deployment.workersAiModel,
   };
-  config.ai = { binding: "AI" };
+  if (deployment.aiProvider === "workers-ai") {
+    config.ai = { binding: "AI" };
+  } else {
+    delete config.ai;
+  }
   config.analytics_engine_datasets = [
     { binding: "PRODUCT_ANALYTICS", dataset: deployment.analyticsDataset },
   ];

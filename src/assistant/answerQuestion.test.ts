@@ -160,6 +160,52 @@ describe("bilingual grounded answers", () => {
     ]);
   });
 
+  it("gives the verifier the same non-evidentiary conversation context as the draft", async () => {
+    const history = [
+      {
+        question: `Where did ${profile.identity.firstName} work?`,
+        answer: `${profile.identity.firstName} worked at a company in the public corpus.`,
+      },
+    ];
+    const draft = vi.fn<GroundedModel["draft"]>(async () => ({
+      answer: `${profile.identity.firstName} held a public role there.`,
+      sourceIds: [primarySource.sourceId],
+    }));
+    const verify = approvingVerifier();
+    const answerQuestion = createAnswerService({ model: { draft, verify } });
+
+    await answerQuestion({ question: "What did he do there?", uiLanguage: "en", history });
+
+    expect(draft.mock.calls[0]?.[0].history).toEqual(history);
+    expect(verify.mock.calls[0]?.[0].history).toEqual(history);
+  });
+
+  it.each([
+    { support: undefined, expected: undefined },
+    { support: "provider" as const, expected: "550e8400-e29b-41d4-a716-446655440000" },
+  ])(
+    "passes a safety identifier only to adapters that declare support",
+    async ({ support, expected }) => {
+      const draft = vi.fn<GroundedModel["draft"]>(async () => ({
+        answer: `${profile.identity.name} has verified public work.`,
+        sourceIds: [primarySource.sourceId],
+      }));
+      const verify = approvingVerifier();
+      const answerQuestion = createAnswerService({
+        model: { draft, verify, ...(support ? { safetyIdentifierSupport: support } : {}) },
+      });
+
+      await answerQuestion({
+        question: `What did ${profile.identity.firstName} build?`,
+        uiLanguage: "en",
+        safetyId: "550e8400-e29b-41d4-a716-446655440000",
+      });
+
+      expect(draft.mock.calls[0]?.[0].safetyIdentifier).toBe(expected);
+      expect(verify.mock.calls[0]?.[0].safetyIdentifier).toBe(expected);
+    },
+  );
+
   it("never exposes an answer rejected by the verifier", async () => {
     const unsupportedFact = `${profile.identity.name} founded an unverified company.`;
     const model: GroundedModel = {

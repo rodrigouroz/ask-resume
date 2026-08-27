@@ -57,6 +57,10 @@ describe("Workers AI grounded model", () => {
         json_schema: {
           type: "object",
           additionalProperties: false,
+          properties: {
+            answer: { type: "string", maxLength: 2_000 },
+            sourceIds: { type: "array", maxItems: 12 },
+          },
           required: ["answer", "sourceIds"],
         },
       },
@@ -82,8 +86,14 @@ describe("Workers AI grounded model", () => {
       model.verify({
         answer: `${profile.identity.name} has professional experience.`,
         evidence: [primaryEvidence],
+        history: [
+          {
+            question: `Where did ${profile.identity.firstName} work?`,
+            answer: `${profile.identity.firstName} worked at a company in the public corpus.`,
+          },
+        ],
         language: "en",
-        question: `Where does ${profile.identity.firstName} work? Please cite sources.`,
+        question: "What did he do there? Incluí las fuentes.",
       }),
     ).resolves.toEqual({ answersQuestion: true, languageMatches: true, supported: true });
 
@@ -91,7 +101,11 @@ describe("Workers AI grounded model", () => {
     expect(JSON.stringify(calls[0]?.[1])).toContain(primaryEvidence.sourceId);
     expect(JSON.stringify(calls[0]?.[1])).not.toContain(secondaryEvidence.sourceId);
     expect(JSON.stringify(calls[0]?.[1])).toContain(
-      `FACTUAL_QUESTION_FOR_VERIFICATION:\\nWhere does ${profile.identity.firstName} work?`,
+      "USER_QUESTION:\\nWhat did he do there? Incluí las fuentes.",
+    );
+    expect(JSON.stringify(calls[0]?.[1])).toContain("CONVERSATION_CONTEXT_NOT_EVIDENCE");
+    expect(JSON.stringify(calls[0]?.[1])).toContain(
+      `Where did ${profile.identity.firstName} work?`,
     );
     expect(JSON.stringify(calls[0]?.[1])).toContain("CITATIONS_RENDERED_BY_APPLICATION");
     expect(JSON.stringify(calls[0]?.[1])).toContain(
@@ -99,7 +113,7 @@ describe("Workers AI grounded model", () => {
     );
     expect(calls[0]?.[1]).toMatchObject({ max_completion_tokens: 300, store: false });
     expect(run.mock.calls[0]?.[2]).toEqual({
-      extraHeaders: { "x-session-affinity": "test-profile:verify-v1" },
+      extraHeaders: { "x-session-affinity": "test-profile:verify-v2" },
     });
   });
 
@@ -179,6 +193,17 @@ describe("Workers AI grounded model", () => {
     ).rejects.toThrow("malformed JSON");
   });
 
+  it("fails closed when a draft exceeds the application answer boundary", async () => {
+    const { ai } = aiWithResponses([
+      JSON.stringify({ answer: "x".repeat(2_001), sourceIds: [primaryEvidence.sourceId] }),
+    ]);
+    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-4.7-flash", "test-profile");
+
+    await expect(
+      model.draft({ corpus, language: "en", question: "Summarize the public profile." }),
+    ).rejects.toThrow("invalid structured response");
+  });
+
   it("selects the premium model when the account can use it", async () => {
     const { ai, run } = aiWithResponses([
       JSON.stringify({
@@ -208,7 +233,7 @@ describe("Workers AI grounded model", () => {
 
       expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
         PREMIUM_WORKERS_AI_MODEL,
-        PREMIUM_WORKERS_AI_MODEL,
+        FREE_WORKERS_AI_MODEL,
       ]);
       expect(log).toHaveBeenCalledOnce();
       expect(log).toHaveBeenCalledWith(

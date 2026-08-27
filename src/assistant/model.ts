@@ -7,6 +7,7 @@ export type GroundedDraft = {
 };
 
 export type GroundedModel = {
+  safetyIdentifierSupport?: "provider";
   draft(input: {
     corpus: readonly CanonicalEvidence[];
     history?: readonly ConversationTurn[];
@@ -17,6 +18,7 @@ export type GroundedModel = {
   verify(input: {
     answer: string;
     evidence: readonly CanonicalEvidence[];
+    history?: readonly ConversationTurn[];
     language: Language;
     question: string;
     safetyIdentifier?: string;

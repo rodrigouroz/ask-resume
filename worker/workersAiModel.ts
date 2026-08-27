@@ -1,7 +1,6 @@
 import { z } from "zod";
 import {
   evidenceJson,
-  factualQuestionForVerification,
   groundedDraftSchema,
   groundingDraftInstructions,
   groundingVerificationInstructions,
@@ -77,8 +76,12 @@ function jsonSchema(properties: Record<string, unknown>, required: string[]) {
 
 const draftResponseFormat = jsonSchema(
   {
-    answer: { type: "string" },
-    sourceIds: { type: "array", items: { type: "string" } },
+    answer: { type: "string", maxLength: 2_000 },
+    sourceIds: {
+      type: "array",
+      items: { type: "string", minLength: 1, maxLength: 100 },
+      maxItems: 12,
+    },
   },
   ["answer", "sourceIds"],
 );
@@ -93,6 +96,7 @@ const verificationResponseFormat = jsonSchema(
 );
 
 type Completion = z.infer<typeof completionSchema>;
+type SelectedModelRunner = <T>(run: (model: string) => Promise<T>) => Promise<T>;
 
 function zodIssues(error: z.ZodError): string {
   return error.issues.map(({ code, path }) => `${path.join(".")}:${code}`).join(",");
@@ -193,12 +197,10 @@ async function runStructured<T>(
   return result.data;
 }
 
-export function createWorkersAIModel(
-  ai: Ai,
+function createSelectedModelRunner(
   configuredModel: string,
-  profileSlug: string,
-  selection: WorkersAIModelSelection = {},
-): GroundedModel {
+  selection: WorkersAIModelSelection,
+): SelectedModelRunner {
   function preferredModel(): string {
     if (configuredModel !== AUTO_WORKERS_AI_MODEL) return configuredModel;
     return selection.resolvedModel ?? PREMIUM_WORKERS_AI_MODEL;
@@ -226,7 +228,7 @@ export function createWorkersAIModel(
     }
   }
 
-  async function runWithSelectedModel<T>(run: (model: string) => Promise<T>): Promise<T> {
+  return async function runWithSelectedModel<T>(run: (model: string) => Promise<T>): Promise<T> {
     const model = preferredModel();
     try {
       const result = await run(model);
@@ -251,7 +253,18 @@ export function createWorkersAIModel(
       await rememberSelection(FREE_WORKERS_AI_MODEL, "paid_plan_required");
       return result;
     }
-  }
+  };
+}
+
+export function createWorkersAIModel(
+  ai: Ai,
+  configuredModel: string,
+  profileSlug: string,
+  selection: WorkersAIModelSelection = {},
+): GroundedModel {
+  const runWithSelectedModel = createSelectedModelRunner(configuredModel, selection);
+  const verifierModel =
+    configuredModel === AUTO_WORKERS_AI_MODEL ? FREE_WORKERS_AI_MODEL : configuredModel;
 
   return {
     async draft({ corpus, history = [], language, question }) {
@@ -291,32 +304,30 @@ export function createWorkersAIModel(
       return draft;
     },
 
-    async verify({ answer, evidence, language, question }) {
-      const verification = await runWithSelectedModel((model) =>
-        runStructured(
-          ai,
-          model,
-          `${profileSlug}:verify-v1`,
-          {
-            messages: [
-              {
-                role: "system",
-                content: groundingVerificationInstructions(language),
-              },
-              {
-                role: "user",
-                content: `FACTUAL_QUESTION_FOR_VERIFICATION:\n${factualQuestionForVerification(question)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
-              },
-            ],
-            max_completion_tokens: 300,
-            chat_template_kwargs: { enable_thinking: false },
-            reasoning_effort: "low",
-            response_format: verificationResponseFormat,
-            store: false,
-            temperature: 0,
-          },
-          groundingVerificationSchema,
-        ),
+    async verify({ answer, evidence, history = [], language, question }) {
+      const verification = await runStructured(
+        ai,
+        verifierModel,
+        `${profileSlug}:verify-v2`,
+        {
+          messages: [
+            {
+              role: "system",
+              content: groundingVerificationInstructions(language),
+            },
+            {
+              role: "user",
+              content: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
+            },
+          ],
+          max_completion_tokens: 300,
+          chat_template_kwargs: { enable_thinking: false },
+          reasoning_effort: "low",
+          response_format: verificationResponseFormat,
+          store: false,
+          temperature: 0,
+        },
+        groundingVerificationSchema,
       );
       console.log(
         "workers_ai_verification_result",

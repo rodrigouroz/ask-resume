@@ -64,7 +64,10 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
       console.warn("grounded_answer_rejected", JSON.stringify({ stage: rejectedStage }));
       return unknownAnswer(language);
     }
-    const safety = safetyId ? { safetyIdentifier: safetyId } : {};
+    const safety =
+      safetyId && model.safetyIdentifierSupport === "provider"
+        ? { safetyIdentifier: safetyId }
+        : {};
     let stage = "corpus";
 
     try {
@@ -105,6 +108,7 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
       const verification = await model.verify({
         answer: draft.answer,
         evidence: citedEvidence,
+        history,
         language,
         question,
         ...safety,

@@ -2,7 +2,6 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import {
   evidenceJson,
-  factualQuestionForVerification,
   groundedDraftSchema,
   groundingDraftInstructions,
   groundingVerificationInstructions,
@@ -31,6 +30,7 @@ export function createOpenAIModel(
   responses: ResponsesClient = new OpenAI({ apiKey }).responses,
 ): GroundedModel {
   return {
+    safetyIdentifierSupport: "provider",
     async draft({ corpus, history = [], language, question, safetyIdentifier }) {
       const response = await responses.parse({
         model: ANSWER_MODEL,
@@ -47,7 +47,7 @@ export function createOpenAIModel(
       return groundedDraftSchema.parse(response.output_parsed);
     },
 
-    async verify({ answer, evidence, language, question, safetyIdentifier }) {
+    async verify({ answer, evidence, history = [], language, question, safetyIdentifier }) {
       const response = await responses.parse({
         model: VERIFICATION_MODEL,
         store: false,
@@ -55,7 +55,7 @@ export function createOpenAIModel(
         max_output_tokens: 300,
         moderation: MODERATION,
         instructions: groundingVerificationInstructions(language),
-        input: `FACTUAL_QUESTION_FOR_VERIFICATION:\n${factualQuestionForVerification(question)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
+        input: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
         text: {
           format: zodTextFormat(groundingVerificationSchema, "grounding_verification"),
         },

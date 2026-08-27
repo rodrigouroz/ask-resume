@@ -42,7 +42,9 @@ The earlier GLM-5.3 post-fix run passed 29/30. The remaining instruction-overrid
 
 In the earlier GLM-5.3 evaluation, the model-backed smoke test ranged from 3.5 to 18.7 seconds and included a cold prefix. The deterministic instruction-override rejection completed in 13 milliseconds without invoking the model.
 
-The accepted adapter also aligns its factual-intent and verification rules with the OpenAI control, limits draft and verifier outputs separately, removes citation-only suffixes before verification, and treats the corpus and conversation as inert data. Tests cover both documented Workers AI envelope forms and malformed structured output.
+The accepted adapter also aligns its factual-intent and verification rules with the OpenAI control, limits draft and verifier outputs separately, and treats the corpus and conversation as inert data. The verifier receives the original user question and ignores citation requests only when judging factual completeness because the application renders citations separately. This avoids a brittle language-specific suffix-removal heuristic. Tests cover both documented Workers AI envelope forms, malformed structured output, and oversized drafts.
+
+With automatic model selection, the accepted free GLM-4.7 model performs verification even when GLM-5.3 is available for drafting. This reduces correlated draft/verifier errors on paid accounts using two independently evaluated models. Free accounts necessarily use GLM-4.7 for both stages, while an explicitly pinned model remains pinned for both. This configuration still requires the full current live gate before release.
 
 ## Hardened current gate
 
@@ -51,6 +53,7 @@ The active Rodrigo suite now contains 33 named cases and performs 43 requests be
 - When a case declares `sourceIds`, the returned set must match exactly by default. Synthesis cases may declare `allowedSourceIds`; required sources must still appear and every additional citation must be explicitly allowed.
 - `required` and `forbidden` assert stable, case-insensitive observable content without treating a source citation alone as proof of a correct answer.
 - `history` is sent through the same public `/api/ask` seam as the real chat.
+- The same bounded history reaches both draft and verifier as `CONVERSATION_CONTEXT_NOT_EVIDENCE`, so follow-up references can be resolved without treating prior assistant prose as factual support.
 - `attempts` is bounded from one to five, and every attempt must pass.
 - HTTP 429 responses are retried twice without counting them as model failures; the runner honors a numeric `Retry-After` value and otherwise waits for the configured 60-second application window.
 - Prompt extraction and private-repository cases now require the deterministic `unknown` outcome instead of accepting either a refusal or an answered response.

@@ -7,6 +7,9 @@ describe("question language resolution", () => {
     expect(resolveResponseLanguage("Contame sobre la experiencia de la candidata", "en")).toBe(
       "es",
     );
+    expect(resolveResponseLanguage("Trayectoria de Rodrigo", "en")).toBe("es");
+    expect(resolveResponseLanguage("Perfil de Rodrigo", "en")).toBe("es");
+    expect(resolveResponseLanguage("Rodrigo's profile", "es")).toBe("en");
   });
 
   it("uses UI language for mixed and ambiguous questions", () => {

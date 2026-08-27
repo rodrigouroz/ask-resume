@@ -52,7 +52,7 @@ const profileAssetsPlugin: Plugin = {
   },
 };
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   publicDir: "profile/assets",
   plugins: [
     profileAssetsPlugin,
@@ -69,7 +69,7 @@ export default defineConfig({
           PROFILE_SLUG: profile.identity.slug,
           WORKERS_AI_MODEL: profile.deployment.workersAiModel,
         },
-        ...(profile.deployment.aiProvider === "workers-ai" && process.env.ASK_RESUME_E2E !== "1"
+        ...(profile.deployment.aiProvider === "workers-ai" && mode !== "e2e"
           ? { ai: { binding: "AI", remote: true } }
           : {}),
         analytics_engine_datasets: [
@@ -89,4 +89,4 @@ export default defineConfig({
     }),
   ],
   test: { coverage: { reporter: ["text", "html", "json"] } },
-});
+}));

@@ -156,6 +156,12 @@ describe("Ask Rodrigo public interface", () => {
     const projects = screen.getByRole("heading", { name: "Independent projects" });
 
     expect(
+      screen.getByText(
+        "Contributed to TypeScript platform modernization, Tutor integration, district communications and insights, and AI-assisted product and developer workflows.",
+      ),
+    ).toBeInTheDocument();
+
+    expect(
       experience.compareDocumentPosition(projects) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy();
   });
@@ -186,6 +192,11 @@ describe("Ask Rodrigo public interface", () => {
       screen.getByRole("textbox", {
         name: "Preguntá sobre experiencia, proyectos o habilidades…",
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Contribuí a la modernización de la plataforma en TypeScript, la integración de Tutor, comunicaciones e insights distritales y flujos de producto y desarrollo asistidos por IA.",
+      ),
     ).toBeInTheDocument();
     expect(window.localStorage.getItem("ask-rodrigo-language")).toBe("es");
     expect(document.documentElement).toHaveAttribute("lang", "es");

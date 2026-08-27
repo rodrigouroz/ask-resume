@@ -122,8 +122,8 @@ export const experiences: Experience[] = [
     role: { en: "Fullstack Software Engineer", es: "Fullstack Software Engineer" },
     period: "2022–Present",
     summary: {
-      en: "TypeScript platform modernization, product integrations, LLM features, AWS and Kubernetes.",
-      es: "Modernización de la plataforma en TypeScript, integraciones de producto, funcionalidades con LLMs, AWS y Kubernetes.",
+      en: "Contributed to TypeScript platform modernization, Tutor integration, district communications and insights, and AI-assisted product and developer workflows.",
+      es: "Contribuí a la modernización de la plataforma en TypeScript, la integración de Tutor, comunicaciones e insights distritales y flujos de producto y desarrollo asistidos por IA.",
     },
   },
   {

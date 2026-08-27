@@ -57,36 +57,40 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     profileAssetsPlugin,
     react(),
-    cloudflare({
-      viteEnvironment: { name: profile.identity.slug.replaceAll("-", "_") },
-      config: {
-        name: profile.deployment.workerName,
-        routes: [],
-        workers_dev: true,
-        vars: {
-          AI_PROVIDER: profile.deployment.aiProvider,
-          DAILY_ASK_LIMIT: String(profile.deployment.dailyQuestionLimit),
-          PROFILE_SLUG: profile.identity.slug,
-          WORKERS_AI_MODEL: profile.deployment.workersAiModel,
-        },
-        ...(profile.deployment.aiProvider === "workers-ai" && mode !== "e2e"
-          ? { ai: { binding: "AI", remote: true } }
-          : {}),
-        analytics_engine_datasets: [
-          {
-            binding: "PRODUCT_ANALYTICS",
-            dataset: profile.deployment.analyticsDataset,
-          },
-        ],
-        ratelimits: [
-          {
-            name: "ASK_RATE_LIMITER",
-            namespace_id: profile.deployment.rateLimitNamespaceId,
-            simple: { limit: 10, period: 60 },
-          },
-        ],
-      },
-    }),
+    ...(mode === "e2e"
+      ? []
+      : [
+          cloudflare({
+            viteEnvironment: { name: profile.identity.slug.replaceAll("-", "_") },
+            config: {
+              name: profile.deployment.workerName,
+              routes: [],
+              workers_dev: true,
+              vars: {
+                AI_PROVIDER: profile.deployment.aiProvider,
+                DAILY_ASK_LIMIT: String(profile.deployment.dailyQuestionLimit),
+                PROFILE_SLUG: profile.identity.slug,
+                WORKERS_AI_MODEL: profile.deployment.workersAiModel,
+              },
+              ...(profile.deployment.aiProvider === "workers-ai"
+                ? { ai: { binding: "AI", remote: true } }
+                : {}),
+              analytics_engine_datasets: [
+                {
+                  binding: "PRODUCT_ANALYTICS",
+                  dataset: profile.deployment.analyticsDataset,
+                },
+              ],
+              ratelimits: [
+                {
+                  name: "ASK_RATE_LIMITER",
+                  namespace_id: profile.deployment.rateLimitNamespaceId,
+                  simple: { limit: 10, period: 60 },
+                },
+              ],
+            },
+          }),
+        ]),
   ],
   test: { coverage: { reporter: ["text", "html", "json"] } },
 }));

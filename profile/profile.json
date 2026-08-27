@@ -1,0 +1,624 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "slug": "ask-rodrigo",
+    "name": "Rodrigo Uroz",
+    "firstName": "Rodrigo",
+    "lastName": "Uroz",
+    "jobTitle": "Software Engineer",
+    "headline": "Software Engineer & Product Builder",
+    "assistantName": "Alfred"
+  },
+  "localization": {
+    "defaultLanguage": "en",
+    "languages": ["en", "es"]
+  },
+  "presentation": {
+    "copy": {
+      "nav": {
+        "experience": {
+          "en": "Experience",
+          "es": "Experiencia"
+        },
+        "capabilities": {
+          "en": "Capabilities",
+          "es": "Capacidades"
+        },
+        "projects": {
+          "en": "Independent projects",
+          "es": "Proyectos independientes"
+        },
+        "about": {
+          "en": "About",
+          "es": "Sobre mí"
+        },
+        "mainLabel": {
+          "en": "Main navigation",
+          "es": "Navegación principal"
+        },
+        "languageLabel": {
+          "en": "Language",
+          "es": "Idioma"
+        },
+        "mobileLanguageLabel": {
+          "en": "Mobile language",
+          "es": "Idioma en móvil"
+        },
+        "openMenu": {
+          "en": "Open menu",
+          "es": "Abrir menú"
+        },
+        "closeMenu": {
+          "en": "Close menu",
+          "es": "Cerrar menú"
+        },
+        "switchToEnglish": {
+          "en": "Switch language to English",
+          "es": "Cambiar idioma a inglés"
+        },
+        "switchToSpanish": {
+          "en": "Switch language to Spanish",
+          "es": "Cambiar idioma a español"
+        }
+      },
+      "download": {
+        "en": "Download CV",
+        "es": "Descargar CV"
+      },
+      "hero": {
+        "title": {
+          "en": "Software engineer building products from ambiguity to operation.",
+          "es": "Ingeniero de software que lleva productos desde la ambigüedad hasta la operación."
+        },
+        "body": {
+          "en": "For 25+ years, I’ve worked inside product and engineering teams—building systems, modernizing platforms, leading people, and turning unclear problems into software that works.",
+          "es": "Hace más de 25 años trabajo en equipos de producto e ingeniería: construyendo sistemas, modernizando plataformas, liderando personas y convirtiendo problemas poco claros en software que funciona."
+        },
+        "action": {
+          "en": "View experience",
+          "es": "Ver experiencia"
+        },
+        "location": {
+          "en": "Buenos Aires · Working globally in English and Spanish",
+          "es": "Buenos Aires · Trabajo globalmente en inglés y español"
+        }
+      },
+      "sections": {
+        "experience": {
+          "en": "Professional experience",
+          "es": "Experiencia profesional"
+        },
+        "capabilities": {
+          "en": "Capabilities",
+          "es": "Capacidades"
+        },
+        "projects": {
+          "en": "Independent projects",
+          "es": "Proyectos independientes"
+        },
+        "projectsIntro": {
+          "en": "Personal products I’ve designed and built end-to-end to explore product, technical, and domain problems.",
+          "es": "Productos personales que diseñé y construí de punta a punta para explorar problemas de producto, técnicos y de dominio."
+        },
+        "education": {
+          "en": "Education & teaching",
+          "es": "Educación y docencia"
+        },
+        "mentoring": {
+          "en": "Mentoring",
+          "es": "Mentoría"
+        },
+        "beyond": {
+          "en": "Beyond work",
+          "es": "Fuera del trabajo"
+        }
+      },
+      "contact": {
+        "title": {
+          "en": "Let’s talk about an interesting problem.",
+          "es": "Hablemos de un problema interesante."
+        },
+        "body": {
+          "en": "Roles, collaborations, and product conversations are welcome when the company, industry, or problem is compelling.",
+          "es": "Me interesan roles, colaboraciones y conversaciones de producto cuando la empresa, la industria o el problema son atractivos."
+        }
+      },
+      "chat": {
+        "title": {
+          "en": "Rodrigo’s assistant",
+          "es": "Asistente de Rodrigo"
+        },
+        "cta": {
+          "en": "Ask about Rodrigo",
+          "es": "Preguntá sobre Rodrigo"
+        },
+        "close": {
+          "en": "Close Rodrigo’s assistant",
+          "es": "Cerrar asistente de Rodrigo"
+        },
+        "placeholder": {
+          "en": "Ask about experience, projects, or skills…",
+          "es": "Preguntá sobre experiencia, proyectos o habilidades…"
+        },
+        "contact": {
+          "en": "Contact Rodrigo",
+          "es": "Contactar a Rodrigo"
+        },
+        "newChat": {
+          "en": "New chat",
+          "es": "Nuevo chat"
+        },
+        "send": {
+          "en": "Send question",
+          "es": "Enviar pregunta"
+        },
+        "questionRequired": {
+          "en": "Enter a question before sending.",
+          "es": "Escribí una pregunta antes de enviarla."
+        },
+        "emptyTitle": {
+          "en": "Ask a focused question",
+          "es": "Hacé una pregunta concreta"
+        },
+        "emptyBody": {
+          "en": "Explore Rodrigo’s experience, projects, skills, or approach to product engineering.",
+          "es": "Explorá la experiencia, los proyectos, las habilidades o el enfoque de Rodrigo sobre ingeniería de producto."
+        },
+        "thinking": {
+          "en": "Answering…",
+          "es": "Respondiendo…"
+        },
+        "unknown": {
+          "en": "I don’t have enough information to answer that.",
+          "es": "No tengo información suficiente para responder eso."
+        }
+      },
+      "projectActions": {
+        "live": {
+          "en": "Live",
+          "es": "Abrir"
+        },
+        "ask": {
+          "en": "Ask",
+          "es": "Preguntar"
+        }
+      }
+    },
+    "experiences": [
+      {
+        "id": "experience-1",
+        "company": "ClassDojo",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/classdojo.svg",
+          "alt": "ClassDojo logo"
+        },
+        "role": {
+          "en": "Fullstack Software Engineer",
+          "es": "Fullstack Software Engineer"
+        },
+        "period": "2022–Present",
+        "summary": {
+          "en": "Contributed to TypeScript platform modernization, Tutor integration, district communications and insights, and AI-assisted product and developer workflows.",
+          "es": "Contribuí a la modernización de la plataforma en TypeScript, la integración de Tutor, comunicaciones e insights distritales y flujos de producto y desarrollo asistidos por IA."
+        }
+      },
+      {
+        "id": "experience-2",
+        "company": "SCVSoft",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/scvsoft.png",
+          "alt": "SCVSoft logo",
+          "treatment": "dark"
+        },
+        "role": {
+          "en": "Tech Lead",
+          "es": "Tech Lead"
+        },
+        "period": "2021",
+        "summary": {
+          "en": "Unified third-party APIs and reverse-engineered poorly documented IoT devices.",
+          "es": "Unifiqué APIs de terceros e hice ingeniería inversa de dispositivos IoT con documentación deficiente."
+        }
+      },
+      {
+        "id": "experience-3",
+        "company": "Medallia",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/medallia.svg",
+          "alt": "Medallia logo"
+        },
+        "role": {
+          "en": "Senior Engineering Manager",
+          "es": "Senior Engineering Manager"
+        },
+        "period": "2018–2021",
+        "summary": {
+          "en": "Led a frontend team across three cities and modernized seven legacy Angular applications.",
+          "es": "Lideré un equipo frontend distribuido en tres ciudades y modernicé siete aplicaciones legacy en Angular."
+        }
+      },
+      {
+        "id": "experience-4",
+        "company": "FutureAdvisor / SCVSoft",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/futureadvisor.png",
+          "alt": "FutureAdvisor / SCVSoft logo",
+          "treatment": "full"
+        },
+        "role": {
+          "en": "Lead Software Engineer",
+          "es": "Lead Software Engineer"
+        },
+        "period": "2016–2018",
+        "summary": {
+          "en": "Led a six-person team and evolved a Rails system toward AWS services.",
+          "es": "Lideré un equipo de seis personas y evolucioné un sistema Rails hacia servicios en AWS."
+        }
+      },
+      {
+        "id": "experience-5",
+        "company": "Lemonade / VSKO",
+        "brand": {
+          "kind": "monogram",
+          "text": "Lemonade"
+        },
+        "role": {
+          "en": "Software Engineer",
+          "es": "Software Engineer"
+        },
+        "period": "2013–2016",
+        "summary": {
+          "en": "Built educational software for a Belgian client.",
+          "es": "Construí software educativo para un cliente de Bélgica."
+        }
+      },
+      {
+        "id": "experience-6",
+        "company": "DLA TV",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/dla-tv.png",
+          "alt": "DLA TV logo",
+          "treatment": "full"
+        },
+        "role": {
+          "en": "Head of Development",
+          "es": "Head of Development"
+        },
+        "period": "2012–2013",
+        "summary": {
+          "en": "Built QA from zero, expanded the development team, and defined delivery processes.",
+          "es": "Armé QA desde cero, amplié el equipo de desarrollo y definí procesos de entrega."
+        }
+      },
+      {
+        "id": "experience-7",
+        "company": "TeraCode / OpenEnglish",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/teracode.svg",
+          "alt": "TeraCode / OpenEnglish logo",
+          "treatment": "dark"
+        },
+        "role": {
+          "en": "Software Engineer → Project Manager",
+          "es": "Software Engineer → Project Manager"
+        },
+        "period": "2009–2012",
+        "summary": {
+          "en": "Grew the engagement to roughly 30 people.",
+          "es": "Hice crecer el proyecto hasta alcanzar aproximadamente 30 personas."
+        }
+      },
+      {
+        "id": "experience-8",
+        "company": "Bumeran",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/bumeran.png",
+          "alt": "Bumeran logo"
+        },
+        "role": {
+          "en": "Software Engineer",
+          "es": "Software Engineer"
+        },
+        "period": "2007–2009",
+        "summary": {
+          "en": "PHP backend and a Java/Solr search engine over candidate resumes.",
+          "es": "Backend en PHP y un buscador Java/Solr sobre currículums de candidatos."
+        }
+      },
+      {
+        "id": "experience-9",
+        "company": "Globant",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/globant.png",
+          "alt": "Globant logo"
+        },
+        "role": {
+          "en": "Functional Analyst",
+          "es": "Analista funcional"
+        },
+        "period": "2006–2007",
+        "summary": {
+          "en": "Led functional analysis for a marketplace refactor.",
+          "es": "Lideré el análisis funcional para el rediseño de un marketplace."
+        }
+      },
+      {
+        "id": "experience-10",
+        "company": "Claxson / Mixplay",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/claxson.png",
+          "alt": "Claxson / Mixplay logo",
+          "treatment": "dark"
+        },
+        "role": {
+          "en": "Senior Developer",
+          "es": "Senior Developer"
+        },
+        "period": "2003–2006",
+        "summary": {
+          "en": "Built a streaming platform with PHP, Oracle, C#, DRM and content encryption.",
+          "es": "Construí una plataforma de streaming con PHP, Oracle, C#, DRM y cifrado de contenido."
+        }
+      }
+    ],
+    "capabilities": [
+      {
+        "id": "capability-1",
+        "name": {
+          "en": "Product engineering",
+          "es": "Ingeniería de producto"
+        },
+        "details": {
+          "en": "Zero-to-one · Product integration · Developer experience",
+          "es": "Zero-to-one · Integración de producto · Experiencia de desarrollo"
+        }
+      },
+      {
+        "id": "capability-2",
+        "name": {
+          "en": "Full-stack systems",
+          "es": "Sistemas full-stack"
+        },
+        "details": {
+          "en": "TypeScript · React · Node · PHP · Java · C# · Rails",
+          "es": "TypeScript · React · Node · PHP · Java · C# · Rails"
+        }
+      },
+      {
+        "id": "capability-3",
+        "name": {
+          "en": "Architecture & modernization",
+          "es": "Arquitectura y modernización"
+        },
+        "details": {
+          "en": "Monoliths to services · REST · GraphQL · Realtime · Event-driven",
+          "es": "Monolitos a servicios · REST · GraphQL · Realtime · Event-driven"
+        }
+      },
+      {
+        "id": "capability-4",
+        "name": {
+          "en": "AI-native development",
+          "es": "Desarrollo AI-native"
+        },
+        "details": {
+          "en": "LLM features · Langfuse · Models · Orchestrators · Skills",
+          "es": "Funcionalidades con LLMs · Langfuse · Modelos · Orquestadores · Skills"
+        }
+      },
+      {
+        "id": "capability-5",
+        "name": {
+          "en": "Leadership",
+          "es": "Liderazgo"
+        },
+        "details": {
+          "en": "Team building · Hiring · Mentoring · Delivery processes",
+          "es": "Armado de equipos · Contratación · Mentoría · Procesos de entrega"
+        }
+      },
+      {
+        "id": "capability-6",
+        "name": {
+          "en": "Cloud infrastructure",
+          "es": "Infraestructura cloud"
+        },
+        "details": {
+          "en": "AWS · Kubernetes · Cloudflare Workers · D1 · PostgreSQL",
+          "es": "AWS · Kubernetes · Cloudflare Workers · D1 · PostgreSQL"
+        }
+      },
+      {
+        "id": "capability-7",
+        "name": {
+          "en": "Integrations",
+          "es": "Integraciones"
+        },
+        "details": {
+          "en": "Third-party APIs · Reverse engineering · Poorly documented devices",
+          "es": "APIs de terceros · Ingeniería inversa · Dispositivos mal documentados"
+        }
+      },
+      {
+        "id": "capability-8",
+        "name": {
+          "en": "Domain modeling",
+          "es": "Modelado de dominio"
+        },
+        "details": {
+          "en": "Ambiguous domains · Evidence-first probes · Privacy boundaries",
+          "es": "Dominios ambiguos · Pruebas basadas en evidencia · Límites de privacidad"
+        }
+      }
+    ],
+    "projects": [
+      {
+        "id": "project-1",
+        "name": "Coro",
+        "summary": {
+          "en": "Global conversations across languages.",
+          "es": "Conversaciones globales entre idiomas."
+        },
+        "evidence": "Semantic routing · Realtime · Multilingual",
+        "url": "https://coro.world",
+        "icon": "globe"
+      },
+      {
+        "id": "project-2",
+        "name": "Traza",
+        "summary": {
+          "en": "A traceable story of financial activity.",
+          "es": "Una historia trazable de la actividad financiera."
+        },
+        "evidence": "Reconciliation · Privacy · Cloudflare",
+        "url": "https://traza.rodrigouroz.com",
+        "icon": "trace"
+      },
+      {
+        "id": "project-3",
+        "name": "Daturno",
+        "summary": {
+          "en": "WhatsApp-first scheduling for businesses.",
+          "es": "Agenda de turnos por WhatsApp para negocios."
+        },
+        "evidence": "Scheduling rules · Bounded AI · Operations",
+        "url": "https://daturno.com",
+        "icon": "globe"
+      },
+      {
+        "id": "project-4",
+        "name": "Ballast",
+        "summary": {
+          "en": "Inspectable portfolio scenarios.",
+          "es": "Escenarios de portafolio inspeccionables."
+        },
+        "evidence": "Monte Carlo · Optimization · Tax lots",
+        "url": "https://ballast.rodrigouroz.com",
+        "icon": "portfolio"
+      },
+      {
+        "id": "project-5",
+        "name": "Jacara",
+        "summary": {
+          "en": "Physical-first family games.",
+          "es": "Juegos familiares que priorizan lo físico."
+        },
+        "evidence": "Computer vision · Realtime · Voice",
+        "url": "https://jacara.rodrigouroz.com",
+        "icon": "adventure"
+      }
+    ],
+    "education": [
+      {
+        "id": "education-1",
+        "title": "Systems Engineer · UTN",
+        "detail": {
+          "en": "Graduated March 2009 · Highest GPA in class",
+          "es": "Graduado en marzo de 2009 · Mejor promedio de la promoción"
+        }
+      },
+      {
+        "id": "education-2",
+        "title": "Strategic and Technological Management · ITBA–EOI",
+        "detail": {
+          "en": "Graduate coursework completed; thesis not submitted",
+          "es": "Cursada de posgrado completa; tesis no presentada"
+        }
+      },
+      {
+        "id": "education-3",
+        "title": "UTN faculty · 2003–2021",
+        "detail": {
+          "en": "Associate Professor, Systems Analysis · Teaching Assistant, Operating Systems (Sistemas Operativos; early years)",
+          "es": "Docente adjunto, Análisis de Sistemas · Ayudante, Sistemas Operativos (primeros años)"
+        }
+      }
+    ],
+    "careerNote": {
+      "en": "Building software professionally since 2000.",
+      "es": "Construyendo software profesionalmente desde 2000."
+    },
+    "mentoring": {
+      "label": {
+        "en": "Silver.dev mentor · Full Stack Live Coding & System Design",
+        "es": "Mentor en Silver.dev · Full Stack Live Coding y System Design"
+      },
+      "url": "https://www.silver.dev/"
+    },
+    "beyond": {
+      "en": "Piano · Reading · Chess · Video games",
+      "es": "Piano · Lectura · Ajedrez · Videojuegos"
+    },
+    "footer": {
+      "copyright": "© 2026 Rodrigo Uroz",
+      "privacy": {
+        "en": "Rodrigo’s assistant uses curated professional sources. Chats are not stored by this site.",
+        "es": "El asistente de Rodrigo usa fuentes profesionales curadas. Este sitio no guarda los chats."
+      }
+    }
+  },
+  "contact": {
+    "email": "hello@rodrigouroz.com",
+    "githubUrl": "https://github.com/rodrigouroz",
+    "githubLabel": "GitHub"
+  },
+  "assets": {
+    "favicon": "favicon.svg",
+    "socialImage": "og-image.png",
+    "socialImageWidth": 1200,
+    "socialImageHeight": 630,
+    "socialImageAlt": "Rodrigo Uroz — software engineer and product builder"
+  },
+  "seo": {
+    "baseUrl": "https://rodrigouroz.com/",
+    "title": "Rodrigo Uroz · Software Engineer & Product Builder",
+    "description": "Rodrigo Uroz is a software engineer and product builder with 25+ years of experience building products, modernizing platforms, and leading teams.",
+    "socialDescription": "25+ years building products, modernizing platforms, leading teams, and turning ambiguous problems into working software.",
+    "siteName": "Ask Rodrigo",
+    "locale": "en_US",
+    "profileDescription": "Software engineer and product builder with 25+ years of professional experience.",
+    "sameAs": ["https://github.com/rodrigouroz"],
+    "worksFor": {
+      "name": "ClassDojo",
+      "url": "https://www.classdojo.com/"
+    },
+    "alumniOf": "Universidad Tecnológica Nacional",
+    "knowsLanguage": ["English", "Spanish"]
+  },
+  "pdf": {
+    "visualFileName": "rodrigo-uroz-cv.pdf",
+    "atsFileName": "rodrigo-uroz-resume-ats.pdf",
+    "pagePolicy": {
+      "min": 1,
+      "max": 2
+    }
+  },
+  "deployment": {
+    "workerName": "ask-rodrigo",
+    "customDomains": [
+      {
+        "hostname": "rodrigouroz.com",
+        "zoneName": "rodrigouroz.com"
+      },
+      {
+        "hostname": "www.rodrigouroz.com",
+        "zoneName": "rodrigouroz.com"
+      }
+    ],
+    "analyticsDataset": "ask_rodrigo_funnel",
+    "rateLimitNamespaceId": "1001",
+    "dailyQuestionLimit": 250,
+    "aiProvider": "openai",
+    "workersAiModel": "@cf/zai-org/glm-4.7-flash",
+    "premiumWorkersAiModel": "@cf/zai-org/glm-5.3-flash"
+  }
+}

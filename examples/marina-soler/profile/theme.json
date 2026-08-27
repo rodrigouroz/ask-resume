@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "colors": {
+    "ink": "#17312f",
+    "muted": "#54706c",
+    "line": "#c9d9d3",
+    "lineStrong": "#6b8781",
+    "accent": "#c14f28",
+    "accentSoft": "#f9e9e2",
+    "surface": "#e9f2ee"
+  }
+}

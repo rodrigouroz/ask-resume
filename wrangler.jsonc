@@ -2,14 +2,18 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "ask-rodrigo",
   "main": "worker/index.ts",
-  "compatibility_date": "2026-08-25",
+  "compatibility_date": "2026-08-27",
   "compatibility_flags": ["nodejs_compat"],
-  "routes": [
-    { "pattern": "rodrigouroz.com/*", "zone_name": "rodrigouroz.com" },
-    { "pattern": "www.rodrigouroz.com/*", "zone_name": "rodrigouroz.com" },
-  ],
-  "secrets": {
-    "required": ["OPENAI_API_KEY"],
+  "routes": [],
+  "workers_dev": true,
+  "vars": {
+    "AI_PROVIDER": "openai",
+    "WORKERS_AI_MODEL": "@cf/zai-org/glm-4.7-flash",
+    "PROFILE_SLUG": "ask-rodrigo",
+    "DAILY_ASK_LIMIT": "250",
+  },
+  "ai": {
+    "binding": "AI",
   },
   "assets": {
     "not_found_handling": "single-page-application",
@@ -19,19 +23,6 @@
     "enabled": true,
     "head_sampling_rate": 1,
   },
-  "analytics_engine_datasets": [
-    {
-      "binding": "PRODUCT_ANALYTICS",
-      "dataset": "ask_rodrigo_funnel",
-    },
-  ],
-  "ratelimits": [
-    {
-      "name": "ASK_RATE_LIMITER",
-      "namespace_id": "1001",
-      "simple": { "limit": 10, "period": 60 },
-    },
-  ],
   "durable_objects": {
     "bindings": [
       {

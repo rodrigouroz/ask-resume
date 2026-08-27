@@ -4,9 +4,9 @@ import { createServer } from "node:http";
 import { extname, resolve } from "node:path";
 import { chromium } from "playwright";
 
-const destination = resolve(process.argv[2] ?? "public/rodrigo-uroz-cv.pdf");
+const profile = JSON.parse(await readFile(resolve("profile/profile.json"), "utf8"));
+const requestedDestination = process.argv[2] ? resolve(process.argv[2]) : null;
 const clientRoot = resolve("dist/client");
-const deployedDestination = resolve(clientRoot, "rodrigo-uroz-cv.pdf");
 const contentTypes = new Map([
   [".css", "text/css; charset=utf-8"],
   [".html", "text/html; charset=utf-8"],
@@ -14,6 +14,16 @@ const contentTypes = new Map([
   [".svg", "image/svg+xml"],
   [".woff2", "font/woff2"],
 ]);
+
+const documents = requestedDestination
+  ? [{ path: requestedDestination, query: "/" }]
+  : [
+      { path: resolve("profile/assets", profile.pdf.visualFileName), query: "/" },
+      {
+        path: resolve("profile/assets", profile.pdf.atsFileName),
+        query: "/?resume=ats&language=en",
+      },
+    ];
 
 function requestedFile(url) {
   const pathname = new URL(url ?? "/", "http://127.0.0.1").pathname;
@@ -50,17 +60,24 @@ const browser = await chromium.launch({ headless: true });
 
 try {
   const page = await browser.newPage({ locale: "en-US" });
-  await page.goto("http://127.0.0.1:4173/", { waitUntil: "networkidle" });
-  await page.emulateMedia({ media: "print" });
-  await page.pdf({
-    path: destination,
-    format: "A4",
-    printBackground: true,
-    preferCSSPageSize: true,
-    margin: { top: "11mm", right: "11mm", bottom: "11mm", left: "11mm" },
-  });
-  if (destination !== deployedDestination) await copyFile(destination, deployedDestination);
-  process.stdout.write(`${destination}\n`);
+  for (const document of documents) {
+    await page.goto(`http://127.0.0.1:4173${document.query}`, { waitUntil: "networkidle" });
+    await page.emulateMedia({ media: "print" });
+    await page.pdf({
+      path: document.path,
+      format: "A4",
+      outline: true,
+      printBackground: true,
+      preferCSSPageSize: true,
+      tagged: true,
+      margin: { top: "11mm", right: "11mm", bottom: "11mm", left: "11mm" },
+    });
+    const deployedDestination = resolve(clientRoot, document.path.split("/").at(-1));
+    if (document.path !== deployedDestination) {
+      await copyFile(document.path, deployedDestination);
+    }
+    process.stdout.write(`${document.path}\n`);
+  }
 } finally {
   await browser.close();
   await new Promise((resolveClose, rejectClose) =>

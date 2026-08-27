@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { trackClientAnalyticsEvent } from "./analytics";
 import { useAssistantConversation } from "./assistant/useAssistantConversation";
-import type { Language } from "./content";
+import { profileIdentity, profileSections, type Language } from "./content";
 import { ChatAssistant } from "./components/ChatAssistant";
+import { AtsResume } from "./components/AtsResume";
 import { Header } from "./components/Header";
 import {
   AboutSection,
@@ -16,7 +17,7 @@ import {
 const MOBILE_LAYOUT_QUERY = "(max-width: 860px)";
 
 function getInitialLanguage(): Language {
-  const stored = window.localStorage.getItem("ask-rodrigo-language");
+  const stored = window.localStorage.getItem(`${profileIdentity.slug}-language`);
   if (stored === "en" || stored === "es") return stored;
 
   const preferred = window.navigator.languages.find((locale) => /^(en|es)(-|$)/i.test(locale));
@@ -42,7 +43,7 @@ function useMobileLayout(): boolean {
   return mobile;
 }
 
-export function App() {
+function InteractiveProfile() {
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const mobileLayout = useMobileLayout();
   const [chatOpen, setChatOpen] = useState(() => !isMobileLayout());
@@ -61,7 +62,7 @@ export function App() {
 
   const changeLanguage = useCallback((next: Language) => {
     setLanguage(next);
-    window.localStorage.setItem("ask-rodrigo-language", next);
+    window.localStorage.setItem(`${profileIdentity.slug}-language`, next);
   }, []);
 
   const openAssistant = useCallback(() => {
@@ -95,9 +96,9 @@ export function App() {
         <main id="main-content" className={chatOpen ? "chat-is-open" : ""}>
           <Hero language={language} onOpenAssistant={openAssistant} />
           <ExperienceSection language={language} onAsk={ask} />
-          <CapabilitiesSection language={language} />
-          <ProjectsSection language={language} onAsk={ask} />
-          <AboutSection language={language} />
+          {profileSections.capabilities && <CapabilitiesSection language={language} />}
+          {profileSections.projects && <ProjectsSection language={language} onAsk={ask} />}
+          {profileSections.about && <AboutSection language={language} />}
           <ContactSection language={language} />
         </main>
       </div>
@@ -115,4 +116,21 @@ export function App() {
       />
     </>
   );
+}
+
+export function App() {
+  const query = new URLSearchParams(window.location.search);
+  if (query.get("resume") === "ats") {
+    const language = query.get("language") === "es" ? "es" : "en";
+    return <AtsRoute language={language} />;
+  }
+
+  return <InteractiveProfile />;
+}
+
+function AtsRoute({ language }: { language: Language }) {
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+  return <AtsResume language={language} />;
 }

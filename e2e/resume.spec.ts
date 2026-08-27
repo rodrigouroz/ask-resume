@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
+import { evidenceConfig, profile } from "../src/profile";
+
+const copy = profile.presentation.copy;
+const firstExperience = profile.presentation.experiences[0]!;
+const firstProject = profile.presentation.projects[0];
+const experienceSource = evidenceConfig.items.find(({ title }) =>
+  title.includes(firstExperience.company),
+)!;
 
 async function mockGroundedAnswer(page: Page, answer: { language: "en" | "es"; text: string }) {
   await page.route("**/api/ask", async (route) => {
@@ -9,54 +17,72 @@ async function mockGroundedAnswer(page: Page, answer: { language: "en" | "es"; t
         status: "answered",
         language: answer.language,
         answer: answer.text,
-        citations: [{ sourceId: "classdojo-current-role", sectionId: "experience" }],
+        citations: [{ sourceId: experienceSource.sourceId, sectionId: experienceSource.sectionId }],
       }),
     });
   });
 }
 
-test("presents professional experience before independent projects", async ({ page }) => {
+test("presents the configured sections in the expected order", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page).toHaveTitle("Rodrigo Uroz · Software Engineer & Product Builder");
+  await expect(page).toHaveTitle(profile.seo.title);
   await expect(
     page.getByRole("heading", {
       level: 1,
-      name: "Software engineer building products from ambiguity to operation.",
+      name: copy.hero.title.en,
     }),
   ).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Professional experience" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: copy.sections.experience.en })).toBeVisible();
 
-  const professionalComesFirst = await page.evaluate(() => {
-    const experience = document.querySelector("#experience");
-    const projects = document.querySelector("#projects");
-    if (!experience || !projects) return false;
-    return Boolean(experience.compareDocumentPosition(projects) & Node.DOCUMENT_POSITION_FOLLOWING);
-  });
-  expect(professionalComesFirst).toBe(true);
+  if (firstProject) {
+    await expect(page.getByRole("heading", { name: copy.sections.projects.en })).toBeVisible();
+    const professionalComesFirst = await page.evaluate(() => {
+      const experience = document.querySelector("#experience");
+      const projects = document.querySelector("#projects");
+      if (!experience || !projects) return false;
+      return Boolean(
+        experience.compareDocumentPosition(projects) & Node.DOCUMENT_POSITION_FOLLOWING,
+      );
+    });
+    expect(professionalComesFirst).toBe(true);
+  } else {
+    await expect(page.locator("#projects")).toHaveCount(0);
+    await expect(page.locator('nav a[href="#projects"]')).toHaveCount(0);
+  }
+
+  if (profile.presentation.mentoring) {
+    await expect(page.getByRole("heading", { name: copy.sections.mentoring.en })).toBeVisible();
+  } else {
+    await expect(page.getByRole("heading", { name: copy.sections.mentoring.en })).toHaveCount(0);
+  }
 });
 
 test("answers a professional question with a visible source", async ({ page }, testInfo) => {
   await mockGroundedAnswer(page, {
     language: "en",
-    text: "Rodrigo works as a Fullstack Software Engineer at ClassDojo.",
+    text: `${profile.identity.name} has professional experience at ${firstExperience.company}.`,
   });
   await page.goto("/");
 
   if (testInfo.project.name.startsWith("mobile")) {
-    await page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last().click();
+    await page.getByRole("button", { name: copy.chat.cta.en, exact: true }).last().click();
   }
 
   const input = page.getByRole("textbox", {
-    name: "Ask about experience, projects, or skills…",
+    name: copy.chat.placeholder.en,
   });
-  await input.fill("What has Rodrigo worked on at ClassDojo?");
-  await page.getByRole("button", { name: "Send question" }).click();
+  await input.fill(
+    `What has ${profile.identity.firstName} worked on at ${firstExperience.company}?`,
+  );
+  await page.getByRole("button", { name: copy.chat.send.en }).click();
 
   await expect(
-    page.getByText("Rodrigo works as a Fullstack Software Engineer at ClassDojo."),
+    page.getByText(
+      `${profile.identity.name} has professional experience at ${firstExperience.company}.`,
+    ),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "[ClassDojo · Experience]" })).toBeVisible();
+  await expect(page.getByRole("link", { name: `[${experienceSource.labels.en}]` })).toBeVisible();
 });
 
 test("keeps the question language independent from the selected UI language", async ({
@@ -64,35 +90,39 @@ test("keeps the question language independent from the selected UI language", as
 }, testInfo) => {
   await mockGroundedAnswer(page, {
     language: "es",
-    text: "Rodrigo trabaja en ClassDojo desde 2022.",
+    text: `${profile.identity.name} tiene experiencia profesional en ${firstExperience.company}.`,
   });
   await page.goto("/");
 
   if (testInfo.project.name.startsWith("mobile")) {
-    await page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last().click();
+    await page.getByRole("button", { name: copy.chat.cta.en, exact: true }).last().click();
   }
 
   const input = page.getByRole("textbox", {
-    name: "Ask about experience, projects, or skills…",
+    name: copy.chat.placeholder.en,
   });
-  await input.fill("¿En qué trabajó Rodrigo en ClassDojo?");
-  await page.getByRole("button", { name: "Send question" }).click();
+  await input.fill(`¿En qué trabajó ${profile.identity.firstName} en ${firstExperience.company}?`);
+  await page.getByRole("button", { name: copy.chat.send.en }).click();
 
-  await expect(page.getByText("Rodrigo trabaja en ClassDojo desde 2022.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "[ClassDojo · Experiencia]" })).toBeVisible();
+  await expect(
+    page.getByText(
+      `${profile.identity.name} tiene experiencia profesional en ${firstExperience.company}.`,
+    ),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: `[${experienceSource.labels.es}]` })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
 });
 
-test("opens Rodrigo’s assistant as a bottom sheet on mobile", async ({ page }, testInfo) => {
+test("opens the configured assistant as a bottom sheet on mobile", async ({ page }, testInfo) => {
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only behavior");
   await page.goto("/");
 
-  const opener = page.getByRole("button", { name: "Ask about Rodrigo", exact: true }).last();
+  const opener = page.getByRole("button", { name: copy.chat.cta.en, exact: true }).last();
   await opener.click();
 
-  const dialog = page.getByRole("dialog", { name: "Rodrigo’s assistant" });
+  const dialog = page.getByRole("dialog", { name: copy.chat.title.en });
   const input = page.getByRole("textbox", {
-    name: "Ask about experience, projects, or skills…",
+    name: copy.chat.placeholder.en,
   });
   await expect(dialog).toBeVisible();
   await expect(dialog).toHaveAttribute("aria-modal", "true");
@@ -110,11 +140,13 @@ test("keeps key mobile actions at least 44 CSS pixels", async ({ page }, testInf
   test.skip(!testInfo.project.name.startsWith("mobile"), "Mobile-only behavior");
   await page.goto("/");
 
-  const targets = [
-    page.getByRole("button", { name: "Ask about ClassDojo" }),
-    page.getByRole("link", { name: "Open Coro live site" }),
-    page.getByRole("button", { name: "Ask about Coro" }),
-  ];
+  const targets = [page.getByRole("button", { name: `Ask about ${firstExperience.company}` })];
+  if (firstProject) {
+    targets.push(
+      page.getByRole("link", { name: `Open ${firstProject.name} live site` }),
+      page.getByRole("button", { name: `Ask about ${firstProject.name}` }),
+    );
+  }
 
   for (const target of targets) {
     await target.scrollIntoViewIfNeeded();

@@ -1,0 +1,7 @@
+{
+  "clone_groups": [
+    "scripts/eval-live.mjs:7-18|scripts/verify-live.mjs:5-16",
+    "src/assistant/openaiModel.ts:15-24|worker/workersAiModel.ts:7-12",
+    "src/assistant/openaiModel.ts:31-52|worker/workersAiModel.ts:31-60"
+  ]
+}

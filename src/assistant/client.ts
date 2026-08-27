@@ -1,8 +1,8 @@
-import type { Language } from "../content";
+import { profileIdentity, type Language } from "../content";
 import { askResponseSchema } from "./contracts";
 import type { AskResponse, ConversationTurn } from "./contracts";
 
-const SAFETY_ID_KEY = "ask-rodrigo-safety-id";
+const SAFETY_ID_KEY = `${profileIdentity.slug}-safety-id`;
 type SessionStorage = {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
@@ -28,7 +28,7 @@ function safetyId(): string {
   return created;
 }
 
-export async function askRodrigo(
+export async function askProfile(
   question: string,
   uiLanguage: Language,
   history: readonly ConversationTurn[],
@@ -45,6 +45,6 @@ export async function askRodrigo(
     }),
     signal: signal ?? null,
   });
-  if (!response.ok) throw new Error(`Ask Rodrigo request failed with ${response.status}`);
+  if (!response.ok) throw new Error(`Profile assistant request failed with ${response.status}`);
   return askResponseSchema.parse(await response.json());
 }

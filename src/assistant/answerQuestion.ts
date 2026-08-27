@@ -1,17 +1,12 @@
-import type { Language } from "../content";
+import { copy, type Language } from "../content";
 import type { AskRequest, AskResponse } from "./contracts";
 import { getCurrentAssistantCorpus } from "./corpus";
 import { todayIsoDate } from "./corpusValidation";
 import { resolveResponseLanguage } from "./language";
 import type { GroundedModel } from "./model";
 
-const fallback: Record<Language, string> = {
-  en: "I don’t have enough information to answer that.",
-  es: "No tengo información suficiente para responder eso.",
-};
-
 export function unknownAnswer(language: Language): AskResponse {
-  return { status: "unknown", language, answer: fallback[language], citations: [] };
+  return { status: "unknown", language, answer: copy.chat.unknown[language], citations: [] };
 }
 
 export function createAnswerService({ model }: { model: GroundedModel }) {
@@ -23,12 +18,22 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
   }: AskRequest): Promise<AskResponse> {
     const language = resolveResponseLanguage(question, uiLanguage);
     const safety = safetyId ? { safetyIdentifier: safetyId } : {};
+    let stage = "corpus";
 
     try {
       const corpus = getCurrentAssistantCorpus(todayIsoDate());
+      stage = "draft";
       const draft = await model.draft({ corpus, history, language, question, ...safety });
       const sourceIds = [...new Set(draft.sourceIds)];
       if (draft.answer.trim().length === 0 || sourceIds.length === 0) {
+        console.warn(
+          "grounded_answer_rejected",
+          JSON.stringify({
+            stage,
+            hasAnswer: draft.answer.trim().length > 0,
+            sourceCount: sourceIds.length,
+          }),
+        );
         return unknownAnswer(language);
       }
 
@@ -37,8 +42,19 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
         const source = sourcesById.get(sourceId);
         return source ? [source] : [];
       });
-      if (citedEvidence.length !== sourceIds.length) return unknownAnswer(language);
+      if (citedEvidence.length !== sourceIds.length) {
+        console.warn(
+          "grounded_answer_rejected",
+          JSON.stringify({
+            stage: "citations",
+            resolvedSourceCount: citedEvidence.length,
+            sourceCount: sourceIds.length,
+          }),
+        );
+        return unknownAnswer(language);
+      }
 
+      stage = "verification";
       const verification = await model.verify({
         answer: draft.answer,
         evidence: citedEvidence,
@@ -52,12 +68,17 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
         !verification.supported ||
         !verification.languageMatches
       ) {
+        console.warn("grounded_answer_rejected", JSON.stringify({ stage, ...verification }));
         return unknownAnswer(language);
       }
 
       const citations = citedEvidence.map(({ sectionId, sourceId }) => ({ sectionId, sourceId }));
       return { status: "answered", language, answer: draft.answer, citations };
-    } catch {
+    } catch (error) {
+      console.error(
+        "grounded_answer_failed",
+        JSON.stringify({ stage, name: error instanceof Error ? error.name : "UnknownError" }),
+      );
       return unknownAnswer(language);
     }
   };

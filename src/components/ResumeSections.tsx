@@ -1,5 +1,17 @@
 import type { Language } from "../content";
-import { capabilities, copy, education, experiences, externalLinks, projects } from "../content";
+import {
+  assetUrl,
+  capabilities,
+  contact,
+  copy,
+  education,
+  experiences,
+  externalLinks,
+  presentation,
+  profileIdentity,
+  profileSections,
+  projects,
+} from "../content";
 import {
   AdventureIcon,
   ArrowRightIcon,
@@ -63,17 +75,17 @@ export function ExperienceSection({ language, onAsk }: SectionProps) {
       </div>
       <div className="experience-list">
         {experiences.map((experience) => (
-          <article className="experience-row" key={`${experience.company}-${experience.period}`}>
+          <article className="experience-row" key={experience.id}>
             <span className="timeline-dot" aria-hidden="true" />
             <div className="experience-company">
               <h3>
-                {"src" in experience.brand ? (
+                {experience.brand.kind === "asset" ? (
                   <span
                     className={`experience-brand experience-brand--${experience.brand.treatment ?? "light"}`}
                     aria-hidden="true"
                   >
                     <img
-                      src={experience.brand.src}
+                      src={assetUrl(experience.brand.asset)}
                       alt=""
                       width="108"
                       height="36"
@@ -83,7 +95,7 @@ export function ExperienceSection({ language, onAsk }: SectionProps) {
                   </span>
                 ) : (
                   <span className="experience-brand experience-brand--fallback" aria-hidden="true">
-                    {experience.brand.fallback}
+                    {experience.brand.text}
                   </span>
                 )}
                 <span className="experience-company-name sr-only">{experience.company}</span>
@@ -102,8 +114,8 @@ export function ExperienceSection({ language, onAsk }: SectionProps) {
               onClick={() =>
                 onAsk(
                   language === "en"
-                    ? `What has Rodrigo worked on at ${experience.company}?`
-                    : `¿En qué trabajó Rodrigo en ${experience.company}?`,
+                    ? `What has ${profileIdentity.firstName} worked on at ${experience.company}?`
+                    : `¿En qué trabajó ${profileIdentity.firstName} en ${experience.company}?`,
                 )
               }
             >
@@ -112,11 +124,7 @@ export function ExperienceSection({ language, onAsk }: SectionProps) {
           </article>
         ))}
       </div>
-      <p className="career-note">
-        {language === "en"
-          ? "Building software professionally since 2000."
-          : "Construyendo software profesionalmente desde 2000."}
-      </p>
+      <p className="career-note">{text(presentation.careerNote)}</p>
     </section>
   );
 }
@@ -131,7 +139,7 @@ export function CapabilitiesSection({ language }: Pick<SectionProps, "language">
       </div>
       <div className="capability-grid">
         {capabilities.map((capability, index) => (
-          <article className="capability" key={capability.name.en}>
+          <article className="capability" key={capability.id}>
             <span>{String(index + 1).padStart(2, "0")}</span>
             <div>
               <h3>{text(capability.name)}</h3>
@@ -147,10 +155,10 @@ export function CapabilitiesSection({ language }: Pick<SectionProps, "language">
 export function ProjectsSection({ language, onAsk }: SectionProps) {
   const text = (value: Record<Language, string>) => value[language];
   const projectIcons = {
-    Coro: GlobeIcon,
-    Traza: TraceIcon,
-    Ballast: PortfolioIcon,
-    Jacara: AdventureIcon,
+    globe: GlobeIcon,
+    trace: TraceIcon,
+    portfolio: PortfolioIcon,
+    adventure: AdventureIcon,
   } as const;
 
   return (
@@ -165,10 +173,10 @@ export function ProjectsSection({ language, onAsk }: SectionProps) {
       </div>
       <div className="project-list">
         {projects.map((project) => {
-          const ProjectIcon = projectIcons[project.name as keyof typeof projectIcons] ?? GlobeIcon;
+          const ProjectIcon = projectIcons[project.icon];
 
           return (
-            <article className="project-row" key={project.name}>
+            <article className="project-row" key={project.id}>
               <ProjectIcon className="project-icon" />
               <h3>{project.name}</h3>
               <p>{text(project.summary)}</p>
@@ -196,8 +204,8 @@ export function ProjectsSection({ language, onAsk }: SectionProps) {
                 onClick={() =>
                   onAsk(
                     language === "en"
-                      ? `What did Rodrigo build in ${project.name}?`
-                      : `¿Qué construyó Rodrigo en ${project.name}?`,
+                      ? `What did ${profileIdentity.firstName} build in ${project.name}?`
+                      : `¿Qué construyó ${profileIdentity.firstName} en ${project.name}?`,
                   )
                 }
               >
@@ -216,31 +224,37 @@ export function AboutSection({ language }: Pick<SectionProps, "language">) {
 
   return (
     <div id="about">
-      <section id="education" className="section-block" aria-labelledby="education-title">
-        <div className="section-heading">
-          <h2 id="education-title">{text(copy.sections.education)}</h2>
-        </div>
-        <div className="education-grid">
-          {education.map((item) => (
-            <article key={item.title}>
-              <h3>{item.title}</h3>
-              <p>{text(item.detail)}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+      {profileSections.education && (
+        <section id="education" className="section-block" aria-labelledby="education-title">
+          <div className="section-heading">
+            <h2 id="education-title">{text(copy.sections.education)}</h2>
+          </div>
+          <div className="education-grid">
+            {education.map((item) => (
+              <article key={item.id}>
+                <h3>{item.title}</h3>
+                <p>{text(item.detail)}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section className="minor-section" aria-labelledby="mentoring-title">
-        <h2 id="mentoring-title">{text(copy.sections.mentoring)}</h2>
-        <a href={externalLinks.silver} target="_blank" rel="noreferrer">
-          Silver.dev mentor · Full Stack Live Coding & System Design <ExternalIcon />
-        </a>
-      </section>
+      {presentation.mentoring && (
+        <section className="minor-section" aria-labelledby="mentoring-title">
+          <h2 id="mentoring-title">{text(copy.sections.mentoring)}</h2>
+          <a href={presentation.mentoring.url} target="_blank" rel="noreferrer">
+            {text(presentation.mentoring.label)} <ExternalIcon />
+          </a>
+        </section>
+      )}
 
-      <section className="minor-section beyond-section" aria-labelledby="beyond-title">
-        <h2 id="beyond-title">{text(copy.sections.beyond)}</h2>
-        <p>Piano · Reading · Chess · Video games</p>
-      </section>
+      {presentation.beyond && (
+        <section className="minor-section beyond-section" aria-labelledby="beyond-title">
+          <h2 id="beyond-title">{text(copy.sections.beyond)}</h2>
+          <p>{text(presentation.beyond)}</p>
+        </section>
+      )}
     </div>
   );
 }
@@ -256,22 +270,18 @@ export function ContactSection({ language }: { language: Language }) {
       </div>
       <div className="contact-links">
         <a href={externalLinks.email}>
-          <MailIcon /> hello@rodrigouroz.com
+          <MailIcon /> {contact.email}
         </a>
         <a href={externalLinks.github} target="_blank" rel="noreferrer">
-          GitHub <ExternalIcon />
+          {contact.githubLabel} <ExternalIcon />
         </a>
         <a className="text-link" href={externalLinks.cv} download>
           {text(copy.download)}
         </a>
       </div>
       <div className="footer-meta">
-        <p>© 2026 Rodrigo Uroz</p>
-        <p>
-          {language === "en"
-            ? "Rodrigo’s assistant uses curated professional sources. Chats are not stored by this site."
-            : "El asistente de Rodrigo usa fuentes profesionales curadas. Este sitio no guarda los chats."}
-        </p>
+        <p>{presentation.footer.copyright}</p>
+        <p>{text(presentation.footer.privacy)}</p>
       </div>
     </footer>
   );

@@ -1,102 +1,103 @@
-# Ask Rodrigo
+# Profile CV starter
 
-Ask Rodrigo is Rodrigo Uroz's public, interactive résumé. The résumé is useful on its own; the assistant adds a cited conversational path through the same professional evidence.
+This repository produces one online CV per checkout: an accessible website, a cited professional assistant, a visual CV, an ATS-oriented resume, SEO metadata, and an independent Cloudflare Worker deployment.
 
-The project is also a public example of a grounded AI product: curated sources, explicit citations, no inference when evidence is missing, and a clear boundary between professional experience and independent personal projects.
+The checked-in `profile/` is Rodrigo Uroz's real profile and preserves the current public design. `examples/marina-soler/profile/` is a completely fictional second profile used as the isolation test. There is no profile selector, account system, database of people, or multi-tenant runtime.
 
-## Current status
+## Quick start
 
-The responsive résumé and genuinely bilingual assistant are implemented end to end. A Cloudflare Worker gives GPT-5.6 Terra one canonical English corpus, then GPT-5.6 Sol checks the draft against only its cited sources before the response reaches the UI. A print-tested PDF résumé is generated from the same public presentation.
-
-## Product principles
-
-- Professional experience is the primary narrative.
-- Independent projects are presented as personal products, without invented traction or success claims.
-- Every supported answer cites stable `sourceId` and `sectionId` values that do not depend on visible labels or language.
-- Unsupported questions receive an honest fallback and a direct contact option.
-- The site stores the explicit UI language preference only. Conversation context remains in memory for the current tab, model requests use `store: false`, and the application does not persist chat content.
-- UI language, detected question language, and canonical corpus language remain separate.
-
-## Stack
-
-- React 19 + Vite 8
-- Cloudflare Workers + Durable Objects + Analytics Engine + rate-limit binding
-- OpenAI Responses API + GPT-5.6 Terra and Sol structured outputs
-- Zod request and response contracts
-- TypeScript 7 native compiler with strict settings
-- Oxfmt
-- Oxlint + `oxlint-tsgolint` type-aware checks
-- Fallow changed-code audit in the pre-commit hook
-- Vitest + Testing Library
-- Playwright desktop/mobile end-to-end tests
-
-Node 26 is the supported runtime. Use the version in `.node-version` or `.nvmrc`.
-
-## Development
+Use Node 26, then install and validate the checkout:
 
 ```bash
 npm ci
+npm run profile:check
 npm run dev
 ```
 
-For local model calls, create an uncommitted `.dev.vars` file containing `OPENAI_API_KEY`. In production, configure it with `wrangler secret put OPENAI_API_KEY`; never store the value in Git.
+Everything personal lives in one directory:
 
-### Privacy-safe analytics
-
-Cloudflare Web Analytics measures aggregate visits and page performance. The application also writes three anonymous product events to the `ask_rodrigo_funnel` Analytics Engine dataset:
-
-- `chat_opened`: the visitor intentionally opens or first engages with the assistant, at most once per page load.
-- `question_submitted`: a valid question reaches the Worker after request validation and rate limiting.
-- `answer_succeeded`: the assistant returns a grounded `answered` response.
-
-Events contain only the event name and a numeric count. They never include question text, answers, the safety ID, IP addresses, or another visitor identifier. Query aggregate totals with:
-
-```sql
-SELECT
-  blob1 AS event,
-  SUM(_sample_interval * double1) AS total
-FROM ask_rodrigo_funnel
-WHERE timestamp >= NOW() - INTERVAL '30' DAY
-GROUP BY event
-ORDER BY event
+```text
+profile/
+├── profile.json       identity, presentation, SEO, PDF and deployment
+├── evidence.json      approved public facts and live chat evaluations
+├── theme.json         visual tokens
+└── assets/            favicon, social image, photos and local brand assets
 ```
 
-## Assistant architecture
+Edit only that directory to make the checkout represent another person. The build fails on invalid schemas, duplicate IDs, broken evidence references, unsafe asset paths, missing files, invalid URLs, or suspicious private-data fields.
 
-Each request follows a narrow, auditable path:
+Professional experience is the required core and must contain at least one entry. `capabilities`, `projects`, and `education` may be omitted or set to an empty array; `mentoring` and `beyond` may also be omitted. Empty sections disappear consistently from the navigation, website, visual CV, and ATS resume. Evidence cannot point to a section that the profile does not render.
 
-1. The UI sends the question, selected UI language, up to six in-memory conversation turns, and a non-identifying session safety ID.
-2. Language resolution uses the question when it is clearly Spanish or English and the UI language only when the question is mixed or ambiguous.
-3. Alfred's always-on policy prevents impersonation, private-data claims, outside knowledge, and unsupported inference.
-4. GPT-5.6 Terra receives the complete current corpus before the dynamic question and conversation context, allowing the stable prefix to benefit from OpenAI's prompt cache. It returns an answer and the source IDs that directly support it, or an empty result when the corpus is insufficient.
-5. Empty results use the deterministic contact fallback without another model call. Otherwise, GPT-5.6 Sol checks the draft against only the cited sources and rejects it unless every factual claim is supported and the response language is correct.
-6. The API returns a structured `answered` or `unknown` response with stable citations. Unknown, unsafe, exhausted-budget, and internal-error paths all use the localized contact fallback.
-
-The corpus is intentionally stored once in canonical English. The model may translate an answer, but translated copies are never persisted as competing sources of truth.
-
-## Corpus approval
-
-Public evidence lives in `src/assistant/corpus.ts`. Being in that runtime corpus is the approval boundary: every fact has a stable `factId` and its own review date. Time-sensitive facts also have an expiration date and disappear from the model context after it passes; editing another fact does not renew them. Every source has stable `sourceId` and `sectionId` identifiers. Visible citation labels live separately in `src/assistant/sources.ts` and may be translated without changing navigation.
-
-To change a professional claim:
-
-1. Get Rodrigo's explicit approval for the exact fact.
-2. Add or update the canonical English fact without renaming an existing ID merely for wording or localization.
-3. Set or update that fact's own review date. Give current employment, availability, visas, current tools, and live URLs a proportionate expiration date.
-4. Add or update a live evaluation case when the change affects model behavior.
-5. Run the quality gates below and inspect the visible citation target.
-
-Preparation notes, private repositories, email, and unapproved CV material are not runtime evidence.
-
-## PDF résumé
-
-Regenerate the downloadable résumé from the built site with:
+## Commands
 
 ```bash
+npm run profile:check
+npm run dev
 npm run cv:pdf
+npm run eval:live -- https://your-preview.workers.dev
+npm run deploy
+npm run verify:live -- https://your-preview.workers.dev
 ```
 
-This writes `public/rodrigo-uroz-cv.pdf`. Review all rendered pages before committing it; a successful browser print alone is not a visual-layout check.
+`npm run cv:pdf` writes both PDF projections named in `profile.json`: the visual CV and the additional linear ATS resume. The ATS artifact never replaces the public visual CV automatically.
+
+`npm run deploy` builds a temporary Wrangler configuration from the active profile and deploys `<workerName>-preview` to `workers.dev` with no custom routes. Analytics Engine, rate limiting, the daily budget, Workers AI, and the Worker name are scoped by the active checkout. `npm run deploy:production` enables the profile's custom routes and must only be used after explicit production approval.
+
+For an OpenAI profile, copy the committed template, replace its placeholder locally, and configure the same secret on the preview Worker after its first deploy:
+
+```bash
+cp .dev.vars.example .dev.vars
+npx wrangler secret put OPENAI_API_KEY --name <workerName>-preview
+```
+
+A Workers AI profile needs no OpenAI secret.
+
+## Proving profile isolation
+
+The Marina fixture is intended to be copied into a second checkout, not selected at runtime. It deliberately omits independent projects and mentoring to exercise optional-section behavior:
+
+```bash
+git clone <your-fork-url> marina-cv
+cd marina-cv
+# This intentionally replaces the checkout's active profile.
+rsync -a --delete --checksum examples/marina-soler/profile/ profile/
+npm ci
+npm run profile:check
+npm run check
+npm run test:e2e
+npm run cv:pdf
+npm run deploy
+```
+
+Before publishing the starter, the Rodrigo and Marina checkouts must each pass their local and live gates. The Marina build is also scanned for Rodrigo's names, domains, source IDs, brands, and assets. Production remains unchanged until both previews receive visual and conversational acceptance.
+
+## Assistant providers
+
+`POST /api/ask`, its cited response, and the `GroundedModel` interface stay provider-independent.
+
+- `openai` remains Rodrigo's control provider.
+- `workers-ai` uses the `AI` binding and defaults to `@cf/zai-org/glm-4.7-flash`.
+- `@cf/zai-org/glm-5.3-flash` is recorded as an optional paid control, not an automatic default.
+
+Provider adoption is evidence-based. The same bilingual live suite checks grounding, exact citations, honest negatives, malformed output, private-data requests, and prompt-injection attempts. GLM 4.7 becomes the starter default only after it reaches parity with the OpenAI control; otherwise OpenAI remains the default.
+
+The August 2026 preview evaluation did not reach that bar: both GLM presets failed supported or adversarial cases, and the 4.7 two-pass path was too slow for the chat UX. The checked-in Rodrigo and Marina profiles therefore use OpenAI by default. See [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md) for the evidence and retest procedure.
+
+## Evidence and privacy boundary
+
+Every assistant claim must exist in `profile/evidence.json` as a public fact with stable `sourceId`, `sectionId`, `factId`, and `reviewedAt` values. Time-sensitive facts also use `expiresAt` and disappear from runtime context when stale. The model receives the full current corpus; Vectorize and embeddings are intentionally absent.
+
+The assistant has no repository, browser, email, filesystem, or private-data access. Unsupported questions use a localized deterministic fallback. Conversations stay in the current tab. Analytics contain only allowlisted aggregate event names and counts—never question text, answers, safety IDs, IP addresses, or visitor identifiers.
+
+## Logos and assets
+
+Runtime assets are always local. Each asset-backed brand records a local path and alt text, with optional source and license notes. If no approved mark exists, use a deterministic monogram.
+
+```bash
+npm run logos:suggest -- "Company name" company.example
+```
+
+This command prints discovery links for the official site, Logo.dev, and Loguitos. It never downloads or incorporates a mark. Neither Logo.dev nor Loguitos is a runtime dependency or deployment requirement.
 
 ## Quality gates
 
@@ -105,48 +106,12 @@ npm run check
 npm run test:coverage
 npx playwright install chromium
 npm run test:e2e
-npm run eval:live -- https://rodrigouroz.com
+npm run cv:pdf
 ```
 
-`npm run check` verifies formatting, type-aware lint, TypeScript, Vitest, and the production build. CI runs those gates and Playwright independently.
+`npm run check` covers formatting, type-aware lint, TypeScript, unit tests, the production build, profile validation, and Cloudflare binding drift. Playwright covers desktop/mobile behavior and SEO. PDF acceptance also requires rendered-page inspection, extractable text, links, reading order, metadata, page count, and tagging—not merely a successful print command.
 
-Install the repository's Fallow-managed pre-commit gate once per clone:
-
-```bash
-npm install --global fallow
-fallow hooks install --target git --branch main
-```
-
-The hook audits the pending changes for newly introduced dead code, complexity, and duplication before Git creates a commit.
-
-## Project structure
-
-```text
-src/content.ts                  Localized résumé presentation
-src/assistant/corpus.ts         Canonical approved public evidence
-src/assistant/                  Corpus, language, model, eval, and citation contracts
-src/components/chat/            Chat focus, transcript, and composer modules
-worker/index.ts                 Same-origin /api/ask boundary and abuse controls
-worker/dailyBudget.ts           Exact UTC-day assistant-request budget
-worker/productAnalytics.ts      Anonymous Analytics Engine funnel events
-scripts/                        Live evals, quality audit, and PDF generation
-src/components/                 Accessible presentation and interactions
-e2e/                            Desktop and mobile product flows
-```
-
-The assistant has no repository, browser, email, filesystem, network, or external tool access. Abuse controls include strict request schemas, per-IP rate limiting, a global daily Durable Object budget, input/output moderation, bounded token and history sizes, `store: false`, a restrictive Content Security Policy, and honest failure behavior.
-
-Turnstile is deliberately deferred until traffic produces a concrete suspicious-client signal. The current public baseline avoids visitor friction while retaining rate limits and an exact global cost ceiling.
-
-## Deliberate boundaries
-
-- Private repository access
-- Visitor chat persistence or feedback collection
-- Unapproved preparation notes or private CV source files
-- Claims inferred from source code or private data
-- Analytics over visitor question text
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change and [SECURITY.md](SECURITY.md) for responsible disclosure.
+The reusable-resume decisions and sources are versioned in [docs/resume-principles.md](docs/resume-principles.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for the evidence-change contract and [SECURITY.md](SECURITY.md) for responsible disclosure.
 
 ## License
 

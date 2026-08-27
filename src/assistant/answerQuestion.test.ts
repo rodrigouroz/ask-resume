@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
+import { evidenceConfig, profile } from "../profile";
 import { createAnswerService } from "./answerQuestion";
 import type { GroundedModel } from "./model";
+
+const primarySource = evidenceConfig.items[0];
+const secondarySource = evidenceConfig.items.find(
+  ({ sourceId }) => sourceId !== primarySource?.sourceId,
+);
+if (!primarySource || !secondarySource) throw new Error("Missing test evidence");
 
 function approvingVerifier() {
   return vi.fn<GroundedModel["verify"]>(async () => ({
@@ -15,43 +22,43 @@ describe("bilingual grounded answers", () => {
     const draft = vi.fn<GroundedModel["draft"]>(async ({ language }) => ({
       answer:
         language === "es"
-          ? "Rodrigo trabaja en ClassDojo desde 2022."
-          : "Rodrigo has worked at ClassDojo since 2022.",
-      sourceIds: ["classdojo-current-role"],
+          ? `${profile.identity.name} tiene experiencia profesional.`
+          : `${profile.identity.name} has professional experience.`,
+      sourceIds: [primarySource.sourceId],
     }));
     const answerQuestion = createAnswerService({ model: { draft, verify: approvingVerifier() } });
 
     const english = await answerQuestion({
-      question: "What has Rodrigo worked on at ClassDojo?",
+      question: `What has ${profile.identity.firstName} worked on?`,
       uiLanguage: "es",
     });
     const spanish = await answerQuestion({
-      question: "¿En qué trabajó Rodrigo en ClassDojo?",
+      question: `¿En qué trabajó ${profile.identity.firstName}?`,
       uiLanguage: "en",
     });
 
     expect(english.language).toBe("en");
     expect(spanish.language).toBe("es");
     expect(english.citations).toEqual([
-      { sourceId: "classdojo-current-role", sectionId: "experience" },
+      { sourceId: primarySource.sourceId, sectionId: primarySource.sectionId },
     ]);
     expect(spanish.citations).toEqual(english.citations);
-    expect(draft.mock.calls[0]?.[0].corpus.length).toBeGreaterThan(20);
+    expect(draft.mock.calls[0]?.[0].corpus.length).toBe(evidenceConfig.items.length);
     expect(draft.mock.calls[1]?.[0].corpus).toEqual(draft.mock.calls[0]?.[0].corpus);
   });
 
   it("uses the UI language when the question is mixed or ambiguous", async () => {
     const draft = vi.fn<GroundedModel["draft"]>(async ({ language }) => ({
       answer: language === "es" ? "Respuesta en español." : "Answer in English.",
-      sourceIds: ["classdojo-current-role"],
+      sourceIds: [primarySource.sourceId],
     }));
     const answerQuestion = createAnswerService({ model: { draft, verify: approvingVerifier() } });
 
     const mixed = await answerQuestion({
-      question: "What experiencia does Rodrigo have at ClassDojo?",
+      question: `What experiencia does ${profile.identity.firstName} have?`,
       uiLanguage: "es",
     });
-    const ambiguous = await answerQuestion({ question: "ClassDojo?", uiLanguage: "en" });
+    const ambiguous = await answerQuestion({ question: "Experience?", uiLanguage: "en" });
 
     expect(mixed.language).toBe("es");
     expect(ambiguous.language).toBe("en");
@@ -66,14 +73,14 @@ describe("bilingual grounded answers", () => {
     const answerQuestion = createAnswerService({ model });
 
     const response = await answerQuestion({
-      question: "¿Cuál es la expectativa salarial de Rodrigo?",
+      question: `¿Cuál es la expectativa salarial de ${profile.identity.firstName}?`,
       uiLanguage: "en",
     });
 
     expect(response).toEqual({
       status: "unknown",
       language: "es",
-      answer: "No tengo información suficiente para responder eso.",
+      answer: profile.presentation.copy.chat.unknown.es,
       citations: [],
     });
     expect(verify).not.toHaveBeenCalled();
@@ -100,30 +107,32 @@ describe("bilingual grounded answers", () => {
     const verify = approvingVerifier();
     const model: GroundedModel = {
       draft: vi.fn<GroundedModel["draft"]>(async () => ({
-        answer: "Coro explores global conversations across languages.",
-        sourceIds: ["coro-product", "coro-product"],
+        answer: `${profile.identity.name} has verified public work.`,
+        sourceIds: [secondarySource.sourceId, secondarySource.sourceId],
       })),
       verify,
     };
     const answerQuestion = createAnswerService({ model });
 
     const response = await answerQuestion({
-      question: "What did Rodrigo build in Coro?",
+      question: `What did ${profile.identity.firstName} build?`,
       uiLanguage: "en",
     });
 
-    expect(response.citations).toEqual([{ sourceId: "coro-product", sectionId: "projects" }]);
+    expect(response.citations).toEqual([
+      { sourceId: secondarySource.sourceId, sectionId: secondarySource.sectionId },
+    ]);
     expect(verify.mock.calls[0]?.[0].evidence.map(({ sourceId }) => sourceId)).toEqual([
-      "coro-product",
+      secondarySource.sourceId,
     ]);
   });
 
   it("never exposes an answer rejected by the verifier", async () => {
-    const unsupportedFact = "Rodrigo founded ClassDojo.";
+    const unsupportedFact = `${profile.identity.name} founded an unverified company.`;
     const model: GroundedModel = {
       draft: vi.fn<GroundedModel["draft"]>(async () => ({
         answer: unsupportedFact,
-        sourceIds: ["classdojo-current-role"],
+        sourceIds: [primarySource.sourceId],
       })),
       verify: vi.fn<GroundedModel["verify"]>(async () => ({
         answersQuestion: true,
@@ -134,7 +143,7 @@ describe("bilingual grounded answers", () => {
     const answerQuestion = createAnswerService({ model });
 
     const response = await answerQuestion({
-      question: "What has Rodrigo worked on at ClassDojo?",
+      question: `What has ${profile.identity.firstName} worked on?`,
       uiLanguage: "en",
     });
 

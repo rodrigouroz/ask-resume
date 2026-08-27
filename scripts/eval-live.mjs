@@ -3,19 +3,32 @@ import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const baseUrl = new URL(process.argv[2] ?? "http://127.0.0.1:5173");
+const profile = JSON.parse(await readFile(resolve("profile/profile.json"), "utf8"));
+const evidence = JSON.parse(await readFile(resolve("profile/evidence.json"), "utf8"));
 const allowedTargets = new Set([
   "127.0.0.1",
   "localhost",
-  "rodrigouroz.com",
-  "www.rodrigouroz.com",
+  ...profile.deployment.customDomains.map(({ hostname }) => hostname),
 ]);
-if (!allowedTargets.has(baseUrl.hostname) || !["http:", "https:"].includes(baseUrl.protocol)) {
+if (
+  (!allowedTargets.has(baseUrl.hostname) && !baseUrl.hostname.endsWith(".workers.dev")) ||
+  !["http:", "https:"].includes(baseUrl.protocol)
+) {
   throw new Error(`Refusing unapproved evaluation target: ${baseUrl.origin}`);
 }
-const cases = JSON.parse(await readFile(resolve("src/assistant/evals/live.json"), "utf8"));
+const cases = evidence.evals;
 let failures = 0;
+const requestSpacingMs = baseUrl.hostname.endsWith(".workers.dev") ? 6_500 : 0;
+let lastRequestStartedAt = 0;
+
+async function waitForRateLimitWindow() {
+  const remaining = lastRequestStartedAt + requestSpacingMs - Date.now();
+  if (remaining > 0) await new Promise((resolveDelay) => setTimeout(resolveDelay, remaining));
+  lastRequestStartedAt = Date.now();
+}
 
 for (const testCase of cases) {
+  await waitForRateLimitWindow();
   const response = await fetch(new URL("/api/ask", baseUrl), {
     method: "POST",
     headers: { "content-type": "application/json" },

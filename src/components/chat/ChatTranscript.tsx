@@ -1,5 +1,5 @@
 import type { Language } from "../../content";
-import { copy, externalLinks } from "../../content";
+import { contact, copy, externalLinks } from "../../content";
 import { citationHref, sourceLabel } from "../../assistant/sources";
 import type { AssistantTurn } from "../../assistant/useAssistantConversation";
 import { MailIcon } from "../Icons";
@@ -65,7 +65,7 @@ export function ChatTranscript({
           {response.status === "unknown" ? (
             <a className="chat-fallback-cta" href={externalLinks.email}>
               <MailIcon />
-              hello@rodrigouroz.com
+              {contact.email}
             </a>
           ) : null}
         </div>

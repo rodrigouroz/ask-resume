@@ -4,6 +4,7 @@ import type { GroundedModel } from "../src/assistant/model";
 import { createOpenAIModel } from "../src/assistant/openaiModel";
 import { resolveResponseLanguage } from "../src/assistant/language";
 import { clientAnalyticsEventSchema, recordProductAnalyticsEvent } from "./productAnalytics";
+import { createWorkersAIModel } from "./workersAiModel";
 
 type ModelFactory = (env: Env) => GroundedModel;
 type BudgetConsumer = (env: Env) => Promise<boolean>;
@@ -11,8 +12,23 @@ type BudgetConsumer = (env: Env) => Promise<boolean>;
 const consumeDailyBudget: BudgetConsumer = async (env) => {
   if (!env.ASK_DAILY_BUDGET) return true;
   const day = new Date().toISOString().slice(0, 10);
-  return env.ASK_DAILY_BUDGET.getByName(day).consume();
+  const configuredLimit = Number.parseInt(env.DAILY_ASK_LIMIT, 10);
+  const limit =
+    Number.isSafeInteger(configuredLimit) && configuredLimit > 0 ? configuredLimit : 250;
+  return env.ASK_DAILY_BUDGET.getByName(day).consume(limit);
 };
+
+function createConfiguredModel(env: Env): GroundedModel {
+  const provider = env.AI_PROVIDER as string;
+  if (provider === "workers-ai") {
+    if (!env.AI) throw new Error("Workers AI binding is not configured");
+    return createWorkersAIModel(env.AI, env.WORKERS_AI_MODEL);
+  }
+  if (provider !== "openai") {
+    throw new Error(`Unsupported AI provider: ${provider}`);
+  }
+  return createOpenAIModel(env.OPENAI_API_KEY);
+}
 
 const jsonHeaders = {
   "cache-control": "no-store",
@@ -52,12 +68,12 @@ async function handleClientAnalytics(request: Request, env: Env): Promise<Respon
   const parsed = clientAnalyticsEventSchema.safeParse(payload);
   if (!parsed.success) return json({ error: "Invalid event" }, 400);
 
-  recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, parsed.data.event);
+  recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, parsed.data.event, env.PROFILE_SLUG);
   return noContent();
 }
 
 export function createWorker(
-  modelFactory: ModelFactory = (env) => createOpenAIModel(env.OPENAI_API_KEY),
+  modelFactory: ModelFactory = createConfiguredModel,
   budgetConsumer: BudgetConsumer = consumeDailyBudget,
 ): ExportedHandler<Env> {
   return {
@@ -83,7 +99,7 @@ export function createWorker(
       const parsed = askRequestSchema.safeParse(payload);
       if (!parsed.success) return json({ error: "Invalid request" }, 400);
 
-      recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, "question_submitted");
+      recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, "question_submitted", env.PROFILE_SLUG);
 
       if (!(await budgetConsumer(env))) {
         return json(
@@ -95,7 +111,7 @@ export function createWorker(
         const answerQuestion = createAnswerService({ model: modelFactory(env) });
         const answer = await answerQuestion(parsed.data);
         if (answer.status === "answered") {
-          recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, "answer_succeeded");
+          recordProductAnalyticsEvent(env.PRODUCT_ANALYTICS, "answer_succeeded", env.PROFILE_SLUG);
         }
         return json(answer);
       } catch {

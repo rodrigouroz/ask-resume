@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "npm run profile:check && node scripts/clean-build.mjs",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "typecheck": "tsc -b --pretty false",
@@ -18,9 +19,15 @@
     "fallow:check": "node scripts/fallow-audit.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "prepare": "npm run hooks:install",
+    "profile:check": "node scripts/profile-check.mjs",
+    "logos:suggest": "node scripts/logos-suggest.mjs",
     "eval:live": "node scripts/eval-live.mjs",
     "cv:pdf": "npm run build && node scripts/generate-cv.mjs",
-    "cf:types": "wrangler types --check",
+    "deploy": "npm run cv:pdf && node scripts/deploy.mjs",
+    "deploy:production": "npm run cv:pdf && node scripts/deploy.mjs --production",
+    "verify:live": "node scripts/verify-live.mjs",
+    "cf:types:generate": "wrangler types --env-file .dev.vars.example",
+    "cf:types": "wrangler types --env-file .dev.vars.example --check",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run cf:types"
   },
   "dependencies": {

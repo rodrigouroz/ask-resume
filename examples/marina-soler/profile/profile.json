@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "identity": {
+    "slug": "marina-soler",
+    "name": "Marina Soler",
+    "firstName": "Marina",
+    "lastName": "Soler",
+    "jobTitle": "Product Engineer",
+    "headline": "Product Engineer & Systems Designer",
+    "assistantName": "Luz"
+  },
+  "localization": {
+    "defaultLanguage": "en",
+    "languages": ["en", "es"]
+  },
+  "presentation": {
+    "copy": {
+      "nav": {
+        "experience": {
+          "en": "Experience",
+          "es": "Experiencia"
+        },
+        "capabilities": {
+          "en": "Capabilities",
+          "es": "Capacidades"
+        },
+        "projects": {
+          "en": "Independent projects",
+          "es": "Proyectos independientes"
+        },
+        "about": {
+          "en": "About",
+          "es": "Sobre mí"
+        },
+        "mainLabel": {
+          "en": "Main navigation",
+          "es": "Navegación principal"
+        },
+        "languageLabel": {
+          "en": "Language",
+          "es": "Idioma"
+        },
+        "mobileLanguageLabel": {
+          "en": "Mobile language",
+          "es": "Idioma en móvil"
+        },
+        "openMenu": {
+          "en": "Open menu",
+          "es": "Abrir menú"
+        },
+        "closeMenu": {
+          "en": "Close menu",
+          "es": "Cerrar menú"
+        },
+        "switchToEnglish": {
+          "en": "Switch language to English",
+          "es": "Cambiar idioma a inglés"
+        },
+        "switchToSpanish": {
+          "en": "Switch language to Spanish",
+          "es": "Cambiar idioma a español"
+        }
+      },
+      "download": {
+        "en": "Download CV",
+        "es": "Descargar CV"
+      },
+      "hero": {
+        "title": {
+          "en": "Product engineer turning complex workflows into clear software.",
+          "es": "Ingeniera de producto que convierte flujos complejos en software claro."
+        },
+        "body": {
+          "en": "I work across product discovery, interaction design, and implementation to make operational tools easier to understand and use.",
+          "es": "Trabajo entre descubrimiento de producto, diseño de interacción e implementación para hacer que las herramientas operativas sean más simples de entender y usar."
+        },
+        "action": {
+          "en": "View experience",
+          "es": "Ver experiencia"
+        },
+        "location": {
+          "en": "Montevideo · Working in Spanish and English",
+          "es": "Montevideo · Trabajo en español e inglés"
+        }
+      },
+      "sections": {
+        "experience": {
+          "en": "Professional experience",
+          "es": "Experiencia profesional"
+        },
+        "capabilities": {
+          "en": "Capabilities",
+          "es": "Capacidades"
+        },
+        "projects": {
+          "en": "Independent projects",
+          "es": "Proyectos independientes"
+        },
+        "projectsIntro": {
+          "en": "Fictional product explorations used to demonstrate an independent profile checkout.",
+          "es": "Exploraciones de producto ficticias usadas para demostrar un checkout de perfil independiente."
+        },
+        "education": {
+          "en": "Education & teaching",
+          "es": "Educación y docencia"
+        },
+        "mentoring": {
+          "en": "Mentoring",
+          "es": "Mentoría"
+        },
+        "beyond": {
+          "en": "Beyond work",
+          "es": "Fuera del trabajo"
+        }
+      },
+      "contact": {
+        "title": {
+          "en": "Let’s make a complicated workflow feel simple.",
+          "es": "Hagamos simple un flujo complicado."
+        },
+        "body": {
+          "en": "This is a fictional demonstration profile for the reusable CV starter.",
+          "es": "Este es un perfil ficticio de demostración para el starter de CV reutilizable."
+        }
+      },
+      "chat": {
+        "title": {
+          "en": "Marina’s assistant",
+          "es": "Asistente de Marina"
+        },
+        "cta": {
+          "en": "Ask about Marina",
+          "es": "Preguntá sobre Marina"
+        },
+        "close": {
+          "en": "Close Marina’s assistant",
+          "es": "Cerrar asistente de Marina"
+        },
+        "placeholder": {
+          "en": "Ask about experience, projects, or skills…",
+          "es": "Preguntá sobre experiencia, proyectos o habilidades…"
+        },
+        "contact": {
+          "en": "Contact Marina",
+          "es": "Contactar a Marina"
+        },
+        "newChat": {
+          "en": "New chat",
+          "es": "Nuevo chat"
+        },
+        "send": {
+          "en": "Send question",
+          "es": "Enviar pregunta"
+        },
+        "questionRequired": {
+          "en": "Enter a question before sending.",
+          "es": "Escribí una pregunta antes de enviarla."
+        },
+        "emptyTitle": {
+          "en": "Ask a focused question",
+          "es": "Hacé una pregunta concreta"
+        },
+        "emptyBody": {
+          "en": "Explore Marina’s experience, projects, skills, or approach to product engineering.",
+          "es": "Explorá la experiencia, los proyectos, las habilidades o el enfoque de Marina sobre ingeniería de producto."
+        },
+        "thinking": {
+          "en": "Answering…",
+          "es": "Respondiendo…"
+        },
+        "unknown": {
+          "en": "I don’t have enough information to answer that.",
+          "es": "No tengo información suficiente para responder eso."
+        }
+      },
+      "projectActions": {
+        "live": {
+          "en": "Live",
+          "es": "Abrir"
+        },
+        "ask": {
+          "en": "Ask",
+          "es": "Preguntar"
+        }
+      }
+    },
+    "experiences": [
+      {
+        "id": "experience-1",
+        "company": "Faro Labs",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/faro-labs.svg",
+          "alt": "Faro Labs monogram"
+        },
+        "role": {
+          "en": "Senior Product Engineer",
+          "es": "Senior Product Engineer"
+        },
+        "period": "2023–Present",
+        "summary": {
+          "en": "Designed and shipped planning tools for distributed operations teams, from discovery through production measurement.",
+          "es": "Diseñó y lanzó herramientas de planificación para equipos operativos distribuidos, desde discovery hasta medición en producción."
+        }
+      },
+      {
+        "id": "experience-2",
+        "company": "Norte Studio",
+        "brand": {
+          "kind": "asset",
+          "asset": "brands/norte-studio.svg",
+          "alt": "Norte Studio monogram"
+        },
+        "role": {
+          "en": "Product Engineer",
+          "es": "Product Engineer"
+        },
+        "period": "2019–2023",
+        "summary": {
+          "en": "Built accessible internal products and a reusable component system for service organizations.",
+          "es": "Construyó productos internos accesibles y un sistema de componentes reutilizable para organizaciones de servicios."
+        }
+      }
+    ],
+    "capabilities": [
+      {
+        "id": "capability-1",
+        "name": {
+          "en": "Product discovery",
+          "es": "Descubrimiento de producto"
+        },
+        "details": {
+          "en": "Workflow research · Prototyping · Validation",
+          "es": "Investigación de flujos · Prototipos · Validación"
+        }
+      },
+      {
+        "id": "capability-2",
+        "name": {
+          "en": "Frontend systems",
+          "es": "Sistemas frontend"
+        },
+        "details": {
+          "en": "TypeScript · React · Accessibility",
+          "es": "TypeScript · React · Accesibilidad"
+        }
+      },
+      {
+        "id": "capability-3",
+        "name": {
+          "en": "Delivery",
+          "es": "Entrega"
+        },
+        "details": {
+          "en": "Incremental releases · Observability · Feedback",
+          "es": "Lanzamientos incrementales · Observabilidad · Feedback"
+        }
+      }
+    ],
+    "education": [
+      {
+        "id": "education-1",
+        "title": "Computer Engineering · Universidad del Litoral",
+        "detail": {
+          "en": "Fictional degree · 2018",
+          "es": "Título ficticio · 2018"
+        }
+      },
+      {
+        "id": "education-2",
+        "title": "Inclusive Design · Escuela Abierta",
+        "detail": {
+          "en": "Fictional postgraduate program · 2021",
+          "es": "Posgrado ficticio · 2021"
+        }
+      }
+    ],
+    "careerNote": {
+      "en": "Fictional profile created to validate the starter.",
+      "es": "Perfil ficticio creado para validar el starter."
+    },
+    "beyond": {
+      "en": "Ceramics · Cycling · Urban sketching",
+      "es": "Cerámica · Ciclismo · Dibujo urbano"
+    },
+    "footer": {
+      "copyright": "© 2026 Marina Soler · Fictional demo",
+      "privacy": {
+        "en": "Marina’s assistant uses only the fictional public evidence in this checkout. Chats are not stored by this site.",
+        "es": "El asistente de Marina usa únicamente la evidencia pública ficticia de este checkout. Este sitio no guarda los chats."
+      }
+    }
+  },
+  "contact": {
+    "email": "marina@example.com",
+    "githubUrl": "https://github.com/example",
+    "githubLabel": "GitHub"
+  },
+  "assets": {
+    "favicon": "favicon.svg",
+    "socialImage": "og-image.svg",
+    "socialImageWidth": 1200,
+    "socialImageHeight": 630,
+    "socialImageAlt": "Marina Soler — fictional product engineer profile"
+  },
+  "seo": {
+    "baseUrl": "https://marina-soler.example.com/",
+    "title": "Marina Soler · Product Engineer · Fictional Demo",
+    "description": "Fictional Product Engineer profile used to validate the reusable online CV starter.",
+    "socialDescription": "A fictional Product Engineer profile demonstrating an independent CV checkout.",
+    "siteName": "Ask Marina · Fictional Demo",
+    "locale": "en_US",
+    "profileDescription": "Fictional Product Engineer and systems designer.",
+    "sameAs": ["https://github.com/example"],
+    "worksFor": {
+      "name": "Faro Labs",
+      "url": "https://faro-labs.example.com"
+    },
+    "alumniOf": "Universidad del Litoral (fictional)",
+    "knowsLanguage": ["English", "Spanish"]
+  },
+  "pdf": {
+    "visualFileName": "marina-soler-cv.pdf",
+    "atsFileName": "marina-soler-resume-ats.pdf",
+    "pagePolicy": {
+      "min": 1,
+      "max": 2
+    }
+  },
+  "deployment": {
+    "workerName": "ask-marina-soler",
+    "customDomains": [],
+    "analyticsDataset": "ask_marina_soler_funnel",
+    "rateLimitNamespaceId": "2001",
+    "dailyQuestionLimit": 250,
+    "aiProvider": "openai",
+    "workersAiModel": "@cf/zai-org/glm-4.7-flash",
+    "premiumWorkersAiModel": "@cf/zai-org/glm-5.3-flash"
+  }
+}

@@ -34,12 +34,12 @@ export function ChatComposer({
 
   return (
     <form className="chat-form" onSubmit={submit}>
-      <label className="sr-only" htmlFor="ask-rodrigo-input">
+      <label className="sr-only" htmlFor="profile-assistant-input">
         {text(copy.chat.placeholder)}
       </label>
       <input
         ref={inputRef}
-        id="ask-rodrigo-input"
+        id="profile-assistant-input"
         name="question"
         type="text"
         autoComplete="off"
@@ -52,13 +52,13 @@ export function ChatComposer({
         }}
         placeholder={text(copy.chat.placeholder)}
         aria-invalid={questionError ? true : undefined}
-        aria-describedby={questionError ? "ask-rodrigo-error" : undefined}
+        aria-describedby={questionError ? "profile-assistant-error" : undefined}
       />
       <button type="submit" aria-label={text(copy.chat.send)} disabled={loading}>
         <ArrowRightIcon />
       </button>
       {questionError ? (
-        <p id="ask-rodrigo-error" className="chat-error" role="alert">
+        <p id="profile-assistant-error" className="chat-error" role="alert">
           {questionError}
         </p>
       ) : null}

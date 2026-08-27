@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 import type { Language } from "../content";
 import { copy } from "../content";
-import { askRodrigo } from "./client";
+import { askProfile } from "./client";
 import type { AskResponse, ConversationTurn } from "./contracts";
 
 export type AssistantTurn = ConversationTurn & { response: AskResponse };
@@ -25,7 +25,7 @@ export function useAssistantConversation(language: Language) {
 
       let response: AskResponse;
       try {
-        response = await askRodrigo(trimmed, language, history, controller.signal);
+        response = await askProfile(trimmed, language, history, controller.signal);
       } catch (error: unknown) {
         if (error instanceof DOMException && error.name === "AbortError") return;
         response = {

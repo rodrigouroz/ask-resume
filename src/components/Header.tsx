@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Language } from "../content";
-import { copy, externalLinks } from "../content";
+import { contact, copy, externalLinks, profileIdentity, profileSections } from "../content";
 import { MenuIcon } from "./Icons";
 
 type HeaderProps = {
@@ -70,9 +70,11 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
       <a
         className="wordmark"
         href="#top"
-        aria-label={language === "en" ? "Rodrigo Uroz — home" : "Rodrigo Uroz — inicio"}
+        aria-label={
+          language === "en" ? `${profileIdentity.name} — home` : `${profileIdentity.name} — inicio`
+        }
       >
-        Rodrigo Uroz
+        {profileIdentity.name}
       </a>
 
       <div
@@ -81,9 +83,9 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
       >
         <span>{text(copy.hero.location)}</span>
         <span aria-hidden="true">·</span>
-        <a href={externalLinks.email}>hello@rodrigouroz.com</a>
+        <a href={externalLinks.email}>{contact.email}</a>
         <span aria-hidden="true">·</span>
-        <a href={externalLinks.github}>github.com/rodrigouroz</a>
+        <a href={externalLinks.github}>{contact.githubUrl.replace(/^https?:\/\//, "")}</a>
       </div>
 
       <LanguageSwitch
@@ -112,15 +114,21 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
           <a href="#experience" onClick={() => setMenuOpen(false)}>
             {text(copy.nav.experience)}
           </a>
-          <a href="#capabilities" onClick={() => setMenuOpen(false)}>
-            {text(copy.nav.capabilities)}
-          </a>
-          <a href="#projects" onClick={() => setMenuOpen(false)}>
-            {text(copy.nav.projects)}
-          </a>
-          <a href="#about" onClick={() => setMenuOpen(false)}>
-            {text(copy.nav.about)}
-          </a>
+          {profileSections.capabilities && (
+            <a href="#capabilities" onClick={() => setMenuOpen(false)}>
+              {text(copy.nav.capabilities)}
+            </a>
+          )}
+          {profileSections.projects && (
+            <a href="#projects" onClick={() => setMenuOpen(false)}>
+              {text(copy.nav.projects)}
+            </a>
+          )}
+          {profileSections.about && (
+            <a href="#about" onClick={() => setMenuOpen(false)}>
+              {text(copy.nav.about)}
+            </a>
+          )}
         </nav>
 
         <LanguageSwitch

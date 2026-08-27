@@ -10,5 +10,5 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts", "src/profile.ts", "src/profileSchema.ts", "src/seo.ts"]
 }

@@ -3,6 +3,7 @@ node_modules/
 dist/
 .wrangler/
 .dev.vars*
+!.dev.vars.example
 .env*
 coverage/
 playwright-report/

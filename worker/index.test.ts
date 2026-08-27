@@ -1,12 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GroundedModel } from "../src/assistant/model";
+import { evidenceConfig, profile } from "../src/profile";
+
+const primarySource = evidenceConfig.items[0];
+if (!primarySource) throw new Error("Missing test evidence");
 
 const workerDependencies = vi.hoisted(() => ({
   createOpenAIModel: vi.fn<(apiKey: string) => GroundedModel>(),
+  createWorkersAIModel: vi.fn<(ai: Ai, model: string) => GroundedModel>(),
 }));
 
 vi.mock("../src/assistant/openaiModel", () => ({
   createOpenAIModel: workerDependencies.createOpenAIModel,
+}));
+vi.mock("./workersAiModel", () => ({
+  createWorkersAIModel: workerDependencies.createWorkersAIModel,
 }));
 vi.mock("./dailyBudget", () => ({ AskDailyBudget: class AskDailyBudget {} }));
 import { createWorker } from "./index";
@@ -15,9 +23,9 @@ const model: GroundedModel = {
   draft: vi.fn<GroundedModel["draft"]>(async ({ language }) => ({
     answer:
       language === "es"
-        ? "Rodrigo trabaja en ClassDojo desde 2022."
-        : "Rodrigo has worked at ClassDojo since 2022.",
-    sourceIds: ["classdojo-current-role"],
+        ? `${profile.identity.name} tiene experiencia profesional.`
+        : `${profile.identity.name} has professional experience.`,
+    sourceIds: [primarySource.sourceId],
   })),
   verify: vi.fn<GroundedModel["verify"]>(async () => ({
     answersQuestion: true,
@@ -32,13 +40,18 @@ function env(
   limit = vi.fn<RateLimit["limit"]>(async () => ({ success: rateLimitSuccess })),
 ): Env {
   return {
+    AI: {} as Ai,
+    AI_PROVIDER: "openai",
     ASK_RATE_LIMITER: { limit },
+    DAILY_ASK_LIMIT: "250",
     OPENAI_API_KEY: "unused-in-test",
+    PROFILE_SLUG: profile.identity.slug,
     PRODUCT_ANALYTICS: {
       writeDataPoint: vi.fn<AnalyticsEngineDataset["writeDataPoint"]>(),
     },
+    WORKERS_AI_MODEL: "@cf/zai-org/glm-4.7-flash",
     ...overrides,
-  } as unknown as Env;
+  } as Env;
 }
 
 function analyticsBinding() {
@@ -106,7 +119,7 @@ describe("POST /api/ask", () => {
       new Request("https://rodrigouroz.com/api/ask", {
         method: "POST",
         body: JSON.stringify({
-          question: "¿En qué trabajó Rodrigo en ClassDojo?",
+          question: `¿En qué trabajó ${profile.identity.firstName}?`,
           uiLanguage: "en",
         }),
         headers: { "content-type": "application/json" },
@@ -119,12 +132,12 @@ describe("POST /api/ask", () => {
     await expect(response.json()).resolves.toMatchObject({
       status: "answered",
       language: "es",
-      citations: [{ sourceId: "classdojo-current-role", sectionId: "experience" }],
+      citations: [{ sourceId: primarySource.sourceId, sectionId: primarySource.sectionId }],
     });
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(analytics.writeDataPoint.mock.calls).toEqual([
-      [{ indexes: ["ask-rodrigo"], blobs: ["question_submitted"], doubles: [1] }],
-      [{ indexes: ["ask-rodrigo"], blobs: ["answer_succeeded"], doubles: [1] }],
+      [{ indexes: [profile.identity.slug], blobs: ["question_submitted"], doubles: [1] }],
+      [{ indexes: [profile.identity.slug], blobs: ["answer_succeeded"], doubles: [1] }],
     ]);
   });
 
@@ -201,7 +214,7 @@ describe("POST /api/ask", () => {
     expect(modelFactory).not.toHaveBeenCalled();
     expect(analytics.writeDataPoint).toHaveBeenCalledOnce();
     expect(analytics.writeDataPoint).toHaveBeenCalledWith({
-      indexes: ["ask-rodrigo"],
+      indexes: [profile.identity.slug],
       blobs: ["question_submitted"],
       doubles: [1],
     });
@@ -226,6 +239,7 @@ describe("POST /api/ask", () => {
     await expect(response.json()).resolves.toMatchObject({ status: "unknown", language: "en" });
     expect(getByName).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/));
     expect(consume).toHaveBeenCalledOnce();
+    expect(consume).toHaveBeenCalledWith(250);
   });
 
   it("uses the production model with the configured OpenAI secret", async () => {
@@ -243,6 +257,52 @@ describe("POST /api/ask", () => {
     expect(workerDependencies.createOpenAIModel).toHaveBeenCalledWith("unused-in-test");
   });
 
+  it("uses the configured Workers AI binding without requiring the OpenAI provider", async () => {
+    workerDependencies.createWorkersAIModel.mockReturnValue(model);
+    const testEnv = { ...env(), AI_PROVIDER: "workers-ai" } as unknown as Env;
+    const worker = createWorker();
+    const response = await worker.fetch!(
+      new Request("https://profile.example/api/ask", {
+        method: "POST",
+        body: JSON.stringify({ question: "ClassDojo?", uiLanguage: "en" }),
+      }),
+      testEnv,
+      {} as ExecutionContext,
+    );
+
+    expect(response.status).toBe(200);
+    expect(workerDependencies.createWorkersAIModel).toHaveBeenCalledWith(
+      testEnv.AI,
+      "@cf/zai-org/glm-4.7-flash",
+    );
+    expect(workerDependencies.createOpenAIModel).not.toHaveBeenCalled();
+  });
+
+  it("fails closed when Workers AI is selected without its binding", async () => {
+    const testEnv = {
+      ...env(),
+      AI: undefined,
+      AI_PROVIDER: "workers-ai",
+    } as unknown as Env;
+    const worker = createWorker();
+
+    const response = await worker.fetch!(
+      new Request("https://profile.example/api/ask", {
+        method: "POST",
+        body: JSON.stringify({
+          question: `Where does ${profile.identity.firstName} work?`,
+          uiLanguage: "en",
+        }),
+      }),
+      testEnv,
+      {} as ExecutionContext,
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({ status: "unknown" });
+    expect(workerDependencies.createWorkersAIModel).not.toHaveBeenCalled();
+  });
+
   it("returns the localized honest fallback when model initialization fails", async () => {
     const worker = createWorker(() => {
       throw new Error("Missing secret");
@@ -251,7 +311,7 @@ describe("POST /api/ask", () => {
       new Request("https://rodrigouroz.com/api/ask", {
         method: "POST",
         body: JSON.stringify({
-          question: "¿En qué trabajó Rodrigo en ClassDojo?",
+          question: `¿En qué trabajó ${profile.identity.firstName}?`,
           uiLanguage: "en",
         }),
       }),
@@ -262,7 +322,7 @@ describe("POST /api/ask", () => {
     await expect(response.json()).resolves.toEqual({
       status: "unknown",
       language: "es",
-      answer: "No tengo información suficiente para responder eso.",
+      answer: profile.presentation.copy.chat.unknown.es,
       citations: [],
     });
   });
@@ -295,7 +355,7 @@ describe("POST /api/analytics", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(limit).toHaveBeenCalledWith({ key: "analytics:local-or-unknown" });
     expect(analytics.writeDataPoint).toHaveBeenCalledWith({
-      indexes: ["ask-rodrigo"],
+      indexes: [profile.identity.slug],
       blobs: ["chat_opened"],
       doubles: [1],
     });

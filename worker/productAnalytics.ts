@@ -7,9 +7,10 @@ export const clientAnalyticsEventSchema = z.object({ event: z.literal("chat_open
 export function recordProductAnalyticsEvent(
   dataset: AnalyticsEngineDataset,
   event: ProductAnalyticsEvent,
+  profileSlug: string,
 ): void {
   dataset.writeDataPoint({
-    indexes: ["ask-rodrigo"],
+    indexes: [profileSlug],
     blobs: [event],
     doubles: [1],
   });

@@ -1448,6 +1448,92 @@ button {
   }
 }
 
+.ats-resume {
+  width: min(100% - 2rem, 820px);
+  margin: 0 auto;
+  padding: 2rem 0 4rem;
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.ats-resume header {
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--ink);
+}
+
+.ats-resume h1,
+.ats-resume h2,
+.ats-resume h3,
+.ats-resume p {
+  margin: 0;
+}
+
+.ats-resume h1 {
+  font-size: 2rem;
+  line-height: 1.1;
+}
+
+.ats-resume .ats-headline {
+  margin-top: 0.25rem;
+  font-weight: 700;
+}
+
+.ats-resume address {
+  margin-top: 0.45rem;
+  color: var(--muted);
+  font-style: normal;
+}
+
+.ats-resume section {
+  padding-top: 1rem;
+}
+
+.ats-resume h2 {
+  margin-bottom: 0.45rem;
+  color: var(--blue);
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ats-resume article {
+  padding: 0.3rem 0;
+  break-inside: avoid;
+}
+
+.ats-resume h3 {
+  font-size: 0.95rem;
+}
+
+.ats-resume article > p,
+.ats-resume li,
+.ats-resume .ats-career-note {
+  color: #242936;
+}
+
+.ats-resume .ats-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.ats-resume .ats-row > :last-child {
+  flex: none;
+}
+
+.ats-resume ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  columns: 2;
+  column-gap: 2rem;
+}
+
+.ats-resume li {
+  break-inside: avoid;
+}
+
 @media print {
   @page {
     size: A4;
@@ -1461,6 +1547,43 @@ button {
   body {
     color: var(--ink);
     font-size: 9pt;
+  }
+
+  .ats-resume {
+    width: auto;
+    margin: 0;
+    padding: 0;
+    font-size: 8.2pt;
+    line-height: 1.3;
+  }
+
+  .ats-resume header {
+    padding-bottom: 0.65rem;
+  }
+
+  .ats-resume h1 {
+    font-size: 16pt;
+  }
+
+  .ats-resume section {
+    padding-top: 0.45rem;
+  }
+
+  .ats-resume h2 {
+    margin-bottom: 0.25rem;
+    font-size: 7.8pt;
+  }
+
+  .ats-resume h3 {
+    font-size: 8.7pt;
+  }
+
+  .ats-resume article {
+    padding: 0.12rem 0;
+  }
+
+  .ats-resume ul {
+    columns: 1;
   }
 
   .skip-link,
@@ -1509,7 +1632,7 @@ button {
   }
 
   .wordmark::after {
-    content: "Software Engineer & Product Builder";
+    content: var(--print-headline);
     display: block;
     margin-top: 0.25rem;
     color: var(--muted);
@@ -1662,13 +1785,16 @@ button {
     text-align: left;
   }
 
-  #capabilities {
+  html[data-profile-length="long"] #capabilities {
     break-before: page;
+  }
+
+  #capabilities {
     padding-top: 0;
   }
 
-  #capabilities::before {
-    content: "Rodrigo Uroz  ·  Software Engineer & Product Builder";
+  html[data-profile-length="long"] #capabilities::before {
+    content: var(--print-identity);
     display: block;
     margin-bottom: 1rem;
     color: var(--muted);

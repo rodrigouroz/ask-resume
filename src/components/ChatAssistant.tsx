@@ -87,14 +87,14 @@ export function ChatAssistant(props: ChatAssistantProps) {
         ref={panelRef}
         className={`chat-panel ${open ? "is-open" : ""}`}
         role={modal ? "dialog" : "complementary"}
-        aria-labelledby="ask-rodrigo-title"
+        aria-labelledby="assistant-title"
         aria-modal={modal && open ? true : undefined}
         aria-hidden={!open}
         inert={!open}
       >
         <div className="chat-handle" aria-hidden="true" />
         <div className="chat-header">
-          <h2 id="ask-rodrigo-title">{text(copy.chat.title)}</h2>
+          <h2 id="assistant-title">{text(copy.chat.title)}</h2>
           <div className="chat-header-actions">
             <button className="new-chat-button" type="button" onClick={startNewChat}>
               {text(copy.chat.newChat)}

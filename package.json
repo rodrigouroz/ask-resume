@@ -19,7 +19,10 @@
     "fallow:check": "node scripts/fallow-audit.mjs",
     "hooks:install": "git config core.hooksPath .githooks",
     "prepare": "npm run hooks:install",
+    "profile:init": "node scripts/profile-init.mjs",
     "profile:check": "node scripts/profile-check.mjs",
+    "profile:check:template": "node scripts/profile-check.mjs profile.template",
+    "profile:privacy": "node scripts/profile-privacy-check.mjs",
     "logos:suggest": "node scripts/logos-suggest.mjs",
     "eval:live": "node scripts/eval-live.mjs",
     "cv:pdf": "npm run build && node scripts/generate-cv.mjs",
@@ -28,7 +31,7 @@
     "verify:live": "node scripts/verify-live.mjs",
     "cf:types:generate": "wrangler types --env-file .dev.vars.example",
     "cf:types": "wrangler types --env-file .dev.vars.example --check",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run cf:types"
+    "check": "npm run profile:privacy && npm run profile:check:template && npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run cf:types"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.3.0",

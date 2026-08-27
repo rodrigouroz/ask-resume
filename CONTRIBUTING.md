@@ -1,11 +1,12 @@
 # Contributing
 
-Thanks for helping improve the profile CV starter.
+Thanks for helping improve Ask Resume.
 
 ## Before opening a change
 
 - Keep professional claims grounded in an approved source.
-- Add approved evidence once in `profile/evidence.json`, in canonical English, with stable `factId`, `sourceId`, and `sectionId` values. Localize visible source labels separately.
+- Use `profile.template/` for committed fixtures and product-level tests. Never commit a real person's active `profile/`.
+- Add approved evidence once in the active `profile/evidence.json`, in canonical English, with stable `factId`, `sourceId`, and `sectionId` values. Localize visible source labels separately.
 - Do not infer facts from private repositories, screenshots, email, or preparation notes.
 - Preserve the career-first information hierarchy.
 - Treat independent projects as personal work; do not add traction or success language without explicit evidence.
@@ -17,6 +18,7 @@ Use Node 26 and install from the lockfile:
 
 ```bash
 npm ci
+npm run profile:init
 ```
 
 Install the Fallow-managed pre-commit hook once per clone:
@@ -43,3 +45,5 @@ Keep changes focused and document any visible deviation from the approved design
 The corpus is a public trust boundary, not a convenient place for plausible biography. A new fact must be explicitly approved by the profile owner and include its own stable ID and review date. Do not promote preparation notes or implementation details discovered in a repository into approved evidence.
 
 When a fact change affects model behavior or safety, update the `evals` array in `profile/evidence.json` and run the live suite against the intended environment. Equivalent Spanish and English questions should return the same stable evidence IDs.
+
+Before submitting, `npm run profile:privacy` must confirm that `profile/` and `output/` are ignored and untracked.

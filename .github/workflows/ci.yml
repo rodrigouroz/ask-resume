@@ -25,6 +25,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - run: npm run profile:init
       - run: npm run check
       - run: npm run test:coverage
       - run: npm run fallow:check -- --base "$FALLOW_BASE"
@@ -41,6 +42,7 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
+      - run: npm run profile:init
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v7

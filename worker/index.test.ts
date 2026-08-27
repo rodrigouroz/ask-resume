@@ -4,6 +4,11 @@ import { evidenceConfig, profile } from "../src/profile";
 
 const primarySource = evidenceConfig.items[0];
 if (!primarySource) throw new Error("Missing test evidence");
+const firstExperience = profile.presentation.experiences[0];
+if (!firstExperience) throw new Error("Missing test experience");
+const profileOrigin = new URL(profile.seo.baseUrl).origin;
+const profileUrl = (path: string) => new URL(path, profile.seo.baseUrl);
+const shortQuestion = `${firstExperience.company}?`;
 
 const workerDependencies = vi.hoisted(() => ({
   createOpenAIModel: vi.fn<(apiKey: string) => GroundedModel>(),
@@ -71,7 +76,7 @@ describe("POST /api/ask", () => {
     const limit = vi.fn<RateLimit["limit"]>(async () => ({ success: true }));
     const testEnv = env(true, {}, limit);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/not-an-api-route"),
+      new Request(profileUrl("/not-an-api-route")),
       testEnv,
       {} as ExecutionContext,
     );
@@ -87,7 +92,7 @@ describe("POST /api/ask", () => {
     const limit = vi.fn<RateLimit["limit"]>(async () => ({ success: true }));
     const testEnv = env(true, {}, limit);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask"),
+      new Request(profileUrl("/api/ask")),
       testEnv,
       {} as ExecutionContext,
     );
@@ -102,7 +107,7 @@ describe("POST /api/ask", () => {
     const modelFactory = vi.fn<() => GroundedModel>(() => model);
     const worker = createWorker(modelFactory);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", { method: "POST", body: "{" }),
+      new Request(profileUrl("/api/ask"), { method: "POST", body: "{" }),
       env(),
       {} as ExecutionContext,
     );
@@ -116,7 +121,7 @@ describe("POST /api/ask", () => {
     const analytics = analyticsBinding();
     const worker = createWorker(() => model);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
         body: JSON.stringify({
           question: `¿En qué trabajó ${profile.identity.firstName}?`,
@@ -145,7 +150,7 @@ describe("POST /api/ask", () => {
     const modelFactory = vi.fn<() => GroundedModel>(() => model);
     const worker = createWorker(modelFactory);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
         body: JSON.stringify({ question: "x".repeat(501), uiLanguage: "en" }),
       }),
@@ -161,10 +166,10 @@ describe("POST /api/ask", () => {
     const modelFactory = vi.fn<() => GroundedModel>(() => model);
     const worker = createWorker(modelFactory);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
         body: JSON.stringify({
-          question: "ClassDojo?",
+          question: shortQuestion,
           uiLanguage: "en",
           history: Array.from({ length: 7 }, (_, index) => ({
             question: `Question ${index}`,
@@ -184,9 +189,9 @@ describe("POST /api/ask", () => {
     const modelFactory = vi.fn<() => GroundedModel>(() => model);
     const worker = createWorker(modelFactory);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
-        body: JSON.stringify({ question: "ClassDojo?", uiLanguage: "en" }),
+        body: JSON.stringify({ question: shortQuestion, uiLanguage: "en" }),
       }),
       env(false),
       {} as ExecutionContext,
@@ -201,9 +206,12 @@ describe("POST /api/ask", () => {
     const modelFactory = vi.fn<() => GroundedModel>(() => model);
     const worker = createWorker(modelFactory, async () => false);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
-        body: JSON.stringify({ question: "¿Dónde trabaja Rodrigo?", uiLanguage: "en" }),
+        body: JSON.stringify({
+          question: `¿Dónde trabaja ${profile.identity.firstName}?`,
+          uiLanguage: "en",
+        }),
       }),
       env(true, { PRODUCT_ANALYTICS: analytics.binding }),
       {} as ExecutionContext,
@@ -225,9 +233,12 @@ describe("POST /api/ask", () => {
     const getByName = vi.fn<(name: string) => { consume: typeof consume }>(() => ({ consume }));
     const worker = createWorker(() => model);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
-        body: JSON.stringify({ question: "Where does Rodrigo work?", uiLanguage: "en" }),
+        body: JSON.stringify({
+          question: `Where does ${profile.identity.firstName} work?`,
+          uiLanguage: "en",
+        }),
       }),
       env(true, {
         ASK_DAILY_BUDGET: { getByName } as unknown as Env["ASK_DAILY_BUDGET"],
@@ -245,9 +256,9 @@ describe("POST /api/ask", () => {
   it("uses the production model with the configured OpenAI secret", async () => {
     const worker = createWorker();
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
-        body: JSON.stringify({ question: "ClassDojo?", uiLanguage: "en" }),
+        body: JSON.stringify({ question: shortQuestion, uiLanguage: "en" }),
       }),
       env(),
       {} as ExecutionContext,
@@ -264,7 +275,7 @@ describe("POST /api/ask", () => {
     const response = await worker.fetch!(
       new Request("https://profile.example/api/ask", {
         method: "POST",
-        body: JSON.stringify({ question: "ClassDojo?", uiLanguage: "en" }),
+        body: JSON.stringify({ question: shortQuestion, uiLanguage: "en" }),
       }),
       testEnv,
       {} as ExecutionContext,
@@ -308,7 +319,7 @@ describe("POST /api/ask", () => {
       throw new Error("Missing secret");
     });
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/ask", {
+      new Request(profileUrl("/api/ask"), {
         method: "POST",
         body: JSON.stringify({
           question: `¿En qué trabajó ${profile.identity.firstName}?`,
@@ -338,11 +349,11 @@ describe("POST /api/analytics", () => {
     const limit = vi.fn<RateLimit["limit"]>(async () => ({ success: true }));
     const worker = createWorker(() => model);
     const response = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/analytics", {
+      new Request(profileUrl("/api/analytics"), {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "https://rodrigouroz.com",
+          origin: profileOrigin,
           "sec-fetch-site": "same-origin",
         },
         body: JSON.stringify({ event: "chat_opened" }),
@@ -365,7 +376,7 @@ describe("POST /api/analytics", () => {
     const analytics = analyticsBinding();
     const worker = createWorker(() => model);
     const crossOriginResponse = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/analytics", {
+      new Request(profileUrl("/api/analytics"), {
         method: "POST",
         headers: { origin: "https://example.com", "sec-fetch-site": "cross-site" },
         body: JSON.stringify({ event: "chat_opened" }),
@@ -374,7 +385,7 @@ describe("POST /api/analytics", () => {
       {} as ExecutionContext,
     );
     const unknownEventResponse = await worker.fetch!(
-      new Request("https://rodrigouroz.com/api/analytics", {
+      new Request(profileUrl("/api/analytics"), {
         method: "POST",
         body: JSON.stringify({ event: "question_submitted", question: "private" }),
       }),

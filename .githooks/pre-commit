@@ -8,7 +8,7 @@ if [ ! -x "$fallow" ]; then
   exit 1
 fi
 
-diff_file=$(mktemp "${TMPDIR:-/tmp}/ask-rodrigo-pre-commit.XXXXXX") || exit 1
+diff_file=$(mktemp "${TMPDIR:-/tmp}/ask-resume-pre-commit.XXXXXX") || exit 1
 trap 'rm -f "$diff_file"' EXIT HUP INT TERM
 git diff --cached --binary --no-ext-diff >"$diff_file" || exit 1
 

@@ -1,20 +1,37 @@
 # Ask Resume
 
-This repository produces one online CV per checkout: an accessible website, a cited professional assistant, a visual CV, an ATS-oriented resume, SEO metadata, and an independent Cloudflare Worker deployment.
+Ask Resume turns one checkout into one person's online CV: an accessible website, a cited professional assistant, a visual CV, an ATS-oriented resume, SEO metadata, and an independent Cloudflare Worker deployment.
 
-The checked-in `profile/` is Rodrigo Uroz's real profile and preserves the current public design. `examples/marina-soler/profile/` is a completely fictional second profile used as the isolation test. There is no profile selector, account system, database of people, or multi-tenant runtime.
+There is no account system, profile selector, database of people, or multi-tenant runtime.
 
-## Quick start
+## How profiles work
 
-Use Node 26, then install and validate the checkout:
+The repository commits one fictional profile:
+
+```text
+profile.template/        synthetic Marina Soler starter, safe to commit
+profile/                 your active profile, ignored by Git
+output/                  generated artifacts, ignored by Git
+```
+
+`profile.template/` contains the fully working fictional Marina Soler example. `npm run profile:init` copies it to `profile/` only when that directory does not already exist. It never overwrites an active profile.
+
+Because `profile/` is ignored, Git does not back it up. Keep a private backup of your real profile and assets.
+
+## Create your CV
+
+Fork or clone the repository, then use Node 26:
 
 ```bash
 npm ci
+npm run profile:init
 npm run profile:check
 npm run dev
 ```
 
-Everything personal lives in one directory:
+Open the local URL printed by Vite. At first it shows the fictional Marina profile.
+
+Turn it into your real CV by editing only:
 
 ```text
 profile/
@@ -24,70 +41,56 @@ profile/
 └── assets/            favicon, social image, photos and local brand assets
 ```
 
-Edit only that directory to make the checkout represent another person. The build fails on invalid schemas, duplicate IDs, broken evidence references, unsafe asset paths, missing files, invalid URLs, or suspicious private-data fields.
+Replace every fictional identity, URL, deployment name, fact, evaluation, and asset before publishing. The validator rejects invalid schemas, duplicate IDs, broken evidence references, unsafe asset paths, missing files, invalid URLs, and suspicious private-data fields.
 
-Professional experience is the required core and must contain at least one entry. `capabilities`, `projects`, and `education` may be omitted or set to an empty array; `mentoring` and `beyond` may also be omitted. Empty sections disappear consistently from the navigation, website, visual CV, and ATS resume. Evidence cannot point to a section that the profile does not render.
+Professional experience is the required core and must contain at least one entry. `capabilities`, `projects`, and `education` may be omitted or empty; `mentoring` and `beyond` may also be omitted. Empty sections disappear from the navigation, website, visual CV, and ATS resume. Evidence cannot reference a section that is not rendered.
 
-## Commands
+## Validate and generate PDFs
 
 ```bash
 npm run profile:check
-npm run dev
+npm run check
+npm run test:coverage
+npx playwright install chromium
+npm run test:e2e
 npm run cv:pdf
-npm run eval:live -- https://your-preview.workers.dev
-npm run deploy
-npm run verify:live -- https://your-preview.workers.dev
 ```
 
-`npm run cv:pdf` writes both PDF projections named in `profile.json`: the visual CV and the additional linear ATS resume. The ATS artifact never replaces the public visual CV automatically.
+`npm run cv:pdf` generates the visual CV and linear ATS resume named in `profile/profile.json`. The ATS artifact never replaces the public visual CV automatically.
 
-`npm run deploy` builds a temporary Wrangler configuration from the active profile and deploys `<workerName>-preview` to `workers.dev` with no custom routes. Analytics Engine, rate limiting, the daily budget, Workers AI, and the Worker name are scoped by the active checkout. `npm run deploy:production` enables the profile's custom routes and must only be used after explicit production approval.
+PDF acceptance includes rendered-page inspection, extractable text, working links, reading order, metadata, page count, and tagging—not merely a successful command.
 
-For an OpenAI profile, copy the committed template, replace its placeholder locally, and configure the same secret on the preview Worker after its first deploy:
+## Deploy a preview
+
+The default provider is OpenAI. Create a local development secret and deploy the preview Worker:
 
 ```bash
 cp .dev.vars.example .dev.vars
-npx wrangler secret put OPENAI_API_KEY --name <workerName>-preview
+npm run deploy
+npx wrangler secret put OPENAI_API_KEY --name your-worker-preview
+npm run eval:live -- https://your-worker-preview.your-account.workers.dev
+npm run verify:live -- https://your-worker-preview.your-account.workers.dev
 ```
 
-A Workers AI profile needs no OpenAI secret.
+`npm run deploy` generates a temporary Wrangler configuration from the active `profile/`. The preview uses `<workerName>-preview`, no custom routes, and its own Analytics Engine dataset, rate limiter, and daily budget.
 
-## Proving profile isolation
-
-The Marina fixture is intended to be copied into a second checkout, not selected at runtime. It deliberately omits independent projects and mentoring to exercise optional-section behavior:
+After the preview passes and you have reviewed the site, chat, SEO, and PDFs:
 
 ```bash
-git clone <your-fork-url> marina-cv
-cd marina-cv
-# This intentionally replaces the checkout's active profile.
-rsync -a --delete --checksum examples/marina-soler/profile/ profile/
-npm ci
-npm run profile:check
-npm run check
-npm run test:e2e
-npm run cv:pdf
-npm run deploy
+npm run deploy:production
 ```
 
-Before publishing the starter, the Rodrigo and Marina checkouts must each pass their local and live gates. The Marina build is also scanned for Rodrigo's names, domains, source IDs, brands, and assets. Production remains unchanged until both previews receive visual and conversational acceptance.
+Production deployment enables the custom domains configured in `profile/profile.json`. Use it only after confirming those routes and the target Cloudflare account.
 
-## Assistant providers
-
-`POST /api/ask`, its cited response, and the `GroundedModel` interface stay provider-independent.
-
-- `openai` remains Rodrigo's control provider.
-- `workers-ai` uses the `AI` binding and defaults to `@cf/zai-org/glm-4.7-flash`.
-- `@cf/zai-org/glm-5.3-flash` is recorded as an optional paid control, not an automatic default.
-
-Provider adoption is evidence-based. The same bilingual live suite checks grounding, exact citations, honest negatives, malformed output, private-data requests, and prompt-injection attempts. GLM 4.7 becomes the starter default only after it reaches parity with the OpenAI control; otherwise OpenAI remains the default.
-
-The August 2026 preview evaluation did not reach that bar: both GLM presets failed supported or adversarial cases, and the 4.7 two-pass path was too slow for the chat UX. The checked-in Rodrigo and Marina profiles therefore use OpenAI by default. See [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md) for the evidence and retest procedure.
+Workers AI remains available as an evaluation provider. The checked-in GLM presets are not the default because the latest recorded run did not meet the grounding and latency bar. See [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
 
 ## Evidence and privacy boundary
 
-Every assistant claim must exist in `profile/evidence.json` as a public fact with stable `sourceId`, `sectionId`, `factId`, and `reviewedAt` values. Time-sensitive facts also use `expiresAt` and disappear from runtime context when stale. The model receives the full current corpus; Vectorize and embeddings are intentionally absent.
+Every assistant claim must exist in `profile/evidence.json` as a public fact with stable `sourceId`, `sectionId`, `factId`, and `reviewedAt` values. Time-sensitive facts also use `expiresAt` and disappear from runtime context when stale. Tailoring may select and reorder verified facts; it must never invent metrics.
 
 The assistant has no repository, browser, email, filesystem, or private-data access. Unsupported questions use a localized deterministic fallback. Conversations stay in the current tab. Analytics contain only allowlisted aggregate event names and counts—never question text, answers, safety IDs, IP addresses, or visitor identifiers.
+
+Do not put credentials, private notes, unpublished evidence, or other secrets in either profile directory. Git ignore prevents new accidental commits; it is not encryption and does not erase earlier repository history.
 
 ## Logos and assets
 
@@ -97,19 +100,20 @@ Runtime assets are always local. Each asset-backed brand records a local path an
 npm run logos:suggest -- "Company name" company.example
 ```
 
-This command prints discovery links for the official site, Logo.dev, and Loguitos. It never downloads or incorporates a mark. Neither Logo.dev nor Loguitos is a runtime dependency or deployment requirement.
+This command prints discovery links for the official site, Logo.dev, and Loguitos. It never downloads or incorporates a mark. Neither service is a runtime dependency.
 
-## Quality gates
+## Commands
 
 ```bash
-npm run check
-npm run test:coverage
-npx playwright install chromium
-npm run test:e2e
+npm run profile:init
+npm run profile:check
+npm run profile:privacy
+npm run dev
 npm run cv:pdf
+npm run eval:live -- https://your-preview.workers.dev
+npm run deploy
+npm run verify:live -- https://your-preview.workers.dev
 ```
-
-`npm run check` covers formatting, type-aware lint, TypeScript, unit tests, the production build, profile validation, and Cloudflare binding drift. Playwright covers desktop/mobile behavior and SEO. PDF acceptance also requires rendered-page inspection, extractable text, links, reading order, metadata, page count, and tagging—not merely a successful print command.
 
 The reusable-resume decisions and sources are versioned in [docs/resume-principles.md](docs/resume-principles.md). See [CONTRIBUTING.md](CONTRIBUTING.md) for the evidence-change contract and [SECURITY.md](SECURITY.md) for responsible disclosure.
 

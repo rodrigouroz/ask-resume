@@ -5,6 +5,15 @@ import { evidenceConfigSchema, profileSchema, themeSchema } from "../src/profile
 const profileDirectory = resolve(process.argv[2] ?? "profile");
 const assetsDirectory = resolve(profileDirectory, "assets");
 
+try {
+  await access(profileDirectory);
+} catch (error) {
+  if (error?.code === "ENOENT") {
+    throw new Error(`Missing ${profileDirectory}. Run \`npm run profile:init\` first.`);
+  }
+  throw error;
+}
+
 async function readJson(fileName) {
   return JSON.parse(await readFile(resolve(profileDirectory, fileName), "utf8"));
 }

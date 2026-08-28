@@ -2,7 +2,8 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
-import { evidenceConfig, profile } from "./profile";
+import { evidenceConfig } from "./evidence";
+import { profile } from "./profile";
 
 const firstExperience = profile.presentation.experiences[0]!;
 const firstProject = profile.presentation.projects[0];
@@ -86,7 +87,13 @@ beforeEach(() => {
               answer: normalized.includes("bullets")
                 ? `At ${firstExperience.company}, ${profile.identity.firstName} worked on: - Product discovery. - Software delivery. - Production validation.`
                 : "A grounded test answer.",
-              citations: [{ sourceId: source.sourceId, sectionId: source.sectionId }],
+              citations: [
+                {
+                  sourceId: source.sourceId,
+                  sectionId: source.sectionId,
+                  label: source.labels[uiLanguage],
+                },
+              ],
             }
           : {
               status: "unknown",

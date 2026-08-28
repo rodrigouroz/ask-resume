@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { GroundedModel } from "../src/assistant/model";
-import { evidenceConfig, profile } from "../src/profile";
+import { evidenceConfig } from "../src/evidence";
+import { profile } from "../src/profile";
 
 const primarySource = evidenceConfig.items[0];
 if (!primarySource) throw new Error("Missing test evidence");
@@ -145,7 +146,13 @@ describe("POST /api/ask", () => {
     await expect(response.json()).resolves.toMatchObject({
       status: "answered",
       language: "es",
-      citations: [{ sourceId: primarySource.sourceId, sectionId: primarySource.sectionId }],
+      citations: [
+        {
+          sourceId: primarySource.sourceId,
+          sectionId: primarySource.sectionId,
+          label: primarySource.labels.es,
+        },
+      ],
     });
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(analytics.writeDataPoint.mock.calls).toEqual([

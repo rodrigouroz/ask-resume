@@ -1,5 +1,4 @@
-import OpenAI from "openai";
-import { zodTextFormat } from "openai/helpers/zod";
+import { z } from "zod";
 import {
   evidenceJson,
   groundedDraftSchema,
@@ -17,9 +16,60 @@ const MODERATION = {
 } as const;
 
 type ParsedResponse = { output_parsed?: unknown };
-type ResponsesClient = {
+export type ResponsesClient = {
   parse(input: Record<string, unknown>): Promise<ParsedResponse>;
 };
+
+type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+const responsePayloadSchema = z.object({
+  output_text: z.string().optional(),
+  output: z
+    .array(
+      z.object({
+        content: z.array(z.object({ type: z.string(), text: z.string().optional() })).optional(),
+      }),
+    )
+    .optional(),
+});
+
+function jsonSchemaFormat(schema: z.ZodType, name: string) {
+  return {
+    type: "json_schema",
+    name,
+    strict: true,
+    schema: z.toJSONSchema(schema),
+  } as const;
+}
+
+function createOpenAIResponsesClient(apiKey: string, fetcher: Fetcher = fetch): ResponsesClient {
+  return {
+    async parse(input) {
+      const response = await fetcher("https://api.openai.com/v1/responses", {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          authorization: `Bearer ${apiKey}`,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) {
+        throw new Error(`OpenAI Responses API failed with ${response.status}`);
+      }
+
+      const payload = responsePayloadSchema.parse(await response.json());
+      const outputText =
+        payload.output_text ??
+        payload.output
+          ?.flatMap(({ content = [] }) => content)
+          .find(({ type, text }) => type === "output_text" && text)?.text;
+      if (!outputText) throw new Error("OpenAI Responses API returned no output text");
+
+      return { output_parsed: JSON.parse(outputText) as unknown };
+    },
+  };
+}
 
 function safetyParameter(safetyIdentifier: string | undefined): Record<string, string> {
   return safetyIdentifier ? { safety_identifier: safetyIdentifier } : {};
@@ -27,7 +77,7 @@ function safetyParameter(safetyIdentifier: string | undefined): Record<string, s
 
 export function createOpenAIModel(
   apiKey: string,
-  responses: ResponsesClient = new OpenAI({ apiKey }).responses,
+  responses: ResponsesClient = createOpenAIResponsesClient(apiKey),
 ): GroundedModel {
   return {
     safetyIdentifierSupport: "provider",
@@ -40,7 +90,7 @@ export function createOpenAIModel(
         moderation: MODERATION,
         instructions: groundingDraftInstructions(),
         input: `APPROVED_CORPUS:\n${evidenceJson(corpus)}\n\nRESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
-        text: { format: zodTextFormat(groundedDraftSchema, "grounded_answer") },
+        text: { format: jsonSchemaFormat(groundedDraftSchema, "grounded_answer") },
         ...safetyParameter(safetyIdentifier),
       });
 
@@ -57,7 +107,7 @@ export function createOpenAIModel(
         instructions: groundingVerificationInstructions(language),
         input: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
         text: {
-          format: zodTextFormat(groundingVerificationSchema, "grounding_verification"),
+          format: jsonSchemaFormat(groundingVerificationSchema, "grounding_verification"),
         },
         ...safetyParameter(safetyIdentifier),
       });

@@ -3,9 +3,13 @@ import { z } from "zod";
 
 export type SectionId = "experience" | "capabilities" | "projects" | "education" | "about";
 
-export type Citation = {
+export type EvidenceReference = {
   sourceId: string;
   sectionId: SectionId;
+};
+
+export type Citation = EvidenceReference & {
+  label: string;
 };
 
 export type ConversationTurn = {
@@ -36,7 +40,7 @@ export type CanonicalFact = {
   expiresAt?: IsoDate;
 };
 
-export type CanonicalEvidence = Citation & {
+export type CanonicalEvidence = EvidenceReference & {
   title: string;
   facts: readonly CanonicalFact[];
 };
@@ -54,16 +58,4 @@ export const askRequestSchema = z.object({
     .max(6)
     .optional(),
   safetyId: z.uuid().optional(),
-});
-
-export const askResponseSchema = z.object({
-  status: z.enum(["answered", "unknown"]),
-  language: z.enum(["en", "es"]),
-  answer: z.string(),
-  citations: z.array(
-    z.object({
-      sourceId: z.string(),
-      sectionId: z.enum(["experience", "capabilities", "projects", "education", "about"]),
-    }),
-  ),
 });

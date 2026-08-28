@@ -246,5 +246,4 @@ export type ProfileConfig = z.infer<typeof profileSchema>;
 export type DeploymentConfig = ProfileConfig["deployment"];
 /** @expected-unused Public evidence contract for integrations and tooling. */
 export type EvidenceItem = z.infer<typeof evidenceItemSchema>;
-export type EvidenceConfig = z.infer<typeof evidenceConfigSchema>;
 export type ThemeConfig = z.infer<typeof themeSchema>;

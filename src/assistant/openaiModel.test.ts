@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { profile } from "../profile";
 import { getCurrentAssistantCorpus } from "./corpus";
 import { ANSWER_MODEL, VERIFICATION_MODEL } from "./modelConfig";
@@ -10,6 +10,58 @@ const secondaryEvidence = corpus[1];
 if (!primaryEvidence || !secondaryEvidence) throw new Error("Missing test evidence");
 
 describe("OpenAI grounded model", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("calls the Responses API directly and parses structured output", async () => {
+    const fetcher = vi.fn<() => Promise<Response>>(async () =>
+      Response.json({
+        output: [
+          {
+            type: "message",
+            content: [
+              {
+                type: "output_text",
+                text: `{"answer":"Grounded","sourceIds":["${primaryEvidence.sourceId}"]}`,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetcher);
+    const model = createOpenAIModel("test-key");
+
+    await expect(
+      model.draft({ corpus, language: "en", question: "Summarize the public profile." }),
+    ).resolves.toEqual({
+      answer: "Grounded",
+      sourceIds: [primaryEvidence.sourceId],
+    });
+    expect(fetcher).toHaveBeenCalledWith(
+      "https://api.openai.com/v1/responses",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ authorization: "Bearer test-key" }),
+      }),
+    );
+  });
+
+  it("reports provider failures without exposing the response body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<() => Promise<Response>>(
+        async () => new Response("sensitive provider detail", { status: 401 }),
+      ),
+    );
+    const model = createOpenAIModel("test-key");
+
+    await expect(
+      model.draft({ corpus, language: "en", question: "Summarize the public profile." }),
+    ).rejects.toThrow("OpenAI Responses API failed with 401");
+  });
+
   it("uses Terra with low reasoning and puts the full corpus before dynamic input", async () => {
     const parse = vi.fn<(input: Record<string, unknown>) => Promise<{ output_parsed: unknown }>>(
       async () => ({
@@ -38,6 +90,13 @@ describe("OpenAI grounded model", () => {
         policy: { input: { mode: "block" }, output: { mode: "block" } },
       },
       safety_identifier: "550e8400-e29b-41d4-a716-446655440000",
+      text: {
+        format: {
+          type: "json_schema",
+          name: "grounded_answer",
+          strict: true,
+        },
+      },
     });
     expect(model.safetyIdentifierSupport).toBe("provider");
     expect(request?.instructions).not.toContain("Spanish");

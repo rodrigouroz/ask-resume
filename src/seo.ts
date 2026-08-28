@@ -1,6 +1,5 @@
-// Imported by the Vite config build entry, which production dead-code analysis does not traverse.
-// fallow-ignore-file unused-file
-import { evidenceConfig, profile } from "./profile.ts";
+import { evidenceConfig } from "./evidence.ts";
+import { profile } from "./profile.ts";
 
 function escapeHtml(value: string): string {
   return value

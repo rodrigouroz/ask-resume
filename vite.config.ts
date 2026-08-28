@@ -3,8 +3,13 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import type { Plugin } from "vite";
-import { profile } from "./src/profile.ts";
+import { profile, theme } from "./src/profile.ts";
+import { profileSchema, themeSchema } from "./src/profileSchema.ts";
 import { profileStructuredData, renderProfileHtml, robotsText, sitemapXml } from "./src/seo.ts";
+import { workerRuntimeConfig } from "./src/workerRuntimeConfig.ts";
+
+profileSchema.parse(profile);
+themeSchema.parse(theme);
 
 function headersText(): string {
   const structuredData = JSON.stringify(profileStructuredData).replaceAll("<", "\\u003c");
@@ -66,28 +71,7 @@ export default defineConfig(({ mode }) => ({
               name: profile.deployment.workerName,
               routes: [],
               workers_dev: true,
-              vars: {
-                AI_PROVIDER: profile.deployment.aiProvider,
-                DAILY_ASK_LIMIT: String(profile.deployment.dailyQuestionLimit),
-                PROFILE_SLUG: profile.identity.slug,
-                WORKERS_AI_MODEL: profile.deployment.workersAiModel,
-              },
-              ...(profile.deployment.aiProvider === "workers-ai"
-                ? { ai: { binding: "AI", remote: true } }
-                : {}),
-              analytics_engine_datasets: [
-                {
-                  binding: "PRODUCT_ANALYTICS",
-                  dataset: profile.deployment.analyticsDataset,
-                },
-              ],
-              ratelimits: [
-                {
-                  name: "ASK_RATE_LIMITER",
-                  namespace_id: profile.deployment.rateLimitNamespaceId,
-                  simple: { limit: 10, period: 60 },
-                },
-              ],
+              ...workerRuntimeConfig(profile),
             },
           }),
         ]),

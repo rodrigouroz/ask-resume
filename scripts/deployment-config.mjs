@@ -1,6 +1,7 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { evidenceConfigSchema, profileSchema } from "../src/profileSchema.ts";
+import { workerRuntimeConfig } from "../src/workerRuntimeConfig.ts";
 
 async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
@@ -40,27 +41,9 @@ export async function generateDeploymentConfig({ production = false } = {}) {
       }))
     : [];
   config.workers_dev = true;
-  config.vars = {
-    AI_PROVIDER: deployment.aiProvider,
-    DAILY_ASK_LIMIT: String(deployment.dailyQuestionLimit),
-    PROFILE_SLUG: profile.identity.slug,
-    WORKERS_AI_MODEL: deployment.workersAiModel,
-  };
-  if (deployment.aiProvider === "workers-ai") {
-    config.ai = { binding: "AI", remote: true };
-  } else {
-    delete config.ai;
-  }
-  config.analytics_engine_datasets = [
-    { binding: "PRODUCT_ANALYTICS", dataset: deployment.analyticsDataset },
-  ];
-  config.ratelimits = [
-    {
-      name: "ASK_RATE_LIMITER",
-      namespace_id: deployment.rateLimitNamespaceId,
-      simple: { limit: 10, period: 60 },
-    },
-  ];
+  const runtimeConfig = workerRuntimeConfig(profile);
+  Object.assign(config, runtimeConfig);
+  if (!("ai" in runtimeConfig)) delete config.ai;
 
   delete config.configPath;
   delete config.userConfigPath;

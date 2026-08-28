@@ -1,4 +1,5 @@
 {
+  "entry": ["src/seo.ts"],
   "ignorePatterns": ["worker-configuration.d.ts"],
   "audit": {
     "gate": "new-only",

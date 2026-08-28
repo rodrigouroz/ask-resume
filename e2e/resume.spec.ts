@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import type { Page } from "@playwright/test";
-import { evidenceConfig, profile } from "../src/profile";
+import { evidenceConfig } from "../src/evidence";
+import { profile } from "../src/profile";
 
 const copy = profile.presentation.copy;
 const firstExperience = profile.presentation.experiences[0]!;
@@ -17,7 +18,13 @@ async function mockGroundedAnswer(page: Page, answer: { language: "en" | "es"; t
         status: "answered",
         language: answer.language,
         answer: answer.text,
-        citations: [{ sourceId: experienceSource.sourceId, sectionId: experienceSource.sectionId }],
+        citations: [
+          {
+            sourceId: experienceSource.sourceId,
+            sectionId: experienceSource.sectionId,
+            label: experienceSource.labels[answer.language],
+          },
+        ],
       }),
     });
   });

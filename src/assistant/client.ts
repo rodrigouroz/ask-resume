@@ -1,6 +1,6 @@
 import { profileIdentity, type Language } from "../content";
-import { askResponseSchema } from "./contracts";
 import type { AskResponse, ConversationTurn } from "./contracts";
+import { parseAskResponse } from "./responseValidation";
 
 const SAFETY_ID_KEY = `${profileIdentity.slug}-safety-id`;
 type SessionStorage = {
@@ -46,5 +46,5 @@ export async function askProfile(
     signal: signal ?? null,
   });
   if (!response.ok) throw new Error(`Profile assistant request failed with ${response.status}`);
-  return askResponseSchema.parse(await response.json());
+  return parseAskResponse(await response.json());
 }

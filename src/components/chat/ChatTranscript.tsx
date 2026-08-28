@@ -1,6 +1,6 @@
 import type { Language } from "../../content";
 import { contact, copy, externalLinks } from "../../content";
-import { citationHref, sourceLabel } from "../../assistant/sources";
+import { citationHref } from "../../assistant/sources";
 import type { AssistantTurn } from "../../assistant/useAssistantConversation";
 import { MailIcon } from "../Icons";
 
@@ -59,7 +59,7 @@ export function ChatTranscript({
               onClick={onClose}
               key={`${citation.sourceId}:${citation.sectionId}`}
             >
-              [{sourceLabel(citation.sourceId, response.language)}]
+              [{citation.label}]
             </a>
           ))}
           {response.status === "unknown" ? (

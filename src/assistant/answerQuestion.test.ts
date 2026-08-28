@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { evidenceConfig, profile } from "../profile";
+import { evidenceConfig } from "../evidence";
+import { profile } from "../profile";
 import { createAnswerService } from "./answerQuestion";
 import type { GroundedModel } from "./model";
 
@@ -40,9 +41,19 @@ describe("bilingual grounded answers", () => {
     expect(english.language).toBe("en");
     expect(spanish.language).toBe("es");
     expect(english.citations).toEqual([
-      { sourceId: primarySource.sourceId, sectionId: primarySource.sectionId },
+      {
+        sourceId: primarySource.sourceId,
+        sectionId: primarySource.sectionId,
+        label: primarySource.labels.en,
+      },
     ]);
-    expect(spanish.citations).toEqual(english.citations);
+    expect(spanish.citations).toEqual([
+      {
+        sourceId: primarySource.sourceId,
+        sectionId: primarySource.sectionId,
+        label: primarySource.labels.es,
+      },
+    ]);
     expect(draft.mock.calls[0]?.[0].corpus.length).toBe(evidenceConfig.items.length);
     expect(draft.mock.calls[1]?.[0].corpus).toEqual(draft.mock.calls[0]?.[0].corpus);
   });
@@ -105,7 +116,11 @@ describe("bilingual grounded answers", () => {
 
     expect(response.status).toBe("answered");
     expect(response.citations).toEqual([
-      { sourceId: primarySource.sourceId, sectionId: primarySource.sectionId },
+      {
+        sourceId: primarySource.sourceId,
+        sectionId: primarySource.sectionId,
+        label: primarySource.labels.en,
+      },
     ]);
     expect(verify).not.toHaveBeenCalled();
   });
@@ -177,7 +192,11 @@ describe("bilingual grounded answers", () => {
     });
 
     expect(response.citations).toEqual([
-      { sourceId: secondarySource.sourceId, sectionId: secondarySource.sectionId },
+      {
+        sourceId: secondarySource.sourceId,
+        sectionId: secondarySource.sectionId,
+        label: secondarySource.labels.en,
+      },
     ]);
     expect(verify.mock.calls[0]?.[0].evidence.map(({ sourceId }) => sourceId)).toEqual([
       secondarySource.sourceId,

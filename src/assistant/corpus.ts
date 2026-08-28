@@ -1,4 +1,4 @@
-import { evidenceConfig } from "../profile";
+import { evidenceConfig } from "../evidence";
 import type { CanonicalEvidence, IsoDate } from "./contracts";
 import { currentCorpus, validateCorpus } from "./corpusValidation.js";
 

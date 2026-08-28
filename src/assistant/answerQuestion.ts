@@ -1,4 +1,5 @@
 import { copy, type Language } from "../content";
+import { evidenceLabel } from "../evidence";
 import type { AskRequest, AskResponse } from "./contracts";
 import { getCurrentAssistantCorpus } from "./corpus";
 import { todayIsoDate } from "./corpusValidation";
@@ -125,7 +126,11 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
         }
       }
 
-      const citations = citedEvidence.map(({ sectionId, sourceId }) => ({ sectionId, sourceId }));
+      const citations = citedEvidence.map(({ sectionId, sourceId }) => ({
+        sectionId,
+        sourceId,
+        label: evidenceLabel(sourceId, language),
+      }));
       return { status: "answered", language, answer: draft.answer, citations };
     } catch (error) {
       console.error(

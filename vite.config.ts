@@ -17,7 +17,7 @@ function headersText(): string {
   const scriptHash = createHash("sha256").update(inlineScript).digest("base64");
   return [
     "/*",
-    `  Content-Security-Policy: default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'sha256-${scriptHash}'; style-src 'self'; upgrade-insecure-requests`,
+    `  Content-Security-Policy: default-src 'self'; base-uri 'self'; connect-src 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self' 'sha256-${scriptHash}' https://static.cloudflareinsights.com; style-src 'self'; upgrade-insecure-requests`,
     "  Cross-Origin-Opener-Policy: same-origin",
     "  Cross-Origin-Resource-Policy: same-origin",
     "  Permissions-Policy: camera=(), geolocation=(), microphone=()",
@@ -58,6 +58,7 @@ const profileAssetsPlugin: Plugin = {
 };
 
 export default defineConfig(({ mode }) => ({
+  build: { assetsInlineLimit: 0 },
   publicDir: "profile/assets",
   plugins: [
     profileAssetsPlugin,

@@ -7,12 +7,12 @@ async function readJson(path) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
-async function builtWranglerPath() {
-  const entries = await readdir(resolve("dist"), { withFileTypes: true });
+async function builtWranglerPath(root) {
+  const entries = await readdir(resolve(root, "dist"), { withFileTypes: true });
   const candidates = [];
   for (const entry of entries) {
     if (!entry.isDirectory() || entry.name === "client") continue;
-    const candidate = resolve("dist", entry.name, "wrangler.json");
+    const candidate = resolve(root, "dist", entry.name, "wrangler.json");
     try {
       await readFile(candidate, "utf8");
       candidates.push(candidate);
@@ -26,10 +26,10 @@ async function builtWranglerPath() {
   return candidates[0];
 }
 
-export async function generateDeploymentConfig({ production = false } = {}) {
-  const profile = profileSchema.parse(await readJson(resolve("profile/profile.json")));
-  evidenceConfigSchema.parse(await readJson(resolve("profile/evidence.json")));
-  const sourcePath = await builtWranglerPath();
+export async function generateDeploymentConfig({ production = false, root = process.cwd() } = {}) {
+  const profile = profileSchema.parse(await readJson(resolve(root, "profile/profile.json")));
+  evidenceConfigSchema.parse(await readJson(resolve(root, "profile/evidence.json")));
+  const sourcePath = await builtWranglerPath(root);
   const config = await readJson(sourcePath);
   const deployment = profile.deployment;
 

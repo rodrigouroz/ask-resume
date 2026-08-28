@@ -11,6 +11,7 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "html", "json"],
       include: [
+        "scripts/deployment-config.mjs",
         "src/**/*.{ts,tsx}",
         "worker/index.ts",
         "worker/workersAiModel.ts",

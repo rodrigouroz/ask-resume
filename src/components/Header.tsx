@@ -28,7 +28,7 @@ function LanguageSwitch({
       <legend className="sr-only">{label}</legend>
       <button
         type="button"
-        aria-label={switchToEnglish}
+        aria-label={`EN — ${switchToEnglish}`}
         aria-pressed={language === "en"}
         onClick={() => onLanguageChange("en")}
       >
@@ -37,7 +37,7 @@ function LanguageSwitch({
       <span aria-hidden="true">·</span>
       <button
         type="button"
-        aria-label={switchToSpanish}
+        aria-label={`ES — ${switchToSpanish}`}
         aria-pressed={language === "es"}
         onClick={() => onLanguageChange("es")}
       >

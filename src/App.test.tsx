@@ -223,7 +223,9 @@ describe("configured profile public interface", () => {
     const user = userEvent.setup();
     render(<App />);
 
-    await user.click(screen.getAllByRole("button", { name: "Switch language to Spanish" })[0]!);
+    await user.click(
+      screen.getAllByRole("button", { name: "ES — Switch language to Spanish" })[0]!,
+    );
 
     expect(
       screen.getByRole("heading", {

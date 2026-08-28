@@ -304,7 +304,7 @@
     "socialImageAlt": "Marina Soler — fictional product engineer profile"
   },
   "seo": {
-    "baseUrl": "https://marina-soler.example.com/",
+    "baseUrl": "https://ask-marina-soler.your-account.workers.dev/",
     "title": "Marina Soler · Product Engineer · Fictional Demo",
     "description": "Fictional Product Engineer profile used to validate the reusable online CV starter.",
     "socialDescription": "A fictional Product Engineer profile demonstrating an independent CV checkout.",

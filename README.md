@@ -29,6 +29,9 @@ profile/
 
 Replace every fictional identity, URL, deployment name, fact, evaluation, and asset before publishing.
 
+Keep `deployment.customDomains` in `profile.json`. Use an empty array when you do not own a
+domain; the Cloudflare deployment will use your account's `workers.dev` subdomain instead.
+
 Professional experience is required. Capabilities, projects, education, mentoring, and personal information are optional; empty sections are not rendered.
 
 `profile/` is ignored by Git. Keep a private backup of your real profile and assets.
@@ -59,6 +62,48 @@ You do not need to run the repository unit tests, coverage, or Playwright end-to
 
 The default deployment uses Cloudflare Workers AI and does not require a model API key.
 
+Choose the public production URL before deploying and set `seo.baseUrl` to that exact URL,
+including the trailing slash. Canonical metadata, `robots.txt`, and `sitemap.xml` use this value.
+
+If you do not own a domain, keep the explicit empty array from the template:
+
+```json
+{
+  "deployment": {
+    "customDomains": []
+  }
+}
+```
+
+Production will remain available at:
+
+```text
+https://<workerName>.<account-subdomain>.workers.dev/
+```
+
+Use that URL as `seo.baseUrl`. Your Cloudflare account subdomain is shown in the Workers & Pages
+dashboard. Cloudflare documents `workers.dev` as the way to deploy without first adding a custom
+domain; it is intended primarily for personal, hobby, and other non-business-critical projects.
+
+If you own a domain, add each hostname and its Cloudflare zone instead, then use the canonical
+hostname as `seo.baseUrl`:
+
+```json
+{
+  "deployment": {
+    "customDomains": [
+      {
+        "hostname": "cv.example.com",
+        "zoneName": "example.com"
+      }
+    ]
+  }
+}
+```
+
+See Cloudflare's [`workers.dev` documentation](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/)
+for account-subdomain setup and production guidance.
+
 Create an isolated preview first:
 
 ```bash
@@ -66,7 +111,8 @@ npx wrangler login
 npm run deploy
 ```
 
-The command prints the preview URL. After reviewing the website, assistant, SEO, and PDFs, verify that preview and deploy the configured production domains:
+The command prints the isolated `<workerName>-preview` URL. After reviewing the website,
+assistant, SEO, and PDFs, verify that preview and deploy the production Worker:
 
 ```bash
 npm run verify:live -- https://your-preview.workers.dev
@@ -74,7 +120,9 @@ npm run eval:live -- https://your-preview.workers.dev
 npm run deploy:production
 ```
 
-Production deployment uses the Cloudflare account and custom domains configured in `profile/profile.json`; confirm both before running it.
+`deploy:production` always publishes the stable `workers.dev` URL. When `customDomains` contains
+hostnames, it also attaches the configured Cloudflare routes. Confirm the account, public URL, and
+domain configuration before running it.
 
 Advanced provider configuration, model selection, quotas, and evaluation evidence live in [docs/workers-ai-evaluation.md](docs/workers-ai-evaluation.md).
 

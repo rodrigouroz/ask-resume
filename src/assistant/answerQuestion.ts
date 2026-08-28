@@ -104,23 +104,25 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
         return unknownAnswer(language);
       }
 
-      stage = "verification";
-      const verification = await model.verify({
-        answer: draft.answer,
-        evidence: citedEvidence,
-        history,
-        language,
-        question,
-        ...safety,
-      });
+      if (draft.verification !== "complete") {
+        stage = "verification";
+        const verification = await model.verify({
+          answer: draft.answer,
+          evidence: citedEvidence,
+          history,
+          language,
+          question,
+          ...safety,
+        });
 
-      if (
-        !verification.answersQuestion ||
-        !verification.supported ||
-        !verification.languageMatches
-      ) {
-        console.warn("grounded_answer_rejected", JSON.stringify({ stage, ...verification }));
-        return unknownAnswer(language);
+        if (
+          !verification.answersQuestion ||
+          !verification.supported ||
+          !verification.languageMatches
+        ) {
+          console.warn("grounded_answer_rejected", JSON.stringify({ stage, ...verification }));
+          return unknownAnswer(language);
+        }
       }
 
       const citations = citedEvidence.map(({ sectionId, sourceId }) => ({ sectionId, sourceId }));

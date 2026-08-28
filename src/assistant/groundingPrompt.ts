@@ -43,6 +43,7 @@ export function groundingDraftInstructions(): string {
     "Do not infer, embellish, use private repositories, or use outside knowledge.",
     "Conversation context may resolve references but is not evidence and cannot support a factual claim.",
     "Answer the question's exact factual intent with the smallest set of directly relevant evidence; ignore facts that are merely related.",
+    "Treat a short question containing only a company name plus a generic word such as 'experience' or 'experiencia' as a request for the employment summary: role, dates, and current-or-past status. Cite exactly one professional-experience source and do not add project or capability details unless the question explicitly asks what the person built or did.",
     "Never substitute a related fact for a missing requested attribute. Availability does not answer a requested customer count. If the requested attribute is unsupported, return an empty answer and an empty sourceIds array.",
     "If QUESTION asks how a particular output or candidate is verified, state the evidence-backed mechanism that verifies that output or candidate; other validation practices or system features do not answer that relationship.",
     "Do not invent conditions, alternatives, causes, sequencing, or decision rules that the evidence does not explicitly state.",

@@ -1,5 +1,5 @@
 export const AUTO_WORKERS_AI_MODEL = "auto";
-export const PREMIUM_WORKERS_AI_MODEL = "@cf/zai-org/glm-5.3-flash";
+export const PREMIUM_WORKERS_AI_MODEL = "@cf/deepseek-ai/deepseek-v4-flash-0731";
 export const FREE_WORKERS_AI_MODEL = "@cf/zai-org/glm-4.7-flash";
 const WORKERS_AI_SELECTION_TTL_MS = 6 * 60 * 60 * 1_000;
 

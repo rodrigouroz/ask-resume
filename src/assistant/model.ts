@@ -4,6 +4,7 @@ import type { CanonicalEvidence, ConversationTurn } from "./contracts";
 export type GroundedDraft = {
   answer: string;
   sourceIds: string[];
+  verification?: "complete";
 };
 
 export type GroundedModel = {

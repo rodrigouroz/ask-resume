@@ -51,7 +51,7 @@ describe("Workers AI grounded model", () => {
     expect(input).toMatchObject({
       reasoning_effort: "low",
       chat_template_kwargs: { enable_thinking: false },
-      max_completion_tokens: 700,
+      max_completion_tokens: 300,
       response_format: {
         type: "json_schema",
         json_schema: {
@@ -72,7 +72,7 @@ describe("Workers AI grounded model", () => {
     expect(JSON.stringify(input)).toContain("Spanish");
     expect(JSON.stringify(input)).toContain("exact factual intent");
     expect(run.mock.calls[0]?.[2]).toEqual({
-      extraHeaders: { "x-session-affinity": "test-profile:draft-v3" },
+      extraHeaders: { "x-session-affinity": "test-profile:draft-v4" },
     });
   });
 
@@ -111,7 +111,7 @@ describe("Workers AI grounded model", () => {
     expect(JSON.stringify(calls[0]?.[1])).toContain(
       "standard technical terms may remain in their original language",
     );
-    expect(calls[0]?.[1]).toMatchObject({ max_completion_tokens: 300, store: false });
+    expect(calls[0]?.[1]).toMatchObject({ max_completion_tokens: 80, store: false });
     expect(run.mock.calls[0]?.[2]).toEqual({
       extraHeaders: { "x-session-affinity": "test-profile:verify-v3" },
     });
@@ -153,6 +153,8 @@ describe("Workers AI grounded model", () => {
       const usageCall = log.mock.calls.find(([event]) => event === "workers_ai_usage");
       const output = JSON.stringify(log.mock.calls);
       expect(JSON.parse(String(usageCall?.[1]))).toMatchObject({
+        stage: "draft",
+        elapsedMs: expect.any(Number),
         promptTokens: 100,
         cachedPromptTokens: 80,
         completionTokens: 20,
@@ -224,17 +226,9 @@ describe("Workers AI grounded model", () => {
         language: "en",
         question: `Where does ${profile.identity.firstName} work?`,
       });
-      await model.verify({
-        answer: draft.answer,
-        evidence: [primaryEvidence],
-        language: "en",
-        question: `Where does ${profile.identity.firstName} work?`,
-      });
+      expect(draft.verification).toBe("complete");
 
-      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
-        FREE_WORKERS_AI_MODEL,
-        PREMIUM_WORKERS_AI_MODEL,
-      ]);
+      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([PREMIUM_WORKERS_AI_MODEL]);
       expect(log).toHaveBeenCalledOnce();
       expect(log).toHaveBeenCalledWith(
         "workers_ai_model_selected",
@@ -297,8 +291,8 @@ describe("Workers AI grounded model", () => {
       });
 
       expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
-        FREE_WORKERS_AI_MODEL,
         PREMIUM_WORKERS_AI_MODEL,
+        FREE_WORKERS_AI_MODEL,
         FREE_WORKERS_AI_MODEL,
       ]);
       expect(selection).toMatchObject({
@@ -376,7 +370,7 @@ describe("Workers AI grounded model", () => {
         }),
       ).rejects.toThrow("3040");
       expect(run).toHaveBeenCalledOnce();
-      expect(run.mock.calls[0]?.[0]).toBe(FREE_WORKERS_AI_MODEL);
+      expect(run.mock.calls[0]?.[0]).toBe(PREMIUM_WORKERS_AI_MODEL);
     } finally {
       error.mockRestore();
     }

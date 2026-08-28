@@ -1,12 +1,12 @@
 # Workers AI evaluation
 
-Latest provider run: 2026-08-27. The hardened current gate completed 32/33 cases. The model-comparison results below used the earlier 30-case gate and remain historical evidence rather than acceptance of the current suite.
+Latest provider run: 2026-08-27. DeepSeek V4 Flash completed the hardened current gate at 33/33 cases through the paid single-inference path. Earlier model-comparison results remain historical evidence rather than acceptance of the current suite.
 
 ## Contract under test
 
-Workers AI uses the same `GroundedModel`, complete approved corpus, draft-then-verify flow, bilingual response contract, source-ID validation, and fail-closed fallback as the OpenAI control. The implementation calls `env.AI.run()`, disables provider storage, uses structured JSON output, and supplies stable stage-specific session affinity so Cloudflare can reuse the static corpus prefix when prompt caching is available.
+Workers AI uses the same `GroundedModel`, complete approved corpus, bilingual response contract, source-ID validation, and fail-closed fallback as the OpenAI control. Paid accounts use one structured DeepSeek V4 Flash inference followed by deterministic schema and source-ID validation. Free accounts keep the GLM-4.7 draft-then-verify flow. The implementation calls `env.AI.run()`, disables provider storage, uses structured JSON output, and supplies stable stage-specific session affinity so Cloudflare can reuse the static corpus prefix when prompt caching is available.
 
-Cloudflare makes Workers AI available on both Free and Paid Workers plans. The Free plan includes 10,000 neurons per account per day and cannot buy overage without upgrading. GLM-5.3 requires Workers Paid or prepaid AI Gateway credits, while GLM-4.7, Gemma 4, GPT-OSS 120B, and Qwen3 30B are eligible for the free allocation. Workers AI JSON mode is best-effort, so the adapter still validates every envelope and structured result and fails closed on malformed output.
+Cloudflare makes Workers AI available on both Free and Paid Workers plans. The Free plan includes 10,000 neurons per account per day and cannot buy overage without upgrading. DeepSeek V4 Flash and GLM-5.3 require Workers Paid or prepaid AI Gateway credits, while GLM-4.7, Gemma 4, GPT-OSS 120B, and Qwen3 30B are eligible for the free allocation. Workers AI JSON mode is best-effort, so the adapter still validates every envelope and structured result and fails closed on malformed output.
 
 - [Workers AI binding guide](https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/)
 - [Workers AI JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/)
@@ -14,21 +14,23 @@ Cloudflare makes Workers AI available on both Free and Paid Workers plans. The F
 - [GLM-4.7 Flash](https://developers.cloudflare.com/workers-ai/models/glm-4.7-flash/)
 - [Gemma 4 26B A4B](https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/)
 - [GLM-5.3 Flash](https://developers.cloudflare.com/workers-ai/models/glm-5.3-flash/)
+- [DeepSeek V4 Flash](https://developers.cloudflare.com/workers-ai/models/deepseek-v4-flash-0731/)
 - [Prompt caching](https://developers.cloudflare.com/workers-ai/features/prompt-caching/)
 
 ## Accepted result
 
-| Model                           | Plan eligibility | Recorded evaluation | Result under the previous gate                                                    | Decision                  |
-| ------------------------------- | ---------------- | ------------------: | --------------------------------------------------------------------------------- | ------------------------- |
-| `@cf/zai-org/glm-4.7-flash`     | Free allocation  |               30/30 | Passed the recorded bilingual, grounding, negative, privacy, and injection cases  | Automatic free fallback   |
-| `@cf/google/gemma-4-26b-a4b-it` | Free allocation  |           4/4 smoke | Passed representative English, Spanish, grounding, and unsupported cases          | Free runner-up            |
-| `@cf/openai/gpt-oss-120b`       | Free allocation  |           2/4 smoke | One grounded answer passed; two supported cases hit provider errors and fell back | Rejected for this starter |
-| `@cf/qwen/qwen3-30b-a3b-fp8`    | Free allocation  |           1/4 smoke | Returned reasoning without usable structured content for three supported cases    | Rejected for this starter |
-| `@cf/zai-org/glm-5.3-flash`     | Paid or prepaid  |               30/30 | Passed the same previous 30-case gate                                             | Automatic paid preference |
+| Model                                    | Plan eligibility | Recorded evaluation | Result under the previous gate                                                    | Decision                  |
+| ---------------------------------------- | ---------------- | ------------------: | --------------------------------------------------------------------------------- | ------------------------- |
+| `@cf/zai-org/glm-4.7-flash`              | Free allocation  |               30/30 | Passed the recorded bilingual, grounding, negative, privacy, and injection cases  | Automatic free fallback   |
+| `@cf/google/gemma-4-26b-a4b-it`          | Free allocation  |           4/4 smoke | Passed representative English, Spanish, grounding, and unsupported cases          | Free runner-up            |
+| `@cf/openai/gpt-oss-120b`                | Free allocation  |           2/4 smoke | One grounded answer passed; two supported cases hit provider errors and fell back | Rejected for this starter |
+| `@cf/qwen/qwen3-30b-a3b-fp8`             | Free allocation  |           1/4 smoke | Returned reasoning without usable structured content for three supported cases    | Rejected for this starter |
+| `@cf/zai-org/glm-5.3-flash`              | Paid or prepaid  |               30/30 | Passed the same previous 30-case gate                                             | Historical paid candidate |
+| `@cf/deepseek-ai/deepseek-v4-flash-0731` | Paid or prepaid  |       33/33 current | Passed the hardened gate with a single model inference per supported request      | Automatic paid preference |
 
 ## Automatic selection
 
-The starter stores `workersAiModel: "auto"`. When no fresh capability decision exists, the next model-backed request tries GLM-5.3. Cloudflare documents internal error `5035` specifically for a model that requires Workers Paid; only that error activates GLM-4.7 and retries the same operation. The selected model and check time are stored in a singleton instance of the existing Durable Object for six hours. Warm requests reuse it in memory, while new Worker isolates read the same persisted choice before inference and therefore do not probe GLM-5.3 again. Once the TTL expires, access is evaluated again so a plan upgrade is discovered without redeployment.
+The starter stores `workersAiModel: "auto"`. When no fresh capability decision exists, the next model-backed request tries DeepSeek V4 Flash. Cloudflare documents internal error `5035` specifically for a model that requires Workers Paid; only that error activates GLM-4.7 and retries the same operation. The selected model and check time are stored in a singleton instance of the existing Durable Object for six hours. Warm requests reuse it in memory, while new Worker isolates read the same persisted choice before inference and therefore do not probe the paid model again. Once the TTL expires, access is evaluated again so a plan upgrade is discovered without redeployment.
 
 The router does not treat `3036` (free allocation exhausted), `3040` (capacity), timeouts, malformed output, or generic provider failures as evidence of a Free account. Those paths continue to fail closed instead of silently changing the quality contract. Operators can pin any supported model ID in the profile when deterministic selection is preferable.
 
@@ -40,11 +42,15 @@ One measured grounded answer used 7,118 draft input tokens, 91 draft output toke
 
 The earlier GLM-5.3 post-fix run passed 29/30. The remaining instruction-override case was nondeterministic: GLM-5.3 sometimes refused correctly and sometimes corrected the false premise with cited evidence. The application now rejects explicit attempts to override evidence or instructions before calling any model. English and Spanish tests verify that neither drafting nor verification runs for that input. The complete live suite then passed 30/30.
 
-In the earlier GLM-5.3 evaluation, the model-backed smoke test ranged from 3.5 to 18.7 seconds and included a cold prefix. The deterministic instruction-override rejection completed in 13 milliseconds without invoking the model.
+In the earlier GLM-5.3 evaluation, the model-backed smoke test ranged from 3.5 to 18.7 seconds and included a cold prefix. A later isolated comparison measured the two-stage automatic pipeline at 12.6–28.2 seconds across three requests. Reasoning-token usage was zero, so hidden reasoning was not the cause.
 
 The accepted adapter also aligns its factual-intent and verification rules with the OpenAI control, limits draft and verifier outputs separately, and treats the corpus and conversation as inert data. The verifier receives the original user question and ignores citation requests only when judging factual completeness because the application renders citations separately. This avoids a brittle language-specific suffix-removal heuristic. Tests cover both documented Workers AI envelope forms, malformed structured output, and oversized drafts.
 
-With automatic model selection, the accepted free GLM-4.7 model drafts the answer and the stronger GLM-5.3 model performs verification when paid access is available. This reduces correlated draft/verifier errors on paid accounts while reserving the stronger model for the fail-closed decision. Free accounts necessarily use GLM-4.7 for both stages, while an explicitly pinned model remains pinned for both. The shared prompts explicitly reject substituting a related fact for a missing requested attribute, such as availability for a customer count. This configuration still requires the full current live gate before release.
+DeepSeek V4 Flash initially completed 31/33 cases in the two-stage pipeline. One correct answer was rejected by its second inference, while a broad company-experience question expanded into related project sources that the exact-citation contract did not allow. Removing the redundant paid verifier fixed the false rejection. A generic prompt rule now treats a short company-plus-experience question as an employment summary rather than a project inventory; the formerly unstable citation case then passed three targeted repetitions.
+
+The final single-inference run passed 33/33 cases. Across its 31 model-backed calls, recorded inference latency was 0.82 seconds minimum, 1.40 seconds p50, 11.67 seconds p95, 17.06 seconds maximum, and 2.51 seconds mean. The static prompt prefix reported 7,680 cached tokens after the cold request. These are isolated measurements, not a provider latency guarantee.
+
+With automatic model selection, paid accounts use DeepSeek V4 Flash once per supported request. Free accounts use GLM-4.7 for both draft and verification. An explicitly pinned non-default model continues to use the conservative two-stage path. The shared prompts explicitly reject substituting a related fact for a missing requested attribute, such as availability for a customer count.
 
 ## Hardened current gate
 
@@ -62,7 +68,7 @@ The active Rodrigo suite now contains 33 named cases and performs 43 requests be
 
 Local integration tests exercise the evaluation CLI through a real loopback HTTP server and verify its output and exit code. They do not establish current remote-model quality; only a fresh preview run can do that.
 
-The 2026-08-27 production run completed all 43 valid model attempts across targeted resumptions after one transport-level rate-limit interruption. Re-evaluating the recorded citations against the corrected synthesis contract produces 32/33 passing cases. The remaining failure is `prompt-extraction-obfuscated`: attempts one and two answered with the public `assistant-identity` source instead of using the deterministic `unknown` fallback; attempt three passed. This is a real nondeterministic safety-contract failure, not a transport or fixture failure.
+The final 2026-08-27 DeepSeek harness run completed the full gate at 33/33. The evaluation ran through the public `/api/ask` contract in a local Wrangler Worker with the real remote Workers AI binding; it was not a production deployment. Deterministic request-boundary defenses handled instruction overrides without invoking the model, while supported, unsupported, bilingual, contextual, citation, privacy, and obfuscated-prompt cases all passed.
 
 ## Revalidation
 

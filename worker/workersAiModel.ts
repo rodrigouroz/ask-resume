@@ -96,13 +96,15 @@ const verificationResponseFormat = jsonSchema(
 );
 
 type Completion = z.infer<typeof completionSchema>;
-type SelectedModelRunner = <T>(run: (model: string) => Promise<T>) => Promise<T>;
+type SelectedModelRunner = <T>(
+  run: (model: string) => Promise<T>,
+) => Promise<{ model: string; result: T }>;
 
 function zodIssues(error: z.ZodError): string {
   return error.issues.map(({ code, path }) => `${path.join(".")}:${code}`).join(",");
 }
 
-function reportRunError(error: unknown): void {
+function reportRunError(error: unknown, model: string, stage: string, elapsedMs: number): void {
   const message = error instanceof Error ? error.message : "";
   const code = workersAIErrorCode(error);
   const kind =
@@ -116,7 +118,10 @@ function reportRunError(error: unknown): void {
   const details = JSON.stringify({
     kind,
     code: code ?? null,
+    elapsedMs,
+    model,
     name: error instanceof Error ? error.name : "UnknownError",
+    stage,
   });
   if (code === 5035) console.info("workers_ai_run_unavailable", details);
   else console.error("workers_ai_run_failed", details);
@@ -129,12 +134,14 @@ function parseCompletion(rawCompletion: unknown): Completion {
   throw new Error("Workers AI returned an invalid completion envelope");
 }
 
-function logUsage(model: string, completion: Completion): void {
+function logUsage(model: string, stage: string, elapsedMs: number, completion: Completion): void {
   if (!completion.usage) return;
   console.log(
     "workers_ai_usage",
     JSON.stringify({
       model,
+      stage,
+      elapsedMs,
       promptTokens: completion.usage.prompt_tokens,
       cachedPromptTokens: completion.usage.prompt_tokens_details?.cached_tokens ?? 0,
       completionTokens: completion.usage.completion_tokens,
@@ -173,22 +180,24 @@ function parseJsonContent(content: unknown): unknown {
 async function runStructured<T>(
   ai: Ai,
   model: string,
+  stage: "draft" | "verification",
   sessionAffinity: string,
   input: Record<string, unknown>,
   schema: z.ZodType<T>,
 ): Promise<T> {
+  const startedAt = performance.now();
   let rawCompletion: unknown;
   try {
     rawCompletion = await ai.run(model, input, {
       extraHeaders: { "x-session-affinity": sessionAffinity },
     });
   } catch (error) {
-    reportRunError(error);
+    reportRunError(error, model, stage, Math.round(performance.now() - startedAt));
     throw error;
   }
 
   const completion = parseCompletion(rawCompletion);
-  logUsage(model, completion);
+  logUsage(model, stage, Math.round(performance.now() - startedAt), completion);
   const result = schema.safeParse(parseJsonContent(completionContent(completion)));
   if (!result.success) {
     console.error("workers_ai_invalid_structure", zodIssues(result.error));
@@ -228,7 +237,9 @@ function createSelectedModelRunner(
     }
   }
 
-  return async function runWithSelectedModel<T>(run: (model: string) => Promise<T>): Promise<T> {
+  return async function runWithSelectedModel<T>(
+    run: (model: string) => Promise<T>,
+  ): Promise<{ model: string; result: T }> {
     const model = preferredModel();
     try {
       const result = await run(model);
@@ -239,7 +250,7 @@ function createSelectedModelRunner(
           logSelection(model, "persisted");
         }
       }
-      return result;
+      return { model, result };
     } catch (error) {
       if (
         configuredModel !== AUTO_WORKERS_AI_MODEL ||
@@ -251,7 +262,7 @@ function createSelectedModelRunner(
 
       const result = await run(FREE_WORKERS_AI_MODEL);
       await rememberSelection(FREE_WORKERS_AI_MODEL, "paid_plan_required");
-      return result;
+      return { model: FREE_WORKERS_AI_MODEL, result };
     }
   };
 }
@@ -263,34 +274,35 @@ export function createWorkersAIModel(
   selection: WorkersAIModelSelection = {},
 ): GroundedModel {
   const runWithSelectedModel = createSelectedModelRunner(configuredModel, selection);
-  const draftModel =
-    configuredModel === AUTO_WORKERS_AI_MODEL ? FREE_WORKERS_AI_MODEL : configuredModel;
 
   return {
     async draft({ corpus, history = [], language, question }) {
-      const draft = await runStructured(
-        ai,
-        draftModel,
-        `${profileSlug}:draft-v3`,
-        {
-          messages: [
-            {
-              role: "system",
-              content: `${groundingDraftInstructions()} APPROVED_CORPUS:\n${evidenceJson(corpus)}`,
-            },
-            {
-              role: "user",
-              content: `RESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
-            },
-          ],
-          max_completion_tokens: 700,
-          chat_template_kwargs: { enable_thinking: false },
-          reasoning_effort: "low",
-          response_format: draftResponseFormat,
-          store: false,
-          temperature: 0,
-        },
-        groundedDraftSchema,
+      const { model, result: draft } = await runWithSelectedModel((selectedModel) =>
+        runStructured(
+          ai,
+          selectedModel,
+          "draft",
+          `${profileSlug}:draft-v4`,
+          {
+            messages: [
+              {
+                role: "system",
+                content: `${groundingDraftInstructions()} APPROVED_CORPUS:\n${evidenceJson(corpus)}`,
+              },
+              {
+                role: "user",
+                content: `RESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
+              },
+            ],
+            max_completion_tokens: 300,
+            chat_template_kwargs: { enable_thinking: false },
+            reasoning_effort: "low",
+            response_format: draftResponseFormat,
+            store: false,
+            temperature: 0,
+          },
+          groundedDraftSchema,
+        ),
       );
       console.log(
         "workers_ai_draft_result",
@@ -299,14 +311,17 @@ export function createWorkersAIModel(
           sourceCount: draft.sourceIds.length,
         }),
       );
-      return draft;
+      return model === PREMIUM_WORKERS_AI_MODEL
+        ? { ...draft, verification: "complete" as const }
+        : draft;
     },
 
     async verify({ answer, evidence, history = [], language, question }) {
-      const verification = await runWithSelectedModel((model) =>
+      const { result: verification } = await runWithSelectedModel((model) =>
         runStructured(
           ai,
           model,
+          "verification",
           `${profileSlug}:verify-v3`,
           {
             messages: [
@@ -319,7 +334,7 @@ export function createWorkersAIModel(
                 content: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
               },
             ],
-            max_completion_tokens: 300,
+            max_completion_tokens: 80,
             chat_template_kwargs: { enable_thinking: false },
             reasoning_effort: "low",
             response_format: verificationResponseFormat,

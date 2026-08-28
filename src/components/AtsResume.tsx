@@ -39,7 +39,7 @@ export function AtsResume({ language }: { language: Language }) {
           <article key={experience.id}>
             <div className="ats-row">
               <h3>
-                {experience.company} — {text(experience.role)}
+                {experience.company}, {text(experience.role)}
               </h3>
               <p>{experience.period}</p>
             </div>

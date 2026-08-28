@@ -28,7 +28,7 @@ function LanguageSwitch({
       <legend className="sr-only">{label}</legend>
       <button
         type="button"
-        aria-label={`EN — ${switchToEnglish}`}
+        aria-label={`EN: ${switchToEnglish}`}
         aria-pressed={language === "en"}
         onClick={() => onLanguageChange("en")}
       >
@@ -37,7 +37,7 @@ function LanguageSwitch({
       <span aria-hidden="true">·</span>
       <button
         type="button"
-        aria-label={`ES — ${switchToSpanish}`}
+        aria-label={`ES: ${switchToSpanish}`}
         aria-pressed={language === "es"}
         onClick={() => onLanguageChange("es")}
       >
@@ -71,7 +71,7 @@ export function Header({ language, onLanguageChange }: HeaderProps) {
         className="wordmark"
         href="#top"
         aria-label={
-          language === "en" ? `${profileIdentity.name} — home` : `${profileIdentity.name} — inicio`
+          language === "en" ? `${profileIdentity.name}, home` : `${profileIdentity.name}, inicio`
         }
       >
         {profileIdentity.name}

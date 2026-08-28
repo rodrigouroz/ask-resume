@@ -3,6 +3,7 @@ import { askRequestSchema } from "../src/assistant/contracts";
 import type { GroundedModel } from "../src/assistant/model";
 import { createOpenAIModel } from "../src/assistant/openaiModel";
 import { resolveResponseLanguage } from "../src/assistant/language";
+import { profile } from "../src/profile";
 import { clientAnalyticsEventSchema, recordProductAnalyticsEvent } from "./productAnalytics";
 import { createWorkersAIModel } from "./workersAiModel";
 import {
@@ -53,6 +54,28 @@ function noContent(): Response {
   return new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
 }
 
+export function redirectToCanonicalDomain(
+  request: Request,
+  canonicalBaseUrl = profile.seo.baseUrl,
+  configuredHostnames = profile.deployment.customDomains.map(({ hostname }) => hostname),
+): Response | null {
+  const requestedUrl = new URL(request.url);
+  const canonicalUrl = new URL(canonicalBaseUrl);
+  const configuredHostname = configuredHostnames.includes(requestedUrl.hostname);
+
+  if (!configuredHostname || requestedUrl.hostname === canonicalUrl.hostname) return null;
+
+  requestedUrl.protocol = canonicalUrl.protocol;
+  requestedUrl.host = canonicalUrl.host;
+  return new Response(null, {
+    status: 308,
+    headers: {
+      "cache-control": "public, max-age=3600",
+      location: requestedUrl.toString(),
+    },
+  });
+}
+
 async function handleClientAnalytics(request: Request, env: Env): Promise<Response> {
   if (request.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -101,9 +124,14 @@ export function createWorker(
 
   return {
     async fetch(request, env) {
+      const redirect = redirectToCanonicalDomain(request);
+      if (redirect) return redirect;
+
       const url = new URL(request.url);
       if (url.pathname === "/api/analytics") return handleClientAnalytics(request, env);
-      if (url.pathname !== "/api/ask") return new Response("Not found", { status: 404 });
+      if (url.pathname !== "/api/ask") {
+        return env.ASSETS?.fetch(request) ?? new Response("Not found", { status: 404 });
+      }
       if (request.method !== "POST") {
         return json({ error: "Method not allowed" }, 405);
       }

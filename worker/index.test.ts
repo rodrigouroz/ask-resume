@@ -31,7 +31,7 @@ vi.mock("./workersAiModel", () => ({
   createWorkersAIModel: workerDependencies.createWorkersAIModel,
 }));
 vi.mock("./dailyBudget", () => ({ AskDailyBudget: class AskDailyBudget {} }));
-import { createWorker } from "./index";
+import { createWorker, redirectToCanonicalDomain } from "./index";
 
 const model: GroundedModel = {
   draft: vi.fn<GroundedModel["draft"]>(async ({ language }) => ({
@@ -50,7 +50,7 @@ const model: GroundedModel = {
 
 function env(
   rateLimitSuccess = true,
-  overrides: Partial<Pick<Env, "ASK_DAILY_BUDGET" | "PRODUCT_ANALYTICS">> = {},
+  overrides: Partial<Pick<Env, "ASSETS" | "ASK_DAILY_BUDGET" | "PRODUCT_ANALYTICS">> = {},
   limit = vi.fn<RateLimit["limit"]>(async () => ({ success: rateLimitSuccess })),
 ): Env {
   return {
@@ -79,18 +79,21 @@ describe("POST /api/ask", () => {
     workerDependencies.createOpenAIModel.mockReturnValue(model);
   });
 
-  it("leaves non-API routes to the configured asset fallback", async () => {
+  it("serves non-API routes from the configured asset binding", async () => {
     const modelFactory = vi.fn<() => GroundedModel>(() => model);
     const worker = createWorker(modelFactory);
     const limit = vi.fn<RateLimit["limit"]>(async () => ({ success: true }));
-    const testEnv = env(true, {}, limit);
+    const fetchAsset = vi.fn<Fetcher["fetch"]>(async () => new Response("asset"));
+    const testEnv = env(true, { ASSETS: { fetch: fetchAsset } as unknown as Fetcher }, limit);
     const response = await worker.fetch!(
       new Request(profileUrl("/not-an-api-route")),
       testEnv,
       {} as ExecutionContext,
     );
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toBe("asset");
+    expect(fetchAsset).toHaveBeenCalledOnce();
     expect(modelFactory).not.toHaveBeenCalled();
     expect(limit).not.toHaveBeenCalled();
   });
@@ -427,6 +430,35 @@ describe("POST /api/ask", () => {
       answer: profile.presentation.copy.chat.unknown.es,
       citations: [],
     });
+  });
+});
+
+describe("canonical domain", () => {
+  it("redirects configured aliases while preserving the path and query", () => {
+    const response = redirectToCanonicalDomain(
+      new Request("https://resume.example.com/projects?language=es"),
+      "https://cv.example.com/",
+      ["cv.example.com", "resume.example.com", "example.com"],
+    );
+
+    expect(response?.status).toBe(308);
+    expect(response?.headers.get("location")).toBe("https://cv.example.com/projects?language=es");
+  });
+
+  it("does not redirect the canonical domain or unconfigured preview hosts", () => {
+    expect(
+      redirectToCanonicalDomain(new Request("https://cv.example.com/"), "https://cv.example.com/", [
+        "cv.example.com",
+        "resume.example.com",
+      ]),
+    ).toBeNull();
+    expect(
+      redirectToCanonicalDomain(
+        new Request("https://ask-resume-preview.workers.dev/"),
+        "https://cv.example.com/",
+        ["cv.example.com", "resume.example.com"],
+      ),
+    ).toBeNull();
   });
 });
 

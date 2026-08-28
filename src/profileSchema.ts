@@ -168,7 +168,13 @@ const profileSchema = z.object({
   }),
   deployment: z.object({
     workerName: z.string().regex(/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/),
-    customDomains: z.array(z.object({ hostname: z.hostname(), zoneName: z.hostname() })),
+    customDomains: z.array(
+      z.object({
+        hostname: z.hostname(),
+        zoneName: z.hostname(),
+        customDomain: z.boolean().default(false),
+      }),
+    ),
     analyticsDataset: z.string().regex(/^[A-Za-z][A-Za-z0-9_]*$/),
     rateLimitNamespaceId: z.string().regex(/^\d+$/),
     dailyQuestionLimit: z.int().positive(),

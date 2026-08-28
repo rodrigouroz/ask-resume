@@ -35,11 +35,16 @@ export async function generateDeploymentConfig({ production = false } = {}) {
 
   config.name = production ? deployment.workerName : `${deployment.workerName}-preview`;
   config.routes = production
-    ? deployment.customDomains.map(({ hostname, zoneName }) => ({
-        pattern: `${hostname}/*`,
-        zone_name: zoneName,
-      }))
+    ? deployment.customDomains.map(({ hostname, zoneName, customDomain }) =>
+        customDomain
+          ? { pattern: hostname, custom_domain: true }
+          : { pattern: `${hostname}/*`, zone_name: zoneName },
+      )
     : [];
+  if (production) {
+    config.assets.binding = "ASSETS";
+    config.assets.run_worker_first = true;
+  }
   config.workers_dev = true;
   const runtimeConfig = workerRuntimeConfig(profile);
   Object.assign(config, runtimeConfig);

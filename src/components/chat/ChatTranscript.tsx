@@ -1,8 +1,7 @@
 import type { Language } from "../../content";
-import { contact, copy, externalLinks } from "../../content";
+import { copy } from "../../content";
 import { citationHref } from "../../assistant/sources";
 import type { AssistantTurn } from "../../assistant/useAssistantConversation";
-import { MailIcon } from "../Icons";
 
 function AnswerBody({ answer }: { answer: string }) {
   const [intro, ...items] = answer.split(/(?:^|\s+)[-•]\s+/).map((part) => part.trim());
@@ -62,12 +61,6 @@ export function ChatTranscript({
               [{citation.label}]
             </a>
           ))}
-          {response.status === "unknown" ? (
-            <a className="chat-fallback-cta" href={externalLinks.email}>
-              <MailIcon />
-              {contact.email}
-            </a>
-          ) : null}
         </div>
       ))}
       {pendingQuestion ? (

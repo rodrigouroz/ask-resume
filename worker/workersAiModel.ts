@@ -1,12 +1,9 @@
 import { z } from "zod";
 import {
-  evidenceJson,
-  groundedDraftSchema,
-  groundingDraftInstructions,
-  groundingVerificationInstructions,
-  groundingVerificationSchema,
-  languageName,
-} from "../src/assistant/groundingPrompt";
+  createGroundedModel,
+  type GroundedInferenceRequest,
+  type GroundedInferenceStage,
+} from "../src/assistant/groundedModel";
 import type { GroundedModel } from "../src/assistant/model";
 import {
   AUTO_WORKERS_AI_MODEL,
@@ -15,6 +12,8 @@ import {
   type ResolvedWorkersAIModel,
   type WorkersAIModelSelection,
 } from "./workersAiSelection";
+
+const CONTEXT_RESOLUTION_MODEL = "@cf/meta/llama-3.2-3b-instruct";
 
 function workersAIErrorCode(error: unknown): number | undefined {
   if (typeof error === "object" && error !== null && "code" in error) {
@@ -86,6 +85,11 @@ const draftResponseFormat = jsonSchema(
   ["answer", "sourceIds"],
 );
 
+const questionResolutionResponseFormat = jsonSchema(
+  { resolvedQuestion: { type: "string", minLength: 1, maxLength: 500 } },
+  ["resolvedQuestion"],
+);
+
 const verificationResponseFormat = jsonSchema(
   {
     answersQuestion: { type: "boolean" },
@@ -94,6 +98,18 @@ const verificationResponseFormat = jsonSchema(
   },
   ["answersQuestion", "languageMatches", "supported"],
 );
+
+const responseFormats = {
+  resolution: questionResolutionResponseFormat,
+  draft: draftResponseFormat,
+  verification: verificationResponseFormat,
+} satisfies Record<GroundedInferenceStage, ReturnType<typeof jsonSchema>>;
+
+const stageConfiguration = {
+  resolution: { affinity: "resolution-v3", maxCompletionTokens: 80 },
+  draft: { affinity: "draft-v6", maxCompletionTokens: 300 },
+  verification: { affinity: "verify-v4", maxCompletionTokens: 80 },
+} satisfies Record<GroundedInferenceStage, { affinity: string; maxCompletionTokens: number }>;
 
 type Completion = z.infer<typeof completionSchema>;
 type SelectedModelRunner = <T>(
@@ -180,7 +196,7 @@ function parseJsonContent(content: unknown): unknown {
 async function runStructured<T>(
   ai: Ai,
   model: string,
-  stage: "draft" | "verification",
+  stage: GroundedInferenceStage,
   sessionAffinity: string,
   input: Record<string, unknown>,
   schema: z.ZodType<T>,
@@ -204,6 +220,51 @@ async function runStructured<T>(
     throw new Error("Workers AI returned an invalid structured response");
   }
   return result.data;
+}
+
+function messages<T>(request: GroundedInferenceRequest<T>) {
+  return [
+    {
+      role: "system",
+      content: request.context
+        ? `${request.instructions} ${request.context}`
+        : request.instructions,
+    },
+    { role: "user", content: request.input },
+  ];
+}
+
+function logDraftResult(value: object): void {
+  const answer = Reflect.get(value, "answer");
+  const sourceIds = Reflect.get(value, "sourceIds");
+  console.log(
+    "workers_ai_draft_result",
+    JSON.stringify({
+      hasAnswer: typeof answer === "string" && answer.trim().length > 0,
+      sourceCount: Array.isArray(sourceIds) ? sourceIds.length : 0,
+    }),
+  );
+}
+
+function logVerificationResult(value: object): void {
+  console.log(
+    "workers_ai_verification_result",
+    JSON.stringify({
+      answersQuestion: Reflect.get(value, "answersQuestion"),
+      languageMatches: Reflect.get(value, "languageMatches"),
+      supported: Reflect.get(value, "supported"),
+    }),
+  );
+}
+
+const resultLoggers: Partial<Record<GroundedInferenceStage, (value: object) => void>> = {
+  draft: logDraftResult,
+  verification: logVerificationResult,
+};
+
+function logResult(stage: GroundedInferenceStage, value: unknown): void {
+  const log = resultLoggers[stage];
+  if (log && typeof value === "object" && value !== null) log(value);
 }
 
 function createSelectedModelRunner(
@@ -275,84 +336,38 @@ export function createWorkersAIModel(
 ): GroundedModel {
   const runWithSelectedModel = createSelectedModelRunner(configuredModel, selection);
 
-  return {
-    async draft({ corpus, history = [], language, question }) {
-      const { model, result: draft } = await runWithSelectedModel((selectedModel) =>
-        runStructured(
-          ai,
-          selectedModel,
-          "draft",
-          `${profileSlug}:draft-v4`,
-          {
-            messages: [
-              {
-                role: "system",
-                content: `${groundingDraftInstructions()} APPROVED_CORPUS:\n${evidenceJson(corpus)}`,
-              },
-              {
-                role: "user",
-                content: `RESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
-              },
-            ],
-            max_completion_tokens: 300,
-            chat_template_kwargs: { enable_thinking: false },
-            reasoning_effort: "low",
-            response_format: draftResponseFormat,
-            store: false,
-            temperature: 0,
-          },
-          groundedDraftSchema,
-        ),
-      );
-      console.log(
-        "workers_ai_draft_result",
-        JSON.stringify({
-          hasAnswer: draft.answer.trim().length > 0,
-          sourceCount: draft.sourceIds.length,
-        }),
-      );
-      return model === PREMIUM_WORKERS_AI_MODEL
-        ? { ...draft, verification: "complete" as const }
-        : draft;
-    },
-
-    async verify({ answer, evidence, history = [], language, question }) {
-      const { result: verification } = await runWithSelectedModel((model) =>
+  return createGroundedModel({
+    async run(request) {
+      const configuration = stageConfiguration[request.stage];
+      const run = (model: string) =>
         runStructured(
           ai,
           model,
-          "verification",
-          `${profileSlug}:verify-v3`,
+          request.stage,
+          `${profileSlug}:${configuration.affinity}`,
           {
-            messages: [
-              {
-                role: "system",
-                content: groundingVerificationInstructions(language),
-              },
-              {
-                role: "user",
-                content: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
-              },
-            ],
-            max_completion_tokens: 80,
+            messages: messages(request),
+            max_completion_tokens: configuration.maxCompletionTokens,
             chat_template_kwargs: { enable_thinking: false },
             reasoning_effort: "low",
-            response_format: verificationResponseFormat,
+            response_format: responseFormats[request.stage],
             store: false,
             temperature: 0,
           },
-          groundingVerificationSchema,
-        ),
-      );
-      console.log(
-        "workers_ai_verification_result",
-        JSON.stringify({
-          answersQuestion: verification.answersQuestion,
-          languageMatches: verification.languageMatches,
-          supported: verification.supported,
-        }),
-      );
-      return verification;
+          request.schema,
+        );
+      const { model, result } =
+        request.stage === "resolution"
+          ? { model: CONTEXT_RESOLUTION_MODEL, result: await run(CONTEXT_RESOLUTION_MODEL) }
+          : await runWithSelectedModel(run);
+
+      logResult(request.stage, result);
+      return {
+        value: result,
+        ...(request.stage === "draft" && model === PREMIUM_WORKERS_AI_MODEL
+          ? { verification: "complete" as const }
+          : {}),
+      };
     },
-  };
+  });
 }

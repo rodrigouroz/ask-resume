@@ -225,6 +225,30 @@ describe("bilingual grounded answers", () => {
     expect(verify.mock.calls[0]?.[0].history).toEqual(history);
   });
 
+  it("verifies a resolved follow-up as the same standalone question used for drafting", async () => {
+    const history = [
+      {
+        question: `What are ${profile.identity.firstName}'s interests?`,
+        answer: `${profile.identity.firstName} has interests outside work.`,
+      },
+    ];
+    const resolvedQuestion = `What are ${profile.identity.name}'s professional interests?`;
+    const draft = vi.fn<GroundedModel["draft"]>(async () => ({
+      resolvedQuestion,
+      answer: `${profile.identity.firstName} combines product judgment with hands-on engineering.`,
+      sourceIds: [primarySource.sourceId],
+    }));
+    const verify = approvingVerifier();
+    const answerQuestion = createAnswerService({ model: { draft, verify } });
+
+    await answerQuestion({ question: "And work related?", uiLanguage: "en", history });
+
+    expect(verify.mock.calls[0]?.[0]).toMatchObject({
+      history: [],
+      question: resolvedQuestion,
+    });
+  });
+
   it.each([
     { support: undefined, expected: undefined },
     { support: "provider" as const, expected: "550e8400-e29b-41d4-a716-446655440000" },

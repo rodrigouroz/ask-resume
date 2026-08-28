@@ -889,26 +889,6 @@ button {
   text-underline-offset: 4px;
 }
 
-.chat-fallback-cta {
-  width: fit-content;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin-top: 1rem;
-  padding: 0.65rem 0.85rem;
-  border: 1px solid var(--blue);
-  border-radius: 3px;
-  color: var(--blue);
-  font-size: 0.8rem;
-  font-weight: 720;
-  text-underline-offset: 4px;
-}
-
-.chat-fallback-cta svg {
-  width: 16px;
-}
-
 .chat-form {
   position: relative;
   margin-top: 1.4rem;
@@ -952,7 +932,7 @@ button {
 
 .contact-chat-link {
   min-height: 44px;
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 0.55rem;
   margin-top: 1.25rem;
@@ -1383,10 +1363,6 @@ button {
 
   .chat-empty {
     min-height: 190px;
-  }
-
-  .contact-chat-link {
-    display: inline-flex;
   }
 }
 

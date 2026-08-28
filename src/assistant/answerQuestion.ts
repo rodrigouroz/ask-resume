@@ -1,10 +1,10 @@
 import { copy, type Language } from "../content";
 import { evidenceLabel } from "../evidence";
-import type { AskRequest, AskResponse } from "./contracts";
+import type { AskRequest, AskResponse, CanonicalEvidence, ConversationTurn } from "./contracts";
 import { getCurrentAssistantCorpus } from "./corpus";
 import { todayIsoDate } from "./corpusValidation";
 import { resolveResponseLanguage } from "./language";
-import type { GroundedModel } from "./model";
+import type { GroundedDraft, GroundedModel } from "./model";
 
 export function unknownAnswer(language: Language): AskResponse {
   return { status: "unknown", language, answer: copy.chat.unknown[language], citations: [] };
@@ -52,6 +52,53 @@ function rejectedQuestionStage(
   return undefined;
 }
 
+function resolveCitedEvidence(
+  corpus: readonly CanonicalEvidence[],
+  sourceIds: readonly string[],
+): CanonicalEvidence[] {
+  const sourcesById = new Map(corpus.map((source) => [source.sourceId, source]));
+  return sourceIds.flatMap((sourceId) => {
+    const source = sourcesById.get(sourceId);
+    return source ? [source] : [];
+  });
+}
+
+async function verifyDraft({
+  model,
+  draft,
+  evidence,
+  history,
+  language,
+  question,
+  safetyIdentifier,
+}: {
+  model: GroundedModel;
+  draft: GroundedDraft;
+  evidence: readonly CanonicalEvidence[];
+  history: readonly ConversationTurn[];
+  language: Language;
+  question: string;
+  safetyIdentifier?: string;
+}): Promise<boolean> {
+  const verification = await model.verify({
+    answer: draft.answer,
+    evidence,
+    history: draft.resolvedQuestion ? [] : history,
+    language,
+    question: draft.resolvedQuestion ?? question,
+    ...(safetyIdentifier ? { safetyIdentifier } : {}),
+  });
+  if (verification.answersQuestion && verification.supported && verification.languageMatches) {
+    return true;
+  }
+
+  console.warn(
+    "grounded_answer_rejected",
+    JSON.stringify({ stage: "verification", ...verification }),
+  );
+  return false;
+}
+
 export function createAnswerService({ model }: { model: GroundedModel }) {
   return async function answerQuestion({
     question,
@@ -88,11 +135,7 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
         return unknownAnswer(language);
       }
 
-      const sourcesById = new Map(corpus.map((source) => [source.sourceId, source]));
-      const citedEvidence = sourceIds.flatMap((sourceId) => {
-        const source = sourcesById.get(sourceId);
-        return source ? [source] : [];
-      });
+      const citedEvidence = resolveCitedEvidence(corpus, sourceIds);
       if (citedEvidence.length !== sourceIds.length) {
         console.warn(
           "grounded_answer_rejected",
@@ -107,23 +150,16 @@ export function createAnswerService({ model }: { model: GroundedModel }) {
 
       if (draft.verification !== "complete") {
         stage = "verification";
-        const verification = await model.verify({
-          answer: draft.answer,
+        const verified = await verifyDraft({
+          model,
+          draft,
           evidence: citedEvidence,
           history,
           language,
           question,
           ...safety,
         });
-
-        if (
-          !verification.answersQuestion ||
-          !verification.supported ||
-          !verification.languageMatches
-        ) {
-          console.warn("grounded_answer_rejected", JSON.stringify({ stage, ...verification }));
-          return unknownAnswer(language);
-        }
+        if (!verified) return unknownAnswer(language);
       }
 
       const citations = citedEvidence.map(({ sectionId, sourceId }) => ({

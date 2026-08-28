@@ -1,12 +1,5 @@
 import { z } from "zod";
-import {
-  evidenceJson,
-  groundedDraftSchema,
-  groundingDraftInstructions,
-  groundingVerificationInstructions,
-  groundingVerificationSchema,
-  languageName,
-} from "./groundingPrompt";
+import { createGroundedModel, type GroundedInferenceStage } from "./groundedModel";
 import type { GroundedModel } from "./model";
 import { ANSWER_MODEL, VERIFICATION_MODEL } from "./modelConfig";
 
@@ -75,44 +68,48 @@ function safetyParameter(safetyIdentifier: string | undefined): Record<string, s
   return safetyIdentifier ? { safety_identifier: safetyIdentifier } : {};
 }
 
+const stageConfiguration = {
+  resolution: {
+    model: ANSWER_MODEL,
+    maxOutputTokens: 120,
+    formatName: "resolved_question",
+  },
+  draft: {
+    model: ANSWER_MODEL,
+    maxOutputTokens: 700,
+    formatName: "grounded_answer",
+  },
+  verification: {
+    model: VERIFICATION_MODEL,
+    maxOutputTokens: 300,
+    formatName: "grounding_verification",
+  },
+} satisfies Record<
+  GroundedInferenceStage,
+  { model: string; maxOutputTokens: number; formatName: string }
+>;
+
 export function createOpenAIModel(
   apiKey: string,
   responses: ResponsesClient = createOpenAIResponsesClient(apiKey),
 ): GroundedModel {
-  return {
+  return createGroundedModel({
     safetyIdentifierSupport: "provider",
-    async draft({ corpus, history = [], language, question, safetyIdentifier }) {
+    async run(request) {
+      const configuration = stageConfiguration[request.stage];
       const response = await responses.parse({
-        model: ANSWER_MODEL,
+        model: configuration.model,
         store: false,
         reasoning: { effort: "low" },
-        max_output_tokens: 700,
+        max_output_tokens: configuration.maxOutputTokens,
         moderation: MODERATION,
-        instructions: groundingDraftInstructions(),
-        input: `APPROVED_CORPUS:\n${evidenceJson(corpus)}\n\nRESPONSE_LANGUAGE:\nWrite the complete answer in ${languageName(language)}.\n\nQUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}`,
-        text: { format: jsonSchemaFormat(groundedDraftSchema, "grounded_answer") },
-        ...safetyParameter(safetyIdentifier),
+        instructions: request.instructions,
+        input: request.context ? `${request.context}\n\n${request.input}` : request.input,
+        text: { format: jsonSchemaFormat(request.schema, configuration.formatName) },
+        ...safetyParameter(request.safetyIdentifier),
       });
 
-      return groundedDraftSchema.parse(response.output_parsed);
+      return { value: request.schema.parse(response.output_parsed) };
     },
-
-    async verify({ answer, evidence, history = [], language, question, safetyIdentifier }) {
-      const response = await responses.parse({
-        model: VERIFICATION_MODEL,
-        store: false,
-        reasoning: { effort: "low" },
-        max_output_tokens: 300,
-        moderation: MODERATION,
-        instructions: groundingVerificationInstructions(language),
-        input: `USER_QUESTION:\n${question}\n\nCONVERSATION_CONTEXT_NOT_EVIDENCE:\n${JSON.stringify(history)}\n\nANSWER:\n${answer}\n\nCITATIONS_RENDERED_BY_APPLICATION:\n${JSON.stringify(evidence.map(({ sourceId }) => sourceId))}\n\nAPPROVED_EVIDENCE:\n${evidenceJson(evidence)}`,
-        text: {
-          format: jsonSchemaFormat(groundingVerificationSchema, "grounding_verification"),
-        },
-        ...safetyParameter(safetyIdentifier),
-      });
-
-      return groundingVerificationSchema.parse(response.output_parsed);
-    },
-  };
+  });
 }

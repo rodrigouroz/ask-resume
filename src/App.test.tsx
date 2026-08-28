@@ -387,6 +387,27 @@ describe("configured profile public interface", () => {
     },
   );
 
+  it("offers direct contact after a grounded answer", async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    const input = screen.getByRole("textbox", {
+      name: english.chat.placeholder.en,
+    });
+    await user.type(
+      input,
+      `What has ${profile.identity.firstName} worked on at ${firstExperience.company}?`,
+    );
+    await user.click(screen.getByRole("button", { name: english.chat.send.en }));
+
+    await screen.findByText("A grounded test answer.");
+    const assistant = screen.getByRole("complementary", { name: english.chat.title.en });
+    expect(within(assistant).getByRole("link", { name: english.chat.contact.en })).toHaveAttribute(
+      "href",
+      `mailto:${profile.contact.email}`,
+    );
+  });
+
   it("opens a cited answer from an experience action", async () => {
     const user = userEvent.setup();
     render(<App />);
@@ -412,7 +433,7 @@ describe("configured profile public interface", () => {
 
     expect(await screen.findByText(english.chat.unknown.en)).toBeInTheDocument();
     const assistant = screen.getByRole("complementary", { name: english.chat.title.en });
-    expect(within(assistant).getByRole("link", { name: profile.contact.email })).toHaveAttribute(
+    expect(within(assistant).getByRole("link", { name: english.chat.contact.en })).toHaveAttribute(
       "href",
       `mailto:${profile.contact.email}`,
     );

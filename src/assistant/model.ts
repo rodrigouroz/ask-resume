@@ -2,6 +2,7 @@ import type { Language } from "../content";
 import type { CanonicalEvidence, ConversationTurn } from "./contracts";
 
 export type GroundedDraft = {
+  resolvedQuestion?: string;
   answer: string;
   sourceIds: string[];
   verification?: "complete";

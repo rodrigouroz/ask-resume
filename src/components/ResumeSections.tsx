@@ -232,7 +232,7 @@ export function AboutSection({ language }: Pick<SectionProps, "language">) {
           <div className="education-grid">
             {education.map((item) => (
               <article key={item.id}>
-                <h3>{item.title}</h3>
+                <h3>{text(item.title)}</h3>
                 <p>{text(item.detail)}</p>
               </article>
             ))}

@@ -84,7 +84,7 @@ export function AtsResume({ language }: { language: Language }) {
           <h2 id="ats-education-title">{text(copy.sections.education)}</h2>
           {education.map((item) => (
             <article key={item.id}>
-              <h3>{item.title}</h3>
+              <h3>{text(item.title)}</h3>
               <p>{text(item.detail)}</p>
             </article>
           ))}

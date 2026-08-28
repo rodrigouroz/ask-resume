@@ -260,7 +260,10 @@
     "education": [
       {
         "id": "education-1",
-        "title": "Computer Engineering · Universidad del Litoral",
+        "title": {
+          "en": "Computer Engineering · Universidad del Litoral",
+          "es": "Ingeniería Informática · Universidad del Litoral"
+        },
         "detail": {
           "en": "Fictional degree · 2018",
           "es": "Título ficticio · 2018"
@@ -268,7 +271,10 @@
       },
       {
         "id": "education-2",
-        "title": "Inclusive Design · Escuela Abierta",
+        "title": {
+          "en": "Inclusive Design · Escuela Abierta",
+          "es": "Diseño inclusivo · Escuela Abierta"
+        },
         "detail": {
           "en": "Fictional postgraduate program · 2021",
           "es": "Posgrado ficticio · 2021"

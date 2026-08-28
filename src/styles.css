@@ -1761,23 +1761,8 @@ button {
     text-align: left;
   }
 
-  html[data-profile-length="long"] #capabilities {
-    break-before: page;
-  }
-
   #capabilities {
     padding-top: 0;
-  }
-
-  html[data-profile-length="long"] #capabilities::before {
-    content: var(--print-identity);
-    display: block;
-    margin-bottom: 1rem;
-    color: var(--muted);
-    font-size: 7.2pt;
-    font-weight: 650;
-    letter-spacing: 0.04em;
-    text-align: center;
   }
 
   .capability-grid {

@@ -66,6 +66,7 @@ try {
     await page.pdf({
       path: document.path,
       format: "A4",
+      pageRanges: `1-${profile.pdf.pagePolicy.max}`,
       outline: true,
       printBackground: true,
       preferCSSPageSize: true,

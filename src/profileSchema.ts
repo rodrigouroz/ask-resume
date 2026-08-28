@@ -128,7 +128,7 @@ const profileSchema = z.object({
       .default([]),
     education: z
       .array(
-        z.object({ id: identifierSchema, title: z.string().min(1), detail: localizedTextSchema }),
+        z.object({ id: identifierSchema, title: localizedTextSchema, detail: localizedTextSchema }),
       )
       .default([]),
     careerNote: localizedTextSchema,

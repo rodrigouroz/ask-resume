@@ -23,8 +23,8 @@ const promptExtractionPatterns = [
 ];
 
 const privateDataRequestPatterns = [
-  /\b(?:show|list|reveal|expose|give|provide)\b[\s\S]{0,80}\b(?:private repositor(?:y|ies)|secrets?|passwords?|tokens?|api keys?)\b/iu,
-  /\b(?:mostrame|mostr[aá]|muestra|mu[eé]strame|lista|list[aá]|revela|revel[aá]|expone|expon[eé]|dame|provee|prove[eé])(?=\s|$|[.,;:!?])[\s\S]{0,80}\b(?:repositorios? privados?|secretos?|contraseñas?|tokens?|claves? de api)\b/iu,
+  /\b(?:access|browse|inspect|list|provide|read|reveal|search|show|expose|give)\b[\s\S]{0,80}\b(?:private repositor(?:y|ies)|secrets?|passwords?|tokens?|api keys?)\b/iu,
+  /\b(?:accede|acced[eé]|busca|busc[aá]|dame|expone|expon[eé]|inspecciona|inspeccion[aá]|lee|le[eé]|lista|list[aá]|mostrame|mostr[aá]|muestra|mu[eé]strame|provee|prove[eé]|revisa|revis[aá]|revela|revel[aá])(?=\s|$|[.,;:!?])[\s\S]{0,80}\b(?:repositorios? privados?|secretos?|contraseñas?|tokens?|claves? de api)\b/iu,
 ];
 
 function normalizeForSafetyMatch(question: string): string {

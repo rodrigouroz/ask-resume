@@ -62,8 +62,8 @@ describe("Workers AI grounded model", () => {
     const calls = run.mock.calls as unknown as [string, Record<string, unknown>, unknown][];
     const [resolutionModelName, resolutionInput] = calls[0] ?? [];
     expect(resolutionModelName).toBe("@cf/google/gemma-4-26b-a4b-it");
+    expect(resolutionInput).not.toHaveProperty("reasoning_effort");
     expect(resolutionInput).toMatchObject({
-      reasoning_effort: "low",
       chat_template_kwargs: { enable_thinking: false },
       max_completion_tokens: 80,
       messages: [
@@ -150,7 +150,9 @@ describe("Workers AI grounded model", () => {
 
     const calls = run.mock.calls as unknown as [string, Record<string, unknown>][];
     expect(calls[0]?.[0]).toBe("@cf/google/gemma-4-26b-a4b-it");
+    expect(calls[0]?.[1]).not.toHaveProperty("reasoning_effort");
     expect(calls[0]?.[1]).toMatchObject({
+      chat_template_kwargs: { enable_thinking: false },
       max_completion_tokens: 80,
       messages: [
         { role: "system", content: expect.any(String) },
@@ -290,6 +292,10 @@ describe("Workers AI grounded model", () => {
         "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
       ]);
       expect(PREMIUM_WORKERS_AI_MODEL).toBe("@cf/deepseek-ai/deepseek-v4.1-flash-1017");
+      expect(run.mock.calls[0]?.[1]).toMatchObject({
+        reasoning_effort: "low",
+        chat_template_kwargs: { enable_thinking: false },
+      });
       expect(log).toHaveBeenCalledOnce();
       expect(log).toHaveBeenCalledWith(
         "workers_ai_model_selected",

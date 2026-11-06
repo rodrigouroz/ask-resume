@@ -14,7 +14,8 @@ import {
   type WorkersAIModelSelection,
 } from "./workersAiSelection";
 
-const CONTEXT_RESOLUTION_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const GEMMA_WORKERS_AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const CONTEXT_RESOLUTION_MODEL = GEMMA_WORKERS_AI_MODEL;
 
 function workersAIErrorCode(error: unknown): number | undefined {
   if (typeof error === "object" && error !== null && "code" in error) {
@@ -352,7 +353,7 @@ export function createWorkersAIModel(
             messages: messages(request),
             max_completion_tokens: configuration.maxCompletionTokens,
             chat_template_kwargs: { enable_thinking: false },
-            reasoning_effort: "low",
+            ...(model === GEMMA_WORKERS_AI_MODEL ? {} : { reasoning_effort: "low" }),
             response_format: responseFormats[request.stage],
             store: false,
             temperature: 0,

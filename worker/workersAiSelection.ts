@@ -1,6 +1,7 @@
 export const AUTO_WORKERS_AI_MODEL = "auto";
-export const PREMIUM_WORKERS_AI_MODEL = "@cf/deepseek-ai/deepseek-v4-flash-0731";
+export const PREMIUM_WORKERS_AI_MODEL = "@cf/deepseek-ai/deepseek-v4.1-flash-1017";
 export const FREE_WORKERS_AI_MODEL = "@cf/zai-org/glm-4.7-flash";
+const RETIRED_PREMIUM_WORKERS_AI_MODEL = "@cf/deepseek-ai/deepseek-v4-flash-0731";
 const WORKERS_AI_SELECTION_TTL_MS = 6 * 60 * 60 * 1_000;
 
 export type ResolvedWorkersAIModel = typeof PREMIUM_WORKERS_AI_MODEL | typeof FREE_WORKERS_AI_MODEL;
@@ -19,6 +20,14 @@ export type PersistedWorkersAIModelSelection = {
 
 export function isResolvedWorkersAIModel(value: unknown): value is ResolvedWorkersAIModel {
   return value === PREMIUM_WORKERS_AI_MODEL || value === FREE_WORKERS_AI_MODEL;
+}
+
+export function acceptedWorkersAIModel(value: unknown): ResolvedWorkersAIModel | undefined {
+  if (value === PREMIUM_WORKERS_AI_MODEL || value === RETIRED_PREMIUM_WORKERS_AI_MODEL) {
+    return PREMIUM_WORKERS_AI_MODEL;
+  }
+  if (value === FREE_WORKERS_AI_MODEL) return FREE_WORKERS_AI_MODEL;
+  return undefined;
 }
 
 export function createWorkersAISelectionLoader(selection: WorkersAIModelSelection) {
@@ -40,13 +49,14 @@ export function createWorkersAISelectionLoader(selection: WorkersAIModelSelectio
 
       try {
         const stored = await stub.getWorkersAIModelSelection();
+        const model = acceptedWorkersAIModel(stored?.model);
         if (
           stored &&
-          isResolvedWorkersAIModel(stored.model) &&
+          model &&
           Number.isFinite(stored.checkedAt) &&
           stored.checkedAt + WORKERS_AI_SELECTION_TTL_MS > Date.now()
         ) {
-          selection.resolvedModel = stored.model;
+          selection.resolvedModel = model;
           selection.expiresAt = stored.checkedAt + WORKERS_AI_SELECTION_TTL_MS;
         } else {
           delete selection.resolvedModel;

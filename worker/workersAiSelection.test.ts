@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  acceptedWorkersAIModel,
   createWorkersAISelectionLoader,
   FREE_WORKERS_AI_MODEL,
+  isResolvedWorkersAIModel,
   PREMIUM_WORKERS_AI_MODEL,
   type WorkersAIModelSelection,
 } from "./workersAiSelection";
@@ -64,6 +66,35 @@ describe("Workers AI model selection persistence", () => {
     } finally {
       error.mockRestore();
     }
+  });
+
+  it("reads a stored retired premium id as the current premium without writing", async () => {
+    const checkedAt = Date.now();
+    const retired = "@cf/deepseek-ai/deepseek-v4-flash-0731";
+    const getWorkersAIModelSelection = vi.fn<() => Promise<{ model: string; checkedAt: number }>>(
+      async () => ({ model: retired, checkedAt }),
+    );
+    const setWorkersAIModelSelection = vi.fn<(model: string) => Promise<void>>(
+      async () => undefined,
+    );
+    const selection: WorkersAIModelSelection = {};
+    const load = createWorkersAISelectionLoader(selection);
+    const env = {
+      ASK_DAILY_BUDGET: {
+        getByName: () => ({ getWorkersAIModelSelection, setWorkersAIModelSelection }),
+      },
+    } as unknown as Env;
+
+    await load(env);
+
+    expect(selection.resolvedModel).toBe("@cf/deepseek-ai/deepseek-v4.1-flash-1017");
+    expect(selection.expiresAt).toBe(checkedAt + SIX_HOURS_MS);
+    expect(setWorkersAIModelSelection).not.toHaveBeenCalled();
+    expect(isResolvedWorkersAIModel(retired)).toBe(false);
+    expect(acceptedWorkersAIModel(retired)).toBe(PREMIUM_WORKERS_AI_MODEL);
+    expect(acceptedWorkersAIModel(PREMIUM_WORKERS_AI_MODEL)).toBe(PREMIUM_WORKERS_AI_MODEL);
+    expect(acceptedWorkersAIModel(FREE_WORKERS_AI_MODEL)).toBe(FREE_WORKERS_AI_MODEL);
+    expect(acceptedWorkersAIModel("@cf/zai-org/glm-5.3")).toBeUndefined();
   });
 
   it("expires a persisted choice so account access can be evaluated again", async () => {

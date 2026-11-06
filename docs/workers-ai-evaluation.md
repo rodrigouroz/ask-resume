@@ -4,9 +4,9 @@ Latest provider run: 2026-08-27. DeepSeek V4 Flash completed the hardened curren
 
 ## Contract under test
 
-Workers AI uses the same `GroundedModel`, complete approved corpus, bilingual response contract, source-ID validation, and fail-closed fallback as the OpenAI control. Paid accounts use one structured DeepSeek V4 Flash inference followed by deterministic schema and source-ID validation. Free accounts keep the GLM-4.7 draft-then-verify flow. The implementation calls `env.AI.run()`, disables provider storage, uses structured JSON output, and supplies stable stage-specific session affinity so Cloudflare can reuse the static corpus prefix when prompt caching is available.
+Workers AI uses the same `GroundedModel`, complete approved corpus, bilingual response contract, source-ID validation, and fail-closed fallback as the OpenAI control. Paid accounts use one structured DeepSeek V4.1 Flash inference followed by deterministic schema and source-ID validation. Free accounts keep the GLM-4.7 draft-then-verify flow. Follow-up questions are rewritten by Gemma 4 26B A4B before the draft. The implementation calls `env.AI.run()`, disables provider storage, uses structured JSON output, and supplies stable stage-specific session affinity so Cloudflare can reuse the static corpus prefix when prompt caching is available.
 
-Cloudflare makes Workers AI available on both Free and Paid Workers plans. The Free plan includes 10,000 neurons per account per day and cannot buy overage without upgrading. DeepSeek V4 Flash and GLM-5.3 require Workers Paid or prepaid AI Gateway credits, while GLM-4.7, Gemma 4, GPT-OSS 120B, and Qwen3 30B are eligible for the free allocation. Workers AI JSON mode is best-effort, so the adapter still validates every envelope and structured result and fails closed on malformed output.
+Cloudflare makes Workers AI available on both Free and Paid Workers plans. The Free plan includes 10,000 neurons per account per day and cannot buy overage without upgrading. DeepSeek V4.1 Flash requires Workers Paid or prepaid AI Gateway credits, as the retired DeepSeek V4 Flash model did. GLM-4.7 and Gemma 4 remain eligible for the free allocation. Workers AI JSON mode is best-effort, so the adapter still validates every envelope and structured result and fails closed on malformed output.
 
 - [Workers AI binding guide](https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/)
 - [Workers AI JSON mode](https://developers.cloudflare.com/workers-ai/features/json-mode/)
@@ -15,22 +15,25 @@ Cloudflare makes Workers AI available on both Free and Paid Workers plans. The F
 - [Gemma 4 26B A4B](https://developers.cloudflare.com/workers-ai/models/gemma-4-26b-a4b-it/)
 - [GLM-5.3 Flash](https://developers.cloudflare.com/workers-ai/models/glm-5.3-flash/)
 - [DeepSeek V4 Flash](https://developers.cloudflare.com/workers-ai/models/deepseek-v4-flash-0731/)
+- [DeepSeek V4.1 Flash](https://developers.cloudflare.com/workers-ai/models/deepseek-v4.1-flash-1017/)
+- [Planned model deprecations, November 20, 2026](https://developers.cloudflare.com/changelog/post/2026-11-05-planned-model-deprecations/)
 - [Prompt caching](https://developers.cloudflare.com/workers-ai/features/prompt-caching/)
 
 ## Accepted result
 
-| Model                                    | Plan eligibility | Recorded evaluation | Result under the previous gate                                                    | Decision                  |
-| ---------------------------------------- | ---------------- | ------------------: | --------------------------------------------------------------------------------- | ------------------------- |
-| `@cf/zai-org/glm-4.7-flash`              | Free allocation  |               30/30 | Passed the recorded bilingual, grounding, negative, privacy, and injection cases  | Automatic free fallback   |
-| `@cf/google/gemma-4-26b-a4b-it`          | Free allocation  |           4/4 smoke | Passed representative English, Spanish, grounding, and unsupported cases          | Free runner-up            |
-| `@cf/openai/gpt-oss-120b`                | Free allocation  |           2/4 smoke | One grounded answer passed; two supported cases hit provider errors and fell back | Rejected for this starter |
-| `@cf/qwen/qwen3-30b-a3b-fp8`             | Free allocation  |           1/4 smoke | Returned reasoning without usable structured content for three supported cases    | Rejected for this starter |
-| `@cf/zai-org/glm-5.3-flash`              | Paid or prepaid  |               30/30 | Passed the same previous 30-case gate                                             | Historical paid candidate |
-| `@cf/deepseek-ai/deepseek-v4-flash-0731` | Paid or prepaid  |       33/33 current | Passed the hardened gate with a single model inference per supported request      | Automatic paid preference |
+| Model                                      | Plan eligibility | Recorded evaluation | Result under the previous gate                                                    | Decision                  |
+| ------------------------------------------ | ---------------- | ------------------: | --------------------------------------------------------------------------------- | ------------------------- |
+| `@cf/zai-org/glm-4.7-flash`                | Free allocation  |               30/30 | Passed the recorded bilingual, grounding, negative, privacy, and injection cases  | Automatic free fallback   |
+| `@cf/google/gemma-4-26b-a4b-it`            | Free allocation  |           4/4 smoke | Passed representative English, Spanish, grounding, and unsupported cases          | Follow-up resolution      |
+| `@cf/openai/gpt-oss-120b`                  | Free allocation  |           2/4 smoke | One grounded answer passed; two supported cases hit provider errors and fell back | Rejected for this starter |
+| `@cf/qwen/qwen3-30b-a3b-fp8`               | Free allocation  |           1/4 smoke | Returned reasoning without usable structured content for three supported cases    | Rejected for this starter |
+| `@cf/zai-org/glm-5.3-flash`                | Paid or prepaid  |               30/30 | Passed the same previous 30-case gate                                             | Historical paid candidate |
+| `@cf/deepseek-ai/deepseek-v4-flash-0731`   | Paid or prepaid  | 33/33 on 2026-08-27 | Passed the hardened gate with a single model inference per supported request      | Retired November 20, 2026 |
+| `@cf/deepseek-ai/deepseek-v4.1-flash-1017` | Paid or prepaid  |          Not re-run | Same message, JSON, and low-reasoning contract. Published price is lower.         | Automatic paid preference |
 
 ## Automatic selection
 
-The starter stores `workersAiModel: "auto"`. When no fresh capability decision exists, the next model-backed request tries DeepSeek V4 Flash. Cloudflare documents internal error `5035` specifically for a model that requires Workers Paid; only that error activates GLM-4.7 and retries the same operation. The selected model and check time are stored in a singleton instance of the existing Durable Object for six hours. Warm requests reuse it in memory, while new Worker isolates read the same persisted choice before inference and therefore do not probe the paid model again. Once the TTL expires, access is evaluated again so a plan upgrade is discovered without redeployment.
+The starter stores `workersAiModel: "auto"`. When no fresh capability decision exists, the next model-backed request tries DeepSeek V4.1 Flash. Cloudflare documents internal error `5035` specifically for a model that requires Workers Paid; only that error activates GLM-4.7 and retries the same operation. The selected model and check time are stored in a singleton instance of the existing Durable Object for six hours. Warm requests reuse it in memory, while new Worker isolates read the same persisted choice before inference and therefore do not probe the paid model again. A stored `@cf/deepseek-ai/deepseek-v4-flash-0731` choice is read as DeepSeek V4.1 Flash and is not written back. Once the TTL expires, access is evaluated again so a plan upgrade is discovered without redeployment.
 
 The router does not treat `3036` (free allocation exhausted), `3040` (capacity), timeouts, malformed output, or generic provider failures as evidence of a Free account. Those paths continue to fail closed instead of silently changing the quality contract. Operators can pin any supported model ID in the profile when deterministic selection is preferable.
 
@@ -50,7 +53,9 @@ DeepSeek V4 Flash initially completed 31/33 cases in the two-stage pipeline. One
 
 The final single-inference run passed 33/33 cases. Across its 31 model-backed calls, recorded inference latency was 0.82 seconds minimum, 1.40 seconds p50, 11.67 seconds p95, 17.06 seconds maximum, and 2.51 seconds mean. The static prompt prefix reported 7,680 cached tokens after the cold request. These are isolated measurements, not a provider latency guarantee.
 
-With automatic model selection, paid accounts use DeepSeek V4 Flash once per supported request. Free accounts use GLM-4.7 for both draft and verification. An explicitly pinned non-default model continues to use the conservative two-stage path. The shared prompts explicitly reject substituting a related fact for a missing requested attribute, such as availability for a customer count.
+With automatic model selection, paid accounts use DeepSeek V4.1 Flash once per supported request. Free accounts use GLM-4.7 for both draft and verification. An explicitly pinned non-default model continues to use the conservative two-stage path. A pin of the retired DeepSeek V4 Flash id uses V4.1 Flash. The shared prompts explicitly reject substituting a related fact for a missing requested attribute, such as availability for a customer count.
+
+Follow-up resolution and an explicit Gemma pin call `@cf/google/gemma-4-26b-a4b-it` with the same messages, JSON schema, and `chat_template_kwargs.enable_thinking: false`. Those calls omit `reasoning_effort` because Gemma's published sync schema does not define it. DeepSeek V4.1 Flash still sends `reasoning_effort: "low"`. GLM-4.7 still sends `reasoning_effort: "low"`. Cloudflare retires `@cf/meta/llama-3.2-3b-instruct` on November 20, 2026. On the [Workers AI pricing page](https://developers.cloudflare.com/workers-ai/platform/pricing/), Gemma 4 is $0.100 per million input tokens and $0.300 per million output tokens (9,091 and 27,273 neurons). Llama 3.2 3B is $0.051 and $0.335 (4,625 and 30,475 neurons). Both stay on the free daily allocation. `@cf/qwen/qwen3.8-27b` stays unused. Its published price is $0.450 and $3.200 per million tokens, and its default reasoning effort is `xhigh`. `@cf/zai-org/glm-5.3` stays unused for the paid draft. Its schema keeps reasoning enabled, and its published price is $1.400 and $4.400 per million tokens. The 33/33 result above is the retired DeepSeek V4 Flash run. DeepSeek V4.1 Flash and Gemma 4 have no new live gate.
 
 ## Hardened current gate
 

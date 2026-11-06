@@ -6,6 +6,7 @@ import {
 } from "../src/assistant/groundedModel";
 import type { GroundedModel } from "../src/assistant/model";
 import {
+  acceptedWorkersAIModel,
   AUTO_WORKERS_AI_MODEL,
   FREE_WORKERS_AI_MODEL,
   PREMIUM_WORKERS_AI_MODEL,
@@ -13,7 +14,8 @@ import {
   type WorkersAIModelSelection,
 } from "./workersAiSelection";
 
-const CONTEXT_RESOLUTION_MODEL = "@cf/meta/llama-3.2-3b-instruct";
+const GEMMA_WORKERS_AI_MODEL = "@cf/google/gemma-4-26b-a4b-it";
+const CONTEXT_RESOLUTION_MODEL = GEMMA_WORKERS_AI_MODEL;
 
 function workersAIErrorCode(error: unknown): number | undefined {
   if (typeof error === "object" && error !== null && "code" in error) {
@@ -272,8 +274,10 @@ function createSelectedModelRunner(
   selection: WorkersAIModelSelection,
 ): SelectedModelRunner {
   function preferredModel(): string {
-    if (configuredModel !== AUTO_WORKERS_AI_MODEL) return configuredModel;
-    return selection.resolvedModel ?? PREMIUM_WORKERS_AI_MODEL;
+    if (configuredModel === AUTO_WORKERS_AI_MODEL) {
+      return acceptedWorkersAIModel(selection.resolvedModel) ?? PREMIUM_WORKERS_AI_MODEL;
+    }
+    return acceptedWorkersAIModel(configuredModel) ?? configuredModel;
   }
 
   function logSelection(model: string, reason: "paid_access" | "paid_plan_required" | "persisted") {
@@ -349,7 +353,7 @@ export function createWorkersAIModel(
             messages: messages(request),
             max_completion_tokens: configuration.maxCompletionTokens,
             chat_template_kwargs: { enable_thinking: false },
-            reasoning_effort: "low",
+            ...(model === GEMMA_WORKERS_AI_MODEL ? {} : { reasoning_effort: "low" }),
             response_format: responseFormats[request.stage],
             store: false,
             temperature: 0,

@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import {
+  acceptedWorkersAIModel,
   isResolvedWorkersAIModel,
   type PersistedWorkersAIModelSelection,
   type ResolvedWorkersAIModel,
@@ -20,11 +21,9 @@ export class AskDailyBudget extends DurableObject<Env> {
   // The object name isolates this value from daily budget counters.
   // fallow-ignore-next-line unused-class-member -- invoked through Durable Object RPC stubs.
   getWorkersAIModelSelection(): PersistedWorkersAIModelSelection | undefined {
-    const model = this.ctx.storage.kv.get<unknown>("workersAiModel");
+    const model = acceptedWorkersAIModel(this.ctx.storage.kv.get<unknown>("workersAiModel"));
     const checkedAt = this.ctx.storage.kv.get<unknown>("workersAiModelCheckedAt");
-    return isResolvedWorkersAIModel(model) && typeof checkedAt === "number"
-      ? { model, checkedAt }
-      : undefined;
+    return model && typeof checkedAt === "number" ? { model, checkedAt } : undefined;
   }
 
   // fallow-ignore-next-line unused-class-member -- invoked through Durable Object RPC stubs.

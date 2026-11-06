@@ -6,6 +6,7 @@ import {
   AUTO_WORKERS_AI_MODEL,
   FREE_WORKERS_AI_MODEL,
   PREMIUM_WORKERS_AI_MODEL,
+  type ResolvedWorkersAIModel,
 } from "./workersAiSelection";
 
 const corpus = getCurrentAssistantCorpus("2026-08-25");
@@ -60,9 +61,9 @@ describe("Workers AI grounded model", () => {
     expect(run).toHaveBeenCalledTimes(2);
     const calls = run.mock.calls as unknown as [string, Record<string, unknown>, unknown][];
     const [resolutionModelName, resolutionInput] = calls[0] ?? [];
-    expect(resolutionModelName).toBe("@cf/meta/llama-3.2-3b-instruct");
+    expect(resolutionModelName).toBe("@cf/google/gemma-4-26b-a4b-it");
+    expect(resolutionInput).not.toHaveProperty("reasoning_effort");
     expect(resolutionInput).toMatchObject({
-      reasoning_effort: "low",
       chat_template_kwargs: { enable_thinking: false },
       max_completion_tokens: 80,
       messages: [
@@ -130,7 +131,7 @@ describe("Workers AI grounded model", () => {
     const { ai, run } = aiWithResponses([
       JSON.stringify({ answersQuestion: true, languageMatches: true, supported: true }),
     ]);
-    const model = createWorkersAIModel(ai, "@cf/zai-org/glm-5.3-flash", "test-profile");
+    const model = createWorkersAIModel(ai, "@cf/google/gemma-4-26b-a4b-it", "test-profile");
 
     await expect(
       model.verify({
@@ -148,8 +149,10 @@ describe("Workers AI grounded model", () => {
     ).resolves.toEqual({ answersQuestion: true, languageMatches: true, supported: true });
 
     const calls = run.mock.calls as unknown as [string, Record<string, unknown>][];
-    expect(calls[0]?.[0]).toBe("@cf/zai-org/glm-5.3-flash");
+    expect(calls[0]?.[0]).toBe("@cf/google/gemma-4-26b-a4b-it");
+    expect(calls[0]?.[1]).not.toHaveProperty("reasoning_effort");
     expect(calls[0]?.[1]).toMatchObject({
+      chat_template_kwargs: { enable_thinking: false },
       max_completion_tokens: 80,
       messages: [
         { role: "system", content: expect.any(String) },
@@ -285,7 +288,14 @@ describe("Workers AI grounded model", () => {
       });
       expect(draft.verification).toBe("complete");
 
-      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([PREMIUM_WORKERS_AI_MODEL]);
+      expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
+        "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
+      ]);
+      expect(PREMIUM_WORKERS_AI_MODEL).toBe("@cf/deepseek-ai/deepseek-v4.1-flash-1017");
+      expect(run.mock.calls[0]?.[1]).toMatchObject({
+        reasoning_effort: "low",
+        chat_template_kwargs: { enable_thinking: false },
+      });
       expect(log).toHaveBeenCalledOnce();
       expect(log).toHaveBeenCalledWith(
         "workers_ai_model_selected",
@@ -404,6 +414,57 @@ describe("Workers AI grounded model", () => {
     } finally {
       info.mockRestore();
     }
+  });
+
+  it("answers with the current premium model when storage still holds the retired id", async () => {
+    const retired = "@cf/deepseek-ai/deepseek-v4-flash-0731";
+    const { ai, run } = aiWithResponses([
+      JSON.stringify({
+        answer: `${profile.identity.name} has professional experience.`,
+        sourceIds: [primaryEvidence.sourceId],
+      }),
+    ]);
+    const persist = vi.fn<(model: string) => Promise<void>>(async () => undefined);
+    const model = createWorkersAIModel(ai, AUTO_WORKERS_AI_MODEL, "test-profile", {
+      resolvedModel: retired as ResolvedWorkersAIModel,
+      persist,
+    });
+
+    const draft = await model.draft({
+      corpus,
+      language: "en",
+      question: `Where does ${profile.identity.firstName} work?`,
+    });
+
+    expect(draft.verification).toBe("complete");
+    expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
+      "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
+    ]);
+    expect(JSON.stringify(run.mock.calls)).not.toContain(retired);
+    expect(persist).not.toHaveBeenCalled();
+  });
+
+  it("treats a configured retired premium id as the current premium model", async () => {
+    const retired = "@cf/deepseek-ai/deepseek-v4-flash-0731";
+    const { ai, run } = aiWithResponses([
+      JSON.stringify({
+        answer: `${profile.identity.name} has professional experience.`,
+        sourceIds: [primaryEvidence.sourceId],
+      }),
+    ]);
+    const model = createWorkersAIModel(ai, retired, "test-profile");
+
+    const draft = await model.draft({
+      corpus,
+      language: "en",
+      question: `Where does ${profile.identity.firstName} work?`,
+    });
+
+    expect(draft.verification).toBe("complete");
+    expect(run.mock.calls.map(([modelName]) => modelName)).toEqual([
+      "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
+    ]);
+    expect(JSON.stringify(run.mock.calls)).not.toContain(retired);
   });
 
   it("does not hide transient provider errors behind the free model", async () => {
